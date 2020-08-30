@@ -169,11 +169,18 @@ namespace CryptoNote
     size_t Currency::maxBlockCumulativeSize(uint64_t height) const
     {
         assert(height <= std::numeric_limits<uint64_t>::max() / m_maxBlockSizeGrowthSpeedNumerator);
-        size_t maxSize = static_cast<size_t>(
-            m_maxBlockSizeInitial
-            + (height * m_maxBlockSizeGrowthSpeedNumerator) / m_maxBlockSizeGrowthSpeedDenominator);
+	size_t maxSize = static_cast<size_t>(
+        m_maxBlockSizeInitial
+        + (height * m_maxBlockSizeGrowthSpeedNumerator) / m_maxBlockSizeGrowthSpeedDenominator);
         assert(maxSize >= m_maxBlockSizeInitial);
-        return maxSize;
+	if (height >= CryptoNote::parameters::MAX_BLOCK_SIZE_V1_HEIGHT)
+        {
+       	    return maxSize = CryptoNote::parameters::MAX_BLOCK_SIZE_V1;
+	}
+        else  
+        {
+            return maxSize;
+        }
     }
 
     bool Currency::constructMinerTx(
@@ -327,7 +334,7 @@ namespace CryptoNote
             inputAmount += amount;
         }
 
-        if (height >= CryptoNote::parameters::FUSION_FEE_V1_HEIGHT)
+        if (height >= CryptoNote::parameters::FUSION_FEE_V1_HEIGHT && height < CryptoNote::parameters::FUSION_FEE_V1_EXIT_HEIGHT)
         {
             inputAmount -= CryptoNote::parameters::FUSION_FEE_V1;
         }
