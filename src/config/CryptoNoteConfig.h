@@ -224,9 +224,9 @@ namespace CryptoNote
 
         const uint32_t UPGRADE_HEIGHT_V5 = 4; // Upgrade height for CN-Turtle Variant 2 switch.
 
-	const uint32_t UPGRADE_HEIGHT_V6 = 5; // Upgrade height for DIFFICULTY_TARGET_V3
+	const uint32_t UPGRADE_HEIGHT_V6 = 2325000; // Upgrade height for DIFFICULTY_TARGET_V3
     
-        const uint32_t UPGRADE_HEIGHT_V7 = 6; // Upgrade height for CN-UPX switch
+        const uint32_t UPGRADE_HEIGHT_V7 = 2420000; // Upgrade height for CN-UPX switch
 
         const uint32_t UPGRADE_HEIGHT_CURRENT = UPGRADE_HEIGHT_V7;
 
@@ -238,15 +238,15 @@ namespace CryptoNote
 
         /* Block heights we are going to have hard forks at */
         const uint64_t FORK_HEIGHTS[] = {
-            1, // 0
-            2, // 1
-            3, // 2
-	    4, // 3
-	    5, // 4
-	    6, // 5
-	    7, // 6
-	    420, // 7
-            6969, // 8
+            700000, // 0
+            1470000, // 1
+            1980000, // 2
+	    2325000, // 3
+	    2361823, // 4
+	    2370000, // 5
+	    2420000, // 6
+	    2450000, // 7
+            2480000, // 8
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
