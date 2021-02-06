@@ -206,10 +206,6 @@ namespace CryptoNote
 
         const size_t TX_MAX_POOL_COUNT = 60;
 
-        /* Pass tx fee pool - if you want your node handle only txs above certain node fee */
-
-        const uint64_t MINIMUM_FEE_PASS_LIMIT_TX_POOL = UINT64_C(1000000);
-
         /* We just set it output max to 90 */
         const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1  = 90;
 

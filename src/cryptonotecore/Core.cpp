@@ -1828,12 +1828,6 @@ namespace CryptoNote
             return {false, "Pool already contains the maximum amount of fusion transactions"};
         }
 
-        if (cachedTransaction.getTransactionFee() < CryptoNote::parameters::MINIMUM_FEE_PASS_LIMIT_TX_POOL
-            && transactionPool->getTransactionCount() >= CryptoNote::parameters::TX_MAX_POOL_COUNT)
-        {
-            return {false, "Pool already contains the maximum amount of transactions"};
-        }
-
         uint64_t fee;
         const uint64_t lastTimestamp = chainsLeaves[0]->getLastTimestamps(1)[0];
 
