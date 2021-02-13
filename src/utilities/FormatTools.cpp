@@ -101,7 +101,6 @@ namespace Utilities
             }
         }
 
-        /* Fix this later rewrite to if / else if / else to reflect initial DIFFICULTY_TARGET as well */
         const float days = (next_fork - height) /
                 (height >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT
                 ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V3
@@ -146,9 +145,12 @@ namespace Utilities
         }
 
 	const float days = static_cast<float>(next_fork - height) /
-		(height >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
-		 ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2
-		 : 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET);
+                (height >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT
+                    ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V3
+                    : height >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
+                        ? 24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2
+                        :CryptoNote::parameters::DIFFICULTY_TARGET);
+
 
         std::stringstream stream;
 
