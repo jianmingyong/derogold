@@ -31,10 +31,10 @@ If you are using Clang, you will need Clang 6.0 or higher. You will also need li
 - `sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y`
 - `sudo apt-get update`
 - `sudo apt-get install aptitude -y`
-- `sudo aptitude install -y build-essential g++-8 gcc-8 git libboost-all-dev python-pip libssl-dev`
+- `sudo aptitude install -y build-essential g++-9 gcc-9 git libboost-all-dev python-pip libssl-dev`
 - `sudo pip install cmake`
-- `export CC=gcc-8`
-- `export CXX=g++-8`
+- `export CC=gcc-9`
+- `export CXX=g++-9`
 - `git clone -b master --single-branch https://github.com/derogold/derogold`
 - `cd derogold`
 - `mkdir build`
@@ -54,14 +54,14 @@ The binaries will be in the `src` folder when you are complete.
 
 You need to modify the below command for your version of ubuntu - see https://apt.llvm.org/
 
-* Ubuntu 14.04 (Trusty)
-- `sudo add-apt-repository "deb https://apt.llvm.org/trusty/ llvm-toolchain-trusty 6.0 main"`
-
-* Ubuntu 16.04 (Xenial)
-- `sudo add-apt-repository "deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial 6.0 main"`
-
 * Ubuntu 18.04 (Bionic)
 - `sudo add-apt-repository "deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic 6.0 main"`
+
+* Ubuntu 19.04 (Disco)
+- `sudo add-apt-repository "deb https://apt.llvm.org/disco/ llvm-toolchain-disco 6.0 main"`
+
+* Ubuntu 20.04 (Focal)
+- `sudo add-apt-repository "deb https://apt.llvm.org/focal/ llvm-toolchain-focal 6.0 main"`
 
 - `sudo apt-get update`
 - `sudo apt-get install aptitude -y`
@@ -159,16 +159,19 @@ The binaries will be in the `src/Release` folder when you are complete.
 - `cd Release`
 - `DeroGoldd.exe --version`
 
-#### Raspberry Pi 3 B+ (AARCH64/ARM64)
-The following images are known to work. Your operation system image **MUST** be 64 bit.
+#### AARCH64/ARM64 (non-Raspberry)
+When building on latest Armbian supported for your board, follow linux GCC instructions above.
 
-##### Known working images
+##### Raspberry PI boards
+
+Make sure you use a full 64-bit image (kernel + userspace). Some of the earlier Raspbian builds were not full 64-bit
+The images below are known to be full 64-bit images for your Raspberry PI board 
 
 - https://github.com/Crazyhead90/pi64/releases
 - https://fedoraproject.org/wiki/Architectures/ARM/Raspberry_Pi#aarch64_supported_images_for_Raspberry_Pi_3
 - https://archlinuxarm.org/platforms/armv8/broadcom/raspberry-pi-3
 
-Once you have a 64 bit image installed, setup proceeds the same as any Linux distribution. Ensure you have at least 2GB of ram, or the build is likely to fail. You may need to setup swap space.
+Once you have a 64 bit image installed, setup proceeds the same as any Linux distribution. Ensure you have at least 1GB of ram, or the build is likely to fail. You may need to setup swap space and / or compile with `-j1` with `make`.
 
 ##### Building
 
@@ -176,7 +179,7 @@ Once you have a 64 bit image installed, setup proceeds the same as any Linux dis
 - `cd derogold`
 - `mkdir build`
 - `cd build`
-- `cmake -G "Visual Studio 16 2019" -A Win32 .. -DBOOST_ROOT=C:/local/boost_1_68_0`
+- `cmake -G "Visual Studio 16 2019" -A Win32 .. -DBOOST_ROOT=C:/local/boost_1_69_0`
 - `MSBuild TurtleCoin.sln /p:Configuration=Release /p:Platform=Win32 /m` 
 
 The binaries will be in the `src/Release` folder when you are complete.
@@ -185,11 +188,10 @@ The binaries will be in the `src/Release` folder when you are complete.
 - `./DeroGoldd --version`
 
 ##### Building with LevelDB
-Add this line to your cmake to compile source for LevelDB
-- `cmake .. -DCMAKE_BUILD_TYPE=Release -DWITH_LEVELDB=true`
+No need to add a flag anymore, both RocksDB and LevelDB backends are build. You can switch between them by using DeroGoldd command line option at the runtime.
 
 #### Thanks
-Cryptonote Developers, Bytecoin Developers, Monero Developers, Forknote Project, TurtleCoin Community
+Cryptonote Developers, Bytecoin Developers, Monero Developers, Forknote Project, TurtleCoin Developers
 
 ### Copypasta for license when editing files
 
