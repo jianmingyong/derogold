@@ -326,9 +326,9 @@ namespace CryptoNote
 
     // P2P Network Configuration Section - This defines our current P2P network version
     // and the minimum version for communication between nodes
-    const uint8_t P2P_CURRENT_VERSION = 6;
+    const uint8_t P2P_CURRENT_VERSION = 7;
 
-    const uint8_t P2P_MINIMUM_VERSION = 5;
+    const uint8_t P2P_MINIMUM_VERSION = 6;
 
     // This defines the minimum P2P version required for lite blocks propogation
     const uint8_t P2P_LITE_BLOCKS_PROPOGATION_VERSION = 0;
@@ -371,8 +371,8 @@ namespace CryptoNote
 
     const char* const SEED_NODES[] = {
         "195.154.81.135:12169", // bob bie
-        "135.181.23.12:42069", // Pluto
-        "91.239.237.54:42069", // Leo Cuvée CZ
+        "176.9.124.189:42069", // Pluto
+        "84.242.80.251:42069", // CuéeBits
         "46.214.70.196:42069", // derogold4ever.online
     };
 } // namespace CryptoNote
