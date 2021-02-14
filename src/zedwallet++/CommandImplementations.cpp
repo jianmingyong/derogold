@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2021, The DeroGold Developers
 // Portions Copyright (c) 2018-2019, The Catalyst Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //

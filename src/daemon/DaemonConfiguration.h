@@ -1,3 +1,4 @@
+// Copyright (c) 2018-2021, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2019, The CyprusCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
