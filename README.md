@@ -1,4 +1,4 @@
-![image](https://i.imgur.com/4FlvRAt.png){:width="50%"}
+![image](https://i.imgur.com/4FlvRAt.png){:width="20%"}
 
 ### Installing
 
