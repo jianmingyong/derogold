@@ -30,7 +30,6 @@ If you are using Clang, you will need Clang 6.0 or higher. You will also need li
 
 - `sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y`
 - `sudo apt update`
-- `sudo apt install aptitude -y`
 - `sudo apt install -y build-essential g++-9 gcc-9 git libboost-all-dev python-pip libssl-dev cmake`
 - `export CC=gcc-9`
 - `export CXX=g++-9`
