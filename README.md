@@ -1,4 +1,4 @@
-![image](https://i.imgur.com/4FlvRAt.png){:height="50%" width="20%"}
+<img src="https://i.imgur.com/4FlvRAt.png" width="100">
 
 ### Installing
 
