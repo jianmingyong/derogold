@@ -1,4 +1,4 @@
-<img src="https://i.imgur.com/4FlvRAt.png" width="100">
+<img src="https://i.imgur.com/4FlvRAt.png" width="200">
 
 ### Installing
 
