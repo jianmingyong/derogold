@@ -372,7 +372,7 @@ namespace CryptoNote
     const char* const SEED_NODES[] = {
         "195.154.81.135:12169", // bob bie
         "176.9.124.189:42069", // Pluto
-        "84.242.80.251:42069", // CuéeBits
+        "89.203.235.107:42069", // CuéeBits
         "46.214.70.196:42069", // derogold4ever.online
     };
 } // namespace CryptoNote
