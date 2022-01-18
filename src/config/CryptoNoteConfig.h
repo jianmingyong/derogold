@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2022, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -202,9 +202,9 @@ namespace CryptoNote
             at any given time. Incoming fusion transactions that attempt to exceed this limit
             will be rejected from the pool and will not be added. This mechanism is in place
             to help curtail fusion transaction spam. */
-        const size_t FUSION_TX_MAX_POOL_COUNT = 30;
+        const size_t FUSION_TX_MAX_POOL_COUNT = 130;
 
-        const size_t TX_MAX_POOL_COUNT = 60;
+        const size_t TX_MAX_POOL_COUNT = 260;
 
         /* We just set it output max to 90 */
         const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1  = 90;
@@ -244,7 +244,11 @@ namespace CryptoNote
 	    2450000, // 7
             2480000, // 8
             2500000, // 9
-            2600000, // 10
+            3000000, // 10
+            3500000, // 11
+            4000000, // 12
+            4500000, // 13
+            5000000, // 14
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
@@ -328,9 +332,9 @@ namespace CryptoNote
 
     // P2P Network Configuration Section - This defines our current P2P network version
     // and the minimum version for communication between nodes
-    const uint8_t P2P_CURRENT_VERSION = 7;
+    const uint8_t P2P_CURRENT_VERSION = 8;
 
-    const uint8_t P2P_MINIMUM_VERSION = 6;
+    const uint8_t P2P_MINIMUM_VERSION = 7;
 
     // This defines the minimum P2P version required for lite blocks propogation
     const uint8_t P2P_LITE_BLOCKS_PROPOGATION_VERSION = 0;
