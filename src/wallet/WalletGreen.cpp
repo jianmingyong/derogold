@@ -2785,13 +2785,10 @@ namespace CryptoNote
 
         if (transactionData.size() > maxTxSize)
         {
-            splitTX(walletBackend, address, amount, paymentID);
-        /* We no longer want to throw error, because we automatically split the transaction into smaller ones
             m_logger(ERROR, BRIGHT_RED) << "Transaction is too big. Transaction hash "
                                         << transaction.getTransactionHash() << ", size " << transactionData.size()
                                         << ", size limit " << maxTxSize;
             throw std::system_error(make_error_code(error::TRANSACTION_SIZE_TOO_BIG));
-        */
         }
 
         CryptoNote::Transaction cryptoNoteTransaction;

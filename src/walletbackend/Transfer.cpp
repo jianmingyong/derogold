@@ -376,8 +376,6 @@ namespace SendTransaction
 
         if (txSize > maxTxSize)
         {
-            splitTX(walletBackend, address, amount, paymentID);
-        /* We split the transaction to smaller chunks, therefore we no longer throw error
             std::stringstream errorMsg;
 
             errorMsg << "Transaction is too large: (" << Utilities::prettyPrintBytes(txSize)
@@ -386,7 +384,6 @@ namespace SendTransaction
                      << "fusion transactions.";
 
             return Error(TOO_MANY_INPUTS_TO_FIT_IN_BLOCK, errorMsg.str());
-        */
         }
 
         return SUCCESS;
