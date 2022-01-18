@@ -488,6 +488,7 @@ bool ValidateTransaction::validateTransactionExtra()
     return true;
 }
 
+/* we no longer want to check this, we've got TX PoW
 bool ValidateTransaction::validateInputOutputRatio()
 {
     if (m_isPoolTransaction || m_blockHeight >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT)
@@ -504,7 +505,7 @@ bool ValidateTransaction::validateInputOutputRatio()
     }
     return true;
 }
-
+*/
 
 bool ValidateTransaction::validateTransactionMixin()
 {
