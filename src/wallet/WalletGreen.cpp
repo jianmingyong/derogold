@@ -2800,14 +2800,13 @@ namespace CryptoNote
                 make_error_code(error::INTERNAL_WALLET_ERROR), "Failed to deserialize created transaction");
         }
 
-	/* We no longer want to check this after we activated TX PoW
+	/* We no longer want to check this after we activated TX PoW, transaction validation only enforces it until NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT */
         if (cryptoNoteTransaction.outputs.size() >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1 )
         {
             m_logger(ERROR, BRIGHT_RED) << "Transaction has an excessive number of outputs";
 
             throw std::system_error(make_error_code(error::EXCESSIVE_OUTPUTS));
         }
-        */
 
         if (cryptoNoteTransaction.extra.size() >= CryptoNote::parameters::MAX_EXTRA_SIZE_V3)
         {

@@ -211,6 +211,8 @@ namespace CryptoNote
 
        	/* Activates the whole bunch of tx output counts max at height 1980000 */
         const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT = 1980000;
+        
+        const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT = 2517000;
 
         const uint32_t UPGRADE_HEIGHT_V2 = 1;
 
@@ -244,11 +246,14 @@ namespace CryptoNote
 	    2450000, // 7
             2480000, // 8
             2500000, // 9
-            3000000, // 10
-            3500000, // 11
-            4000000, // 12
-            4500000, // 13
-            5000000, // 14
+            2517000, // 10
+            3000000, // 11
+            3500000, // 12
+            4000000, // 13
+            4500000, // 14
+            5000000, // 15
+            5500000, // 16
+            6000000, // 17
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
