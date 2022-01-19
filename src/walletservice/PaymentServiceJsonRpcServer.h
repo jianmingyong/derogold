@@ -93,6 +93,13 @@ namespace PaymentService
             request.serialize(inputSerializer, service);
         }
 
+        void SerializeRequest(
+             SendFusionTransaction::Request &request,
+             CryptoNote::JsonInputValueSerializer &inputSerializer)
+         {
+             request.serialize(inputSerializer, service);
+         }
+
         std::unordered_map<std::string, HandlerFunction> handlers;
 
         std::error_code handleSave(const Save::Request &request, Save::Response &response);
@@ -155,6 +162,13 @@ namespace PaymentService
         std::error_code handleGetStatus(const GetStatus::Request &request, GetStatus::Response &response);
 
         std::error_code handleGetAddresses(const GetAddresses::Request &request, GetAddresses::Response &response);
+
+        std::error_code handleSendFusionTransaction(
+             const SendFusionTransaction::Request &request,
+             SendFusionTransaction::Response &response);
+
+        std::error_code
+             handleEstimateFusion(const EstimateFusion::Request &request, EstimateFusion::Response &response);
 
         std::error_code handleCreateIntegratedAddress(
             const CreateIntegratedAddress::Request &request,

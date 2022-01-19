@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2022, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -544,10 +544,12 @@ namespace PaymentService
         System::Dispatcher &sys,
         CryptoNote::INode &node,
         CryptoNote::WalletGreen &wallet,
+        CryptoNote::IFusionManager &fusionManager,
         const WalletConfiguration &conf,
         std::shared_ptr<Logging::ILogger> logger):
         currency(currency),
         wallet(wallet),
+        fusionManager(fusionManager),
         node(node),
         config(conf),
         inited(false),
@@ -1608,6 +1610,75 @@ namespace PaymentService
 
         return std::error_code();
     }
+
+    std::error_code WalletService::sendFusionTransaction(
+         uint64_t threshold,
+         uint32_t anonymity,
+         const std::vector<std::string> &addresses,
+         const std::string &destinationAddress,
+         std::string &transactionHash)
+     {
+         try
+         {
+             System::EventLock lk(readyEvent);
+
+             validateAddresses(addresses, currency, logger);
+             if (!destinationAddress.empty())
+             {
+                 validateAddresses({destinationAddress}, currency, logger);
+             }
+
+             size_t transactionId =
+                 fusionManager.createFusionTransaction(threshold, anonymity, addresses, destinationAddress);
+             transactionHash = Common::podToHex(wallet.getTransaction(transactionId).hash);
+
+             logger(Logging::DEBUGGING) << "Fusion transaction " << transactionHash << " has been sent";
+         }
+         catch (std::system_error &x)
+         {
+             logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
+             return x.code();
+         }
+         catch (std::exception &x)
+         {
+             logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
+             return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+         }
+
+         return std::error_code();
+     }
+
+     std::error_code WalletService::estimateFusion(
+         uint64_t threshold,
+         const std::vector<std::string> &addresses,
+         uint32_t &fusionReadyCount,
+         uint32_t &totalOutputCount)
+     {
+         try
+         {
+             System::EventLock lk(readyEvent);
+
+             validateAddresses(addresses, currency, logger);
+
+             auto estimateResult = fusionManager.estimate(threshold, addresses);
+             fusionReadyCount = static_cast<uint32_t>(estimateResult.fusionReadyCount);
+             totalOutputCount = static_cast<uint32_t>(estimateResult.totalOutputCount);
+         }
+         catch (std::system_error &x)
+         {
+             logger(Logging::WARNING, Logging::BRIGHT_YELLOW)
+                 << "Failed to estimate number of fusion outputs: " << x.what();
+             return x.code();
+         }
+         catch (std::exception &x)
+         {
+             logger(Logging::WARNING, Logging::BRIGHT_YELLOW)
+                 << "Failed to estimate number of fusion outputs: " << x.what();
+             return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+         }
+
+         return std::error_code();
+     }
 
     std::error_code WalletService::createIntegratedAddress(
         const std::string &address,

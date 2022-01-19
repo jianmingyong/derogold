@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2022, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -61,6 +61,7 @@ namespace PaymentService
             System::Dispatcher &sys,
             CryptoNote::INode &node,
             CryptoNote::WalletGreen &wallet,
+            CryptoNote::IFusionManager &fusionManager,
             const WalletConfiguration &conf,
             std::shared_ptr<Logging::ILogger> logger);
 
@@ -166,6 +167,19 @@ namespace PaymentService
             std::string &lastBlockHash,
             uint32_t &peerCount);
 
+        std::error_code sendFusionTransaction(
+             uint64_t threshold,
+             uint32_t anonymity,
+             const std::vector<std::string> &addresses,
+             const std::string &destinationAddress,
+             std::string &transactionHash);
+
+         std::error_code estimateFusion(
+             uint64_t threshold,
+             const std::vector<std::string> &addresses,
+             uint32_t &fusionReadyCount,
+             uint32_t &totalOutputCount);
+
         std::error_code createIntegratedAddress(
             const std::string &address,
             const std::string &paymentId,
@@ -215,6 +229,8 @@ namespace PaymentService
         const CryptoNote::Currency &currency;
 
         CryptoNote::WalletGreen &wallet;
+
+        CryptoNote::IFusionManager &fusionManager;
 
         CryptoNote::INode &node;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2022, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -385,6 +385,43 @@ namespace PaymentService
     }
 
     void SendDelayedTransaction::Response::serialize(CryptoNote::ISerializer &serializer) {}
+
+    void SendFusionTransaction::Request::serialize(CryptoNote::ISerializer &serializer, const WalletService &service)
+     {
+         if (!serializer(threshold, "threshold"))
+         {
+             throw RequestSerializationError();
+         }
+
+         if (!serializer(anonymity, "anonymity"))
+         {
+             anonymity = service.getDefaultMixin();
+         }
+
+         serializer(addresses, "addresses");
+         serializer(destinationAddress, "destinationAddress");
+     }
+
+     void SendFusionTransaction::Response::serialize(CryptoNote::ISerializer &serializer)
+     {
+         serializer(transactionHash, "transactionHash");
+     }
+
+     void EstimateFusion::Request::serialize(CryptoNote::ISerializer &serializer)
+     {
+         if (!serializer(threshold, "threshold"))
+         {
+             throw RequestSerializationError();
+         }
+
+         serializer(addresses, "addresses");
+     }
+
+     void EstimateFusion::Response::serialize(CryptoNote::ISerializer &serializer)
+     {
+         serializer(fusionReadyCount, "fusionReadyCount");
+         serializer(totalOutputCount, "totalOutputCount");
+     }
 
     void CreateIntegratedAddress::Request::serialize(CryptoNote::ISerializer &serializer)
     {
