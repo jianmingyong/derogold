@@ -472,15 +472,17 @@ std::tuple<std::vector<WalletTypes::TxInputAndOwner>, uint64_t> SubWallets::getT
     /* Loop through each input */
     for (const auto walletAmount : availableInputs)
     {
-        /* Add each input */
-        inputsToUse.push_back(walletAmount);
-
-        foundMoney += walletAmount.input.amount;
-
-        /* Keep adding until we have enough money for the transaction */
-        if (foundMoney >= amount)
+        if (walletAmount.input.amount >= CryptoNote::parameters::INPUT_NOT_SENDING)
         {
-            return {inputsToUse, foundMoney};
+            /* Add each input */
+            inputsToUse.push_back(walletAmount);
+            foundMoney += walletAmount.input.amount;
+
+            /* Keep adding until we have enough money for the transaction */
+            if (foundMoney >= amount)
+            {
+                return {inputsToUse, foundMoney};
+            }
         }
     }
 

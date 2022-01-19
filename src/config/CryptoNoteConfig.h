@@ -286,6 +286,8 @@ namespace CryptoNote
         /* Maximum allowable blocks to rewind from existing chain */
         const uint64_t MAX_BLOCK_ALLOWED_TO_REWIND = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY * 3;
 
+    const uint64_t INPUT_NOT_SENDING = 1000;
+
     } // namespace parameters
 
     const char CRYPTONOTE_NAME[] = "DeroGold";
