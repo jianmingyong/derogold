@@ -18,7 +18,11 @@ namespace Utilities
     {
         uint64_t minFee = CryptoNote::parameters::MINIMUM_FEE;
 
-        if (height >= CryptoNote::parameters::MINIMUM_FEE_V1_HEIGHT)
+        if (height >= CryptoNote::parameters::MINIMUM_FEE_V2_HEIGHT)
+        {
+            minFee = CryptoNote::parameters::MINIMUM_FEE_V2;
+        }
+        else if (height >= CryptoNote::parameters::MINIMUM_FEE_V1_HEIGHT)
         {
             minFee = CryptoNote::parameters::MINIMUM_FEE_V1;
         }

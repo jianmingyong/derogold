@@ -97,6 +97,10 @@ namespace CryptoNote
 
         const uint64_t MINIMUM_FEE_V1_HEIGHT = 1470000;
 
+        /* Fee adjusting V2 2517000 */
+        const uint64_t MINIMUM_FEE_V2 = UINT64_C(10000);
+
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 2517000;
 
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V0 = 0;
