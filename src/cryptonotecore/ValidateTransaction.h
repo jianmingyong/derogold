@@ -75,8 +75,6 @@ class ValidateTransaction
 
         bool validateTransactionExtra();
 
-        /*bool validateInputOutputRatio();*/
-
         bool validateTransactionMixin();
 
         bool validateTransactionPoW();

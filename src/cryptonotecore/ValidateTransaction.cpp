@@ -73,14 +73,6 @@ TransactionValidationResult ValidateTransaction::validate()
         return m_validationResult;
     }
 
-    /* Validate transaction input / output ratio is not excessive, but this is only enforced until exit height */
-    /*
-    if (!validateInputOutputRatio())
-    {
-        return m_validationResult;
-    }
-    */
-
     /* Validate transaction mixin is in the valid range */
     if (!validateTransactionMixin())
     {
@@ -489,27 +481,6 @@ bool ValidateTransaction::validateTransactionExtra()
 
     return true;
 }
-
-/* we no longer want to check this, we've got TX PoW, enforce this condition until exit height */
-/*
-bool ValidateTransaction::validateInputOutputRatio()
-{
-    if (m_isPoolTransaction || m_blockHeight >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT && m_isPoolTransaction || m_blockHeight < CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT)
-    {
-        if (m_transaction.outputs.size() > CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1)
-        {
-            setTransactionValidationResult(
-                CryptoNote::error::TransactionValidationError::EXCESSIVE_OUTPUTS,
-                "Transaction has excessive outputs. Reduce the number of payees."
-            );
-
-            return false;
-        }
-    }
-    return true;
-}
-
-*/
 
 bool ValidateTransaction::validateTransactionMixin()
 {

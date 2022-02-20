@@ -211,12 +211,7 @@ namespace CryptoNote
         const size_t TX_MAX_POOL_COUNT = 260;
 
         /* We just set it output max to 90 */
-        const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1  = 90;
-
-       	/* Activates the whole bunch of tx output counts max at height 1980000 */
-        /* const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT = 1980000;i*/
-        
-        /* const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT = 2517000;*/
+        /* const size_t NORMAL_TX_MAX_OUTPUT_COUNT_V1  = 90; */
 
         const uint32_t UPGRADE_HEIGHT_V2 = 1;
 
