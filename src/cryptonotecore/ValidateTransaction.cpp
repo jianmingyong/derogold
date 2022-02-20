@@ -74,10 +74,12 @@ TransactionValidationResult ValidateTransaction::validate()
     }
 
     /* Validate transaction input / output ratio is not excessive, but this is only enforced until exit height */
+    /*
     if (!validateInputOutputRatio())
     {
         return m_validationResult;
     }
+    */
 
     /* Validate transaction mixin is in the valid range */
     if (!validateTransactionMixin())
@@ -489,6 +491,7 @@ bool ValidateTransaction::validateTransactionExtra()
 }
 
 /* we no longer want to check this, we've got TX PoW, enforce this condition until exit height */
+/*
 bool ValidateTransaction::validateInputOutputRatio()
 {
     if (m_isPoolTransaction || m_blockHeight >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1_HEIGHT && m_isPoolTransaction || m_blockHeight < CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT)
@@ -505,6 +508,8 @@ bool ValidateTransaction::validateInputOutputRatio()
     }
     return true;
 }
+
+*/
 
 bool ValidateTransaction::validateTransactionMixin()
 {
