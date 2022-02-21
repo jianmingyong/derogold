@@ -1082,16 +1082,6 @@ namespace SendTransaction
            working, maybe we can work some magic. TODO */
         setupTX.outputs = keyOutputToTransactionOutput(result.outputs);
 
-        /* We no longer want to check this, we do have tx pow, transaction validaion only enforces it until NORMAL_TX_MAX_OUTPUT_COUNT_V1_EXIT_HEIGHT */
-        /*
-        if (setupTX.outputs.size() >= CryptoNote::parameters::NORMAL_TX_MAX_OUTPUT_COUNT_V1 )
-        {
-            result.error = OUTPUT_DECOMPOSITION;
-
-            return result;
-        }
-        */
-
         /* Generate the transaction proof of work, this comes before the ring
          * signature generation, as ring signatures take the transaction prefix
          * hash. Generating it afterwards would change the hash, and thus invalidate
