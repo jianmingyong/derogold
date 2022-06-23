@@ -100,8 +100,13 @@ namespace CryptoNote
         /* Fee adjusting V2 2517000 */
         const uint64_t MINIMUM_FEE_V2 = UINT64_C(10000);
 
-        const uint64_t MINIMUM_FEE_V2_HEIGHT = 2517000;
+        const uint64_t MINIMUM_FEE_V2_HEIGHT = 2517000;`
 
+        /* Fee adjusting V3 2558017 */
+        const uint64_t MINIMUM_FEE_V3 = UINT64_C(10000000);
+
+        const uint64_t MINIMUM_FEE_V3_HEIGHT = 2558017;
+       
         /* This section defines our minimum and maximum mixin counts required for transactions */
         const uint64_t MINIMUM_MIXIN_V0 = 0;
 
@@ -164,8 +169,13 @@ namespace CryptoNote
 
         const uint64_t TRANSACTION_POW_HEIGHT = 2370000;
 
+        const uint64_t TRANSACTION_POW_V1_HEIGHT = 2558017;
+
         /* Higher difficulty = More PoW (and thus time) to generate a transaction. */
         const uint64_t TRANSACTION_POW_DIFFICULTY = 17000;
+
+        /* Higher difficulty = More PoW (and thus time) to generate a transaction. */
+        const uint64_t TRANSACTION_POW_DIFFICULTY_V1 = 340000;
 
         /* For new projects forked from this code base, the values immediately below
            should be changed to 0 to prevent issues with transaction processing
@@ -243,13 +253,13 @@ namespace CryptoNote
             2480000, // 8
             2500000, // 9
             2517000, // 10
-            3000000, // 11
-            3500000, // 12
-            4000000, // 13
-            4500000, // 14
-            5000000, // 15
-            5500000, // 16
-            6000000, // 17
+            2558017, // 11
+            3000000, // 12
+            3500000, // 13
+            4000000, // 14
+            4500000, // 15
+            5000000, // 16
+            5500000, // 17
         };
 
         /* MAKE SURE TO UPDATE THIS VALUE WITH EVERY MAJOR RELEASE BEFORE A FORK */
@@ -335,9 +345,9 @@ namespace CryptoNote
 
     // P2P Network Configuration Section - This defines our current P2P network version
     // and the minimum version for communication between nodes
-    const uint8_t P2P_CURRENT_VERSION = 10;
+    const uint8_t P2P_CURRENT_VERSION = 11;
 
-    const uint8_t P2P_MINIMUM_VERSION = 9;
+    const uint8_t P2P_MINIMUM_VERSION = 10;
 
     // This defines the minimum P2P version required for lite blocks propogation
     const uint8_t P2P_LITE_BLOCKS_PROPOGATION_VERSION = 0;
@@ -381,7 +391,7 @@ namespace CryptoNote
     const char* const SEED_NODES[] = {
         "195.154.81.135:12169", // bob bie
         "176.9.124.189:42069", // Pluto
-        "89.203.235.107:42069", // CuéeBits
+        "89.203.235.107:42069", // CuvéeBits
         "46.214.70.196:42069", // derogold4ever.online
     };
 } // namespace CryptoNote
