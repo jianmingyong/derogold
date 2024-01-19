@@ -1047,6 +1047,11 @@ namespace CryptoNote
 
         std::vector<Crypto::Hash> leftTransactions = transactionHashes;
 
+        if (leftTransactions.empty())
+        {
+            return;
+        }
+
         // find in main chain
         do
         {
@@ -1056,11 +1061,6 @@ namespace CryptoNote
             leftTransactions = std::move(missedTransactions);
             segment = segment->getParent();
         } while (segment != nullptr && !leftTransactions.empty());
-
-        if (leftTransactions.empty())
-        {
-            return;
-        }
 
         // find in alternative chains
         for (size_t chain = 1; chain < chainsLeaves.size(); ++chain)
