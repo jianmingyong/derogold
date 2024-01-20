@@ -1047,6 +1047,11 @@ namespace CryptoNote
 
         std::vector<Crypto::Hash> leftTransactions = transactionHashes;
 
+        if (leftTransactions.empty())
+        {
+            return;
+        }
+
         // find in main chain
         do
         {
