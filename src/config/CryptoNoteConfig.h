@@ -379,9 +379,6 @@ namespace CryptoNote
         {0x20, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x20, 0x67, 0x65, 0x6e, 0x74, 0x6f, 0x6f, 0x20}};
 
     const char* const SEED_NODES[] = {
-        "195.154.81.135:12169", // bob bie
-        "176.9.124.189:42069", // Pluto
-        "89.203.235.107:42069", // CuéeBits
-        "46.214.70.196:42069", // derogold4ever.online
+        "80.60.19.222:42069", // sniperviperman
     };
 } // namespace CryptoNote
