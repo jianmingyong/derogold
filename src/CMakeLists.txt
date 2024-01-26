@@ -1,17 +1,9 @@
-# Build statically
-add_definitions(-DSTATICLIB)
-
 # Add external libraries as include dirs, so we can do #include "httplib" for example
-include_directories(${CMAKE_SOURCE_DIR}/external/leveldb/include)
-include_directories(${CMAKE_SOURCE_DIR}/external/rocksdb/include)
-include_directories(${CMAKE_SOURCE_DIR}/external/cpp-linenoise)
 include_directories(${CMAKE_SOURCE_DIR}/external/cpp-httplib)
+include_directories(${CMAKE_SOURCE_DIR}/external/cpp-linenoise)
+include_directories(${CMAKE_SOURCE_DIR}/external/cxxopts)
 include_directories(${CMAKE_SOURCE_DIR}/external/nlohmann-json)
 include_directories(${CMAKE_SOURCE_DIR}/external/rapidjson)
-include_directories(${CMAKE_SOURCE_DIR}/external/cxxopts)
-include_directories(${CMAKE_SOURCE_DIR}/external/cryptopp)
-include_directories(${CMAKE_SOURCE_DIR}/external/zstd)
-include_directories(${CMAKE_SOURCE_DIR}/external/snappy)
 
 # Show cmake where the source files are
 # Note, if you add remove a source file, you will need to re-run cmake so it
@@ -45,13 +37,13 @@ file(GLOB_RECURSE WalletService walletservice/*)
 file(GLOB_RECURSE WalletUpgrader walletupgrader/*)
 file(GLOB_RECURSE zedwallet++ zedwallet++/*)
 
-if (MSVC)
+if(WIN32)
     file(GLOB_RECURSE System system/* platform/windows/system/*)
-elseif (APPLE)
+elseif(APPLE)
     file(GLOB_RECURSE System system/* platform/osx/system/* platform/posix/system/*)
-else ()
+else()
     file(GLOB_RECURSE System system/* platform/linux/system/* platform/posix/system/*)
-endif ()
+endif()
 
 # Group the files together in IDEs
 source_group("" FILES $${Common} ${Config} ${Crypto} ${CryptoNoteCore} ${CryptoNoteProtocol} ${DeroGoldd} ${JsonRpcServer} ${Http} ${Logging} ${Logger} ${miner} ${Mnemonics} ${Nigel} ${NodeRpcProxy} ${P2p} ${Rpc} ${Serialization} ${System} ${Transfers} ${Wallet} ${WalletApi} ${WalletBackend} ${WalletService} ${zedwallet++} ${CryptoTest} ${Errors} ${Utilities} ${WalletUpgrader} ${SubWallets})
@@ -79,29 +71,29 @@ add_library(Utilities STATIC ${Utilities})
 add_library(Wallet STATIC ${Wallet})
 add_library(WalletBackend STATIC ${WalletBackend})
 
-if (MSVC)
+if(MSVC)
     set(DAEMON_SOURCES_OS
-            binaryinfo/daemon.rc
-            )
+        binaryinfo/daemon.rc
+    )
     set(ZED_WALLET_SOURCES_OS
-            binaryinfo/zedwallet.rc
-            )
+        binaryinfo/zedwallet.rc
+    )
     set(MINER_SOURCES_OS
-            binaryinfo/miner.rc
-            )
+        binaryinfo/miner.rc
+    )
     set(PG_SOURCES_OS
-            binaryinfo/service.rc
-            )
+        binaryinfo/service.rc
+    )
     set(CT_SOURCES_OS
-            binaryinfo/cryptotest.rc
-            )
+        binaryinfo/cryptotest.rc
+    )
     set(WALLET_API_SOURCES_OS
-            binaryinfo/walletapi.rc
-            )
+        binaryinfo/walletapi.rc
+    )
     set(WALLET_UPGRADER_SOURCES_OS
-            binaryinfo/walletupgrader.rc
-            )
-endif ()
+        binaryinfo/walletupgrader.rc
+    )
+endif()
 
 add_executable(cryptotest ${CryptoTest} ${CT_SOURCES_OS})
 add_executable(miner ${miner} ${MINER_SOURCES_OS})
@@ -111,7 +103,7 @@ add_executable(WalletApi ${WalletApi} ${WALLET_API_SOURCES_OS})
 add_executable(WalletUpgrader ${WalletUpgrader} ${WALLET_UPGRADER_SOURCES_OS})
 add_executable(zedwallet++ ${zedwallet++} ${ZED_WALLET_SOURCES_OS})
 
-if (MSVC)
+if(MSVC)
     target_link_libraries(System ws2_32)
     target_link_libraries(DeroGoldd Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletService Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
@@ -119,55 +111,43 @@ if (MSVC)
     target_link_libraries(WalletApi ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(miner ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletUpgrader ws2_32 advapi32 crypt32 gdi32 user32)
-endif ()
+endif()
 
 # A bit of hackery so we don't have to do the if/else/ for every target that
 # wants to use filesystem
 add_library(__filesystem INTERFACE)
 
 # Windows works out of the box
-if (APPLE)
+if(APPLE)
     target_link_libraries(__filesystem INTERFACE /usr/local/opt/llvm/lib/libc++fs.a)
-elseif (UNIX)
+elseif(UNIX)
     target_link_libraries(__filesystem INTERFACE stdc++fs)
-endif ()
-
-if (MSVC)
-    target_link_libraries(DeroGoldd System CryptoNoteCore rocksdb zstd leveldb snappy Errors ${Boost_LIBRARIES})
-else ()
-    target_link_libraries(DeroGoldd System CryptoNoteCore rocksdblib zstd leveldblib snappy Errors ${Boost_LIBRARIES})
-endif ()
+endif()
 
 # Add the dependencies we need
 target_link_libraries(Common __filesystem)
 target_link_libraries(CryptoNoteCore Utilities Common Logging Crypto P2P Rpc Http Serialization System ${Boost_LIBRARIES} WalletBackend)
 target_link_libraries(cryptotest Crypto Common)
+target_link_libraries(DeroGoldd System CryptoNoteCore RocksDB::rocksdb leveldb::leveldb OpenSSL::SSL OpenSSL::Crypto Errors ${Boost_LIBRARIES})
 target_link_libraries(Errors Crypto SubWallets Utilities)
 target_link_libraries(Logging Common)
-target_link_libraries(miner Crypto Errors Utilities System Serialization)
-target_link_libraries(Nigel Errors CryptoNoteCore)
+target_link_libraries(miner Crypto Errors Utilities System Serialization OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(Nigel Errors CryptoNoteCore OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(NodeRpcProxy Rpc)
-target_link_libraries(P2P upnpc-static Serialization System CryptoNoteCore)
+target_link_libraries(P2P miniupnpc::miniupnpc Serialization System CryptoNoteCore)
 target_link_libraries(Rpc P2P Utilities CryptoNoteCore)
 target_link_libraries(Serialization Common Crypto ${Boost_LIBRARIES})
 target_link_libraries(SubWallets Common Logger)
 target_link_libraries(Transfers CryptoNoteCore)
 target_link_libraries(Utilities Common Errors)
 target_link_libraries(Wallet NodeRpcProxy Transfers CryptoNoteCore Common WalletBackend ${Boost_LIBRARIES})
-target_link_libraries(WalletApi WalletBackend)
-target_link_libraries(WalletBackend Serialization Mnemonics Nigel cryptopp-static __filesystem Utilities SubWallets Logger Config Wallet)
-target_link_libraries(WalletService JsonRpcServer Wallet Mnemonics Errors)
+target_link_libraries(WalletApi WalletBackend OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(WalletBackend Serialization Mnemonics Nigel cryptopp::cryptopp __filesystem Utilities SubWallets Logger Config Wallet)
+target_link_libraries(WalletService JsonRpcServer Wallet Mnemonics Errors OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(WalletUpgrader Utilities WalletBackend Common)
-target_link_libraries(zedwallet++ WalletBackend)
+target_link_libraries(zedwallet++ WalletBackend OpenSSL::SSL OpenSSL::Crypto)
 
-if (OPENSSL_FOUND)
-    target_link_libraries(miner ${OPENSSL_LIBRARIES})
-    target_link_libraries(Nigel ${OPENSSL_LIBRARIES})
-    target_link_libraries(WalletApi ${OPENSSL_LIBRARIES})
-    target_link_libraries(zedwallet++ ${OPENSSL_LIBRARIES})
-    target_link_libraries(WalletService ${OPENSSL_LIBRARIES})
-    target_link_libraries(DeroGoldd ${OPENSSL_LIBRARIES})
-endif ()
+set_target_properties(P2P PROPERTIES COMPILE_FLAGS -DBOOST_UUID_FORCE_AUTO_LINK)
 
 # Add dependencies means we have to build the latter before we build the former
 # In this case it's because we need to have the current version name rather
