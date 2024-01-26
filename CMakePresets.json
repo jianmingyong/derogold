@@ -1,0 +1,158 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 8
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets",
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/ports"
+            }
+        },
+        {
+            "name": "default-release",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "COMMIT_ID_IN_VERSION": false
+            }
+        },
+        {
+            "name": "windows-x64-msvc",
+            "inherits": [
+                "default"
+            ],
+            "installDir": "${sourceDir}/build/bin",
+            "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+            },
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            },
+            "toolset": {
+                "strategy": "set",
+                "value": "host=x64"
+            }
+        },
+        {
+            "name": "windows-x64-msvc-release",
+            "inherits": [
+                "default-release",
+                "windows-x64-msvc"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-release"
+            }
+        },
+        {
+            "name": "windows-x64-mingw",
+            "inherits": [
+                "default"
+            ],
+            "installDir": "${sourceDir}/build/bin",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-release",
+            "inherits": [
+                "default-release",
+                "windows-x64-mingw"
+            ],
+            "installDir": "${sourceDir}/build/bin",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release"
+            }
+        },
+        {
+            "name": "linux-x64",
+            "inherits": [
+                "default"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+            }
+        },
+        {
+            "name": "linux-arm",
+            "inherits": [
+                "default"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm-linux-release",
+                "CMAKE_C_COMPILER": "arm-linux-gnueabihf-gcc",
+                "CMAKE_CXX_COMPILER": "arm-linux-gnueabihf-g++"
+            }
+        },
+        {
+            "name": "linux-arm64",
+            "inherits": [
+                "default"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
+                "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
+            }
+        },
+        {
+            "name": "osx-x64",
+            "inherits": [
+                "default"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx-release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-x64-msvc",
+            "configurePreset": "windows-x64-msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "windows-x64-msvc-release",
+            "configurePreset": "windows-x64-msvc-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-x64-mingw",
+            "configurePreset": "windows-x64-mingw",
+            "configuration": "Debug"
+        },
+        {
+            "name": "windows-x64-mingw-release",
+            "configurePreset": "windows-x64-mingw-release"
+        },
+        {
+            "name": "linux-x64",
+            "configurePreset": "linux-x64"
+        },
+        {
+            "name": "linux-arm",
+            "configurePreset": "linux-arm"
+        },
+        {
+            "name": "linux-arm64",
+            "configurePreset": "linux-arm64"
+        },
+        {
+            "name": "osx-x64",
+            "configurePreset": "osx-x64"
+        }
+    ]
+}

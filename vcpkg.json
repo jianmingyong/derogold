@@ -1,0 +1,33 @@
+{
+  "dependencies": [
+    "boost-algorithm",
+    "boost-date-time",
+    "boost-foreach",
+    "boost-format",
+    "boost-functional",
+    "boost-integer",
+    "boost-iterator",
+    "boost-multi-index",
+    "boost-optional",
+    "boost-range",
+    "boost-scope-exit",
+    "boost-utility",
+    "boost-uuid",
+    "boost-variant",
+    "cryptopp",
+    "miniupnpc",
+    "openssl",
+    {
+      "name": "rocksdb",
+      "features": [
+        "zstd"
+      ]
+    },
+    {
+      "name": "leveldb",
+      "features": [
+        "snappy"
+      ]
+    }
+  ]
+}
