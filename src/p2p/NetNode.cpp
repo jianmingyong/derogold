@@ -75,55 +75,64 @@ namespace
         logger(INFO) << "Attempting to add IGD port mapping.";
         int result;
         UPNPDev *deviceList = upnpDiscover(1000, NULL, NULL, 0, 0, 2, &result);
-        UPNPUrls urls;
-        IGDdatas igdData;
-        char lanAddress[64];
-        result = UPNP_GetValidIGD(deviceList, &urls, &igdData, lanAddress, sizeof lanAddress);
-        freeUPNPDevlist(deviceList);
-        if (result != 0)
+        UPNPDev *currentDevice = deviceList;
+        while (currentDevice != NULL)
         {
-            if (result == 1)
+            UPNPUrls urls;
+            IGDdatas igdData;
+            char lanAddress[64];
+            result = UPNP_GetValidIGD(currentDevice, &urls, &igdData, lanAddress, sizeof lanAddress);
+
+            if (result != 0)
             {
-                std::ostringstream portString;
-                portString << port;
-                if (UPNP_AddPortMapping(
-                        urls.controlURL,
-                        igdData.first.servicetype,
-                        portString.str().c_str(),
-                        portString.str().c_str(),
-                        lanAddress,
-                        CryptoNote::CRYPTONOTE_NAME,
-                        "TCP",
-                        0,
-                        "0")
-                    != 0)
+                if (result == 1 || result == 2)
                 {
-                    logger(ERROR) << "UPNP_AddPortMapping failed.";
+                    std::ostringstream portString;
+                    portString << port;
+                    if (UPNP_AddPortMapping(
+                            urls.controlURL,
+                            igdData.first.servicetype,
+                            portString.str().c_str(),
+                            portString.str().c_str(),
+                            lanAddress,
+                            CryptoNote::CRYPTONOTE_NAME,
+                            "TCP",
+                            0,
+                            "0")
+                        != 0)
+                    {
+                        logger(ERROR) << "UPNP_AddPortMapping failed.";
+                    }
+                    else
+                    {
+                        logger(INFO) << "Added IGD port mapping.";
+
+                        if (result == 2)
+                        {
+                            logger(WARNING) << "Port mapping will not forward properly if you are under multiple NAT devices." << ENDL
+                            << "Ensure you have forward " << portString.str() << "/tcp on the other NAT devices or set as a DMZ.";
+                        }
+                    }
+                }
+                else if (result == 3)
+                {
+                    logger(INFO) << "UPnP device was found but not recognized as IGD.";
                 }
                 else
                 {
-                    logger(INFO) << "Added IGD port mapping.";
+                    logger(ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
                 }
-            }
-            else if (result == 2)
-            {
-                logger(INFO) << "IGD was found but reported as not connected.";
-            }
-            else if (result == 3)
-            {
-                logger(INFO) << "UPnP device was found but not recognized as IGD.";
+
+                FreeUPNPUrls(&urls);
             }
             else
             {
-                logger(ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
+                logger(INFO) << "No IGD was found.";
             }
 
-            FreeUPNPUrls(&urls);
+            currentDevice = currentDevice->pNext;
         }
-        else
-        {
-            logger(INFO) << "No IGD was found.";
-        }
+        freeUPNPDevlist(deviceList);
     }
 
 } // namespace
