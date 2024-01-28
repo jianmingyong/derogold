@@ -1,0 +1,103 @@
+name: Build DeroGold
+
+on:
+    push:
+    pull_request:
+
+defaults:
+    run:
+        shell: pwsh
+
+jobs:
+    build_derogold:
+        name: Build DeroGold (${{ matrix.output_folder }})
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            fail-fast: false
+            matrix:
+              os: [windows-latest, ubuntu-latest, macos-latest]
+              arch: [x64, arm64]
+
+              exclude:
+                - os: windows-latest
+                  arch: arm64
+                - os: macos-latest
+                  arch: arm64
+
+              include:
+                - os: windows-latest
+                  arch: x64
+                  install: ""
+                  output_folder: DeroGold-windows-x64
+                  configure_preset: windows-x64-msvc-publish
+                  build_preset: windows-x64-msvc-publish
+
+                - os: ubuntu-latest
+                  arch: x64
+                  install: >-
+                    cmake
+                    ninja-build
+                    build-essential
+                  output_folder: DeroGold-linux-x64
+                  configure_preset: linux-x64-gcc-publish
+                  build_preset: linux-x64-gcc-publish
+
+                - os: ubuntu-latest
+                  arch: arm64
+                  install: >-
+                    cmake
+                    ninja-build
+                    crossbuild-essential-arm64
+                  output_folder: DeroGold-linux-arm64
+                  configure_preset: linux-arm64-gcc-publish
+                  build_preset: linux-arm64-gcc-publish
+      
+                - os: macos-latest
+                  arch: x64
+                  install: >-
+                    ninja
+                  output_folder: DeroGold-osx-x64
+                  configure_preset: osx-x64-gcc-publish
+                  build_preset: osx-x64-gcc-publish
+
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+            with:
+              submodules: recursive
+
+          - name: Install Program / Dependencies
+            run: |
+              if ("${{ runner.os }}" -eq "Windows")
+              {
+                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+                {
+                  choco install ${{ matrix.install }} -y
+                }
+              }
+              elseif ("${{ runner.os }}" -eq "Linux")
+              {
+                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+                {
+                  sudo apt-get update -y
+                  sudo apt-get install ${{ matrix.install }} -y
+                }
+              }
+              elseif ("${{ runner.os }}" -eq "macOS")
+              {
+                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+                {
+                  brew update
+                  brew install ${{ matrix.install }}
+                }
+              }
+
+          - name: Setup vcpkg
+            uses: lukka/run-vcpkg@v11
+
+          - name: Build DeroGold
+            working-directory: ${{ github.workspace }}
+            run: |
+              cmake --preset "${{ matrix.configure_preset }}"
+              cmake --build --preset "${{ matrix.build_preset }}"
