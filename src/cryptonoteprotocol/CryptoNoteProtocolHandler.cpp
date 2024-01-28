@@ -277,15 +277,16 @@ namespace CryptoNote
     {
         std::stringstream ss;
 
-        ss << ENDL << std::setw(32) << std::left << "Remote Host" << std::setw(17) << "Peer ID" << std::setw(26) << "State" << std::setw(20) << "Lifetime(seconds)" << std::setw(20) << "Blocks/Second" << ENDL;
+        ss << ENDL
+           << std::setw(32) << std::left << "Remote Host" << std::setw(17) << "Peer ID" << std::setw(26) << "State" << std::setw(21) << "Lifetime(seconds)" << std::setw(14) << "Blocks/Second" << ENDL;
 
         m_p2p->for_each_connection([&](const CryptoNoteConnectionContext &cntxt, uint64_t peer_id) {
             ss << std::setw(32) << std::left
                << std::string(cntxt.m_is_income ? "[INCOMING]" : "[OUTGOING]") + Common::ipAddressToString(cntxt.m_remote_ip) + ":" + std::to_string(cntxt.m_remote_port)
                << std::setw(17) << std::hex << peer_id
                << std::setw(26) << get_protocol_state_string(cntxt.m_state)
-               << std::setw(20) << std::to_string(time(NULL) - cntxt.m_started)
-               << std::setw(20) << std::to_string(cntxt.m_request_block_rate)
+               << std::setw(21) << std::to_string(time(NULL) - cntxt.m_started)
+               << std::setw(14) << std::to_string(cntxt.m_request_block_rate) + " (" + std::to_string(cntxt.m_next_request_block_rate) + ")"
                << ENDL;
         });
         logger(INFO) << "Connections: " << ENDL << ss.str();
@@ -769,7 +770,7 @@ namespace CryptoNote
             context.m_request_block_rate = context.m_next_request_block_rate;
             context.m_next_request_block_rate += 10;
         } else {
-            context.m_request_block_rate = context.m_next_request_block_rate / (time_taken_ms / 1000.0);
+            context.m_request_block_rate = ((context.m_next_request_block_rate / (time_taken_ms / 1000.0)) + context.m_request_block_rate) / 2.0;
 
             if (time_taken_ms > 1000) {
                 context.m_next_request_block_rate -= 10;
@@ -780,6 +781,8 @@ namespace CryptoNote
 
         if (context.m_next_request_block_rate < 10) {
             context.m_next_request_block_rate = 10;
+        } else if (context.m_next_request_block_rate > BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT) {
+            context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
         }
     }
 
