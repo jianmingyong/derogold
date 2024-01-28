@@ -17,8 +17,7 @@
                 "default"
             ],
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "COMMIT_ID_IN_VERSION": false
+                "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
@@ -187,18 +186,12 @@
 		{
             "name": "windows-x64-msvc-release",
             "configurePreset": "windows-x64-msvc",
-            "configuration": "Release",
-            "targets": [
-                "install"
-            ]
+            "configuration": "Release"
         },
         {
             "name": "windows-x64-msvc-publish",
             "configurePreset": "windows-x64-msvc-publish",
-            "configuration": "Release",
-            "targets": [
-                "install"
-            ]
+            "configuration": "Release"
         },
         {
             "name": "linux-x64-gcc-debug",
@@ -208,17 +201,11 @@
         {
             "name": "linux-x64-gcc-release",
             "configurePreset": "linux-x64-gcc",
-            "configuration": "Release",
-            "targets": [
-                "install"
-            ]
+            "configuration": "Release"
         },
         {
             "name": "linux-x64-gcc-publish",
-            "configurePreset": "linux-x64-gcc-publish",
-            "targets": [
-                "install"
-            ]
+            "configurePreset": "linux-x64-gcc-publish"
         },
         {
             "name": "linux-arm64-gcc-debug",
@@ -228,17 +215,11 @@
         {
             "name": "linux-arm64-gcc-release",
             "configurePreset": "linux-arm64-gcc",
-            "configuration": "Release",
-            "targets": [
-                "install"
-            ]
+            "configuration": "Release"
         },
         {
             "name": "linux-arm64-gcc-publish",
-            "configurePreset": "linux-arm64-gcc-publish",
-            "targets": [
-                "install"
-            ]
+            "configurePreset": "linux-arm64-gcc-publish"
         },
         {
             "name": "osx-x64-gcc-debug",
@@ -248,17 +229,11 @@
         {
             "name": "osx-x64-gcc-release",
             "configurePreset": "osx-x64-gcc",
-            "configuration": "Release",
-            "targets": [
-                "install"
-            ]
+            "configuration": "Release"
         },
         {
             "name": "osx-x64-gcc-publish",
-            "configurePreset": "osx-x64-gcc-publish",
-            "targets": [
-                "install"
-            ]
+            "configurePreset": "osx-x64-gcc-publish"
         }
     ]
 }

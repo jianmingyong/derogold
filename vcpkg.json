@@ -17,6 +17,7 @@
     "cryptopp",
     "miniupnpc",
     "openssl",
+    "rapidjson",
     {
       "name": "rocksdb",
       "features": [
