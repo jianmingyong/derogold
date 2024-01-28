@@ -76,7 +76,7 @@
             "inherits": [
                 "default-msvc"
             ],
-            "installDir": "${sourceDir}/build/bin",
+            "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static"
             },
@@ -100,7 +100,7 @@
             "inherits": [
                 "default-publish-msvc"
             ],
-            "installDir": "${sourceDir}/build/bin",
+            "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static-release"
             },
@@ -120,18 +120,38 @@
             }
         },
         {
-            "name": "linux-x64",
+            "name": "linux-x64-gcc",
             "inherits": [
-                "default"
+                "default-gcc"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "linux-x64-gcc-publish",
+            "inherits": [
+                "default-publish-gcc"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release"
             }
         },
         {
-            "name": "linux-arm64",
+            "name": "linux-arm64-gcc",
             "inherits": [
-                "default"
+                "default-gcc"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
+                "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
+            }
+        },
+        {
+            "name": "linux-arm64-gcc-publish",
+            "inherits": [
+                "default-gcc-publish"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
@@ -140,9 +160,18 @@
             }
         },
         {
-            "name": "osx-x64",
+            "name": "osx-x64-gcc",
             "inherits": [
-                "default"
+                "default-gcc"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx"
+            }
+        },
+        {
+            "name": "osx-x64-gcc-publish",
+            "inherits": [
+                "default-gcc-publish"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release"
@@ -158,24 +187,78 @@
 		{
             "name": "windows-x64-msvc-release",
             "configurePreset": "windows-x64-msvc",
-            "configuration": "Release"
+            "configuration": "Release",
+            "targets": [
+                "install"
+            ]
         },
         {
             "name": "windows-x64-msvc-publish",
             "configurePreset": "windows-x64-msvc-publish",
-            "configuration": "Release"
+            "configuration": "Release",
+            "targets": [
+                "install"
+            ]
         },
         {
-            "name": "linux-x64",
-            "configurePreset": "linux-x64"
+            "name": "linux-x64-gcc-debug",
+            "configurePreset": "linux-x64-gcc",
+            "configuration": "Debug"
         },
         {
-            "name": "linux-arm64",
-            "configurePreset": "linux-arm64"
+            "name": "linux-x64-gcc-release",
+            "configurePreset": "linux-x64-gcc",
+            "configuration": "Release",
+            "targets": [
+                "install"
+            ]
         },
         {
-            "name": "osx-x64",
-            "configurePreset": "osx-x64"
+            "name": "linux-x64-gcc-publish",
+            "configurePreset": "linux-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-gcc-debug",
+            "configurePreset": "linux-arm64-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-arm64-gcc-release",
+            "configurePreset": "linux-arm64-gcc",
+            "configuration": "Release",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-gcc-publish",
+            "configurePreset": "linux-arm64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "osx-x64-gcc-debug",
+            "configurePreset": "osx-x64-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "osx-x64-gcc-release",
+            "configurePreset": "osx-x64-gcc",
+            "configuration": "Release",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "osx-x64-gcc-publish",
+            "configurePreset": "osx-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
         }
     ]
 }
