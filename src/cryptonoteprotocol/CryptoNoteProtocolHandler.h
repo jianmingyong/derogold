@@ -149,6 +149,8 @@ namespace CryptoNote
             std::vector<RawBlock> &&rawBlocks,
             const std::vector<CachedBlock> &cachedBlocks);
 
+        void adjust_block_rate(CryptoNoteConnectionContext &context);
+
         Logging::LoggerRef logger;
 
       private:

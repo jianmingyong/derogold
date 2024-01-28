@@ -15,6 +15,7 @@
 
 #include <boost/scope_exit.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <chrono>
 #include <config/Ascii.h>
 #include <config/CryptoNoteConfig.h>
 #include <config/WalletConfig.h>
@@ -276,20 +277,16 @@ namespace CryptoNote
     {
         std::stringstream ss;
 
-        ss << std::setw(25) << std::left << "Remote Host" << std::setw(20) << "Peer ID" << std::setw(25)
-           << "Recv/Sent (inactive,sec)" << std::setw(25) << "State" << std::setw(20) << "Lifetime(seconds)" << ENDL;
+        ss << ENDL << std::setw(32) << std::left << "Remote Host" << std::setw(17) << "Peer ID" << std::setw(26) << "State" << std::setw(20) << "Lifetime(seconds)" << std::setw(20) << "Blocks/Second" << ENDL;
 
         m_p2p->for_each_connection([&](const CryptoNoteConnectionContext &cntxt, uint64_t peer_id) {
-            ss << std::setw(25) << std::left
-               << std::string(cntxt.m_is_income ? "[INCOMING]" : "[OUTGOING]")
-                      + Common::ipAddressToString(cntxt.m_remote_ip) + ":" + std::to_string(cntxt.m_remote_port)
-               << std::setw(20) << std::hex
-               << peer_id
-               // << std::setw(25) << std::to_string(cntxt.m_recv_cnt) + "(" + std::to_string(time(NULL) -
-               // cntxt.m_last_recv) + ")" + "/" + std::to_string(cntxt.m_send_cnt) + "(" + std::to_string(time(NULL) -
-               // cntxt.m_last_send) + ")"
-               << std::setw(25) << get_protocol_state_string(cntxt.m_state) << std::setw(20)
-               << std::to_string(time(NULL) - cntxt.m_started) << ENDL;
+            ss << std::setw(32) << std::left
+               << std::string(cntxt.m_is_income ? "[INCOMING]" : "[OUTGOING]") + Common::ipAddressToString(cntxt.m_remote_ip) + ":" + std::to_string(cntxt.m_remote_port)
+               << std::setw(17) << std::hex << peer_id
+               << std::setw(26) << get_protocol_state_string(cntxt.m_state)
+               << std::setw(20) << std::to_string(time(NULL) - cntxt.m_started)
+               << std::setw(20) << std::to_string(cntxt.m_request_block_rate)
+               << ENDL;
         });
         logger(INFO) << "Connections: " << ENDL << ss.str();
     }
@@ -657,6 +654,7 @@ namespace CryptoNote
                     context.m_state = CryptoNoteConnectionContext::state_idle;
                     context.m_needed_objects.clear();
                     context.m_requested_objects.clear();
+                    context.m_request_block_rate = 0;
                     logger(Logging::DEBUGGING) << context << "Connection set to idle state.";
                     return 1;
                 }
@@ -707,6 +705,7 @@ namespace CryptoNote
         logger(DEBUGGING, BRIGHT_GREEN) << "Local blockchain updated, new index = " << m_core.getTopBlockIndex();
         if (!m_stop && context.m_state == CryptoNoteConnectionContext::state_synchronizing)
         {
+            adjust_block_rate(context);
             request_missing_objects(context, true);
         }
 
@@ -751,6 +750,7 @@ namespace CryptoNote
                 context.m_state = CryptoNoteConnectionContext::state_idle;
                 context.m_needed_objects.clear();
                 context.m_requested_objects.clear();
+                context.m_request_block_rate = 0;
                 return 1;
             }
 
@@ -758,6 +758,29 @@ namespace CryptoNote
         }
 
         return 0;
+    }
+
+    void CryptoNoteProtocolHandler::adjust_block_rate(CryptoNoteConnectionContext &context)
+    {
+        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - context.m_request_block_start);
+        const auto time_taken_ms = duration.count();
+
+        if (time_taken_ms == 0) {
+            context.m_request_block_rate = context.m_next_request_block_rate;
+            context.m_next_request_block_rate += 10;
+        } else {
+            context.m_request_block_rate = context.m_next_request_block_rate / (time_taken_ms / 1000.0);
+
+            if (time_taken_ms > 1000) {
+                context.m_next_request_block_rate -= 10;
+            } else {
+                context.m_next_request_block_rate += 10;
+            }
+        }
+
+        if (context.m_next_request_block_rate < 10) {
+            context.m_next_request_block_rate = 10;
+        }
     }
 
     int CryptoNoteProtocolHandler::doPushLiteBlock(
@@ -953,11 +976,14 @@ namespace CryptoNote
         if (context.m_needed_objects.size())
         {
             // we know objects that we need, request this objects
+            context.m_request_block_start = std::chrono::high_resolution_clock::now();
+
             NOTIFY_REQUEST_GET_OBJECTS::request req;
             size_t count = 0;
             auto it = context.m_needed_objects.begin();
+            size_t max_to_download = context.m_next_request_block_rate;
 
-            while (it != context.m_needed_objects.end() && count < BLOCKS_SYNCHRONIZING_DEFAULT_COUNT)
+            while (it != context.m_needed_objects.end() && count < max_to_download)
             {
                 if (!(check_having_blocks && m_core.hasBlock(*it)))
                 {
