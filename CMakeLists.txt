@@ -17,7 +17,7 @@ else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
 endif()
 
-set(VERSION "0.1")
+set(VERSION "0.7.2")
 
 # # This section describes our general CMake setup options
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -48,6 +48,17 @@ if(NO_AES)
     message(STATUS "HW AES: DISABLED")
 else()
     message(STATUS "HW AES: ENABLED")
+    
+    if (NOT MSVC)
+        include(CheckCCompilerFlag)
+        check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
+
+        if(HAS_AES_NI_SUPPORT)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+        else()
+            add_definitions(-DNO_AES)
+        endif()
+    endif()
 endif()
 
 if(NO_OPTIMIZED_MULTIPLY_ON_ARM)
@@ -62,9 +73,6 @@ set(STATIC ON CACHE BOOL FORCE "Link libraries statically? Forced to ON")
 
 # # This section helps us tag our builds with the git commit information
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
-
-# So we can use std::string with rapidjson
-add_definitions(-DRAPIDJSON_HAS_STDSTRING)
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
 
@@ -100,7 +108,7 @@ include_directories(include "${CMAKE_CURRENT_BINARY_DIR}/version" src external)
 # # Platform specific code base information is applied here
 if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
-    add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
+    add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10485760")
 
     foreach(VAR CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE)
@@ -196,13 +204,16 @@ if(NOT MSVC)
     endif()
 endif()
 
-# # Go get us some static BOOST libraries
 find_package(Boost REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
 find_package(leveldb CONFIG REQUIRED)
 find_package(miniupnpc CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
+
+# So we can use std::string with rapidjson
+add_definitions(-DRAPIDJSON_HAS_STDSTRING)
 
 add_subdirectory(src)
