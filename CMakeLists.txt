@@ -17,32 +17,6 @@ else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
 endif()
 
-# Required for finding Threads on ARM
-enable_language(C)
-enable_language(CXX)
-
-# Assert our compiler is good
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # GCC 7.0 or higher
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
-        message(FATAL_ERROR "GCC/G++ 7.0 or greater is required to compile. Please check the README.md for detailed compilation instructions.")
-    endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # Clang 6.0 or higher
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6)
-        message(FATAL_ERROR "Clang 6.0 or greater is required to compile. Please check the README.md for detailed compilation instructions.")
-    endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # Visual Studio 15 2017 or higher
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.10)
-        message(FATAL_ERROR "MSVC 19.10 or greater is required to compile (Latest Visual Studio 15 2017 should suffice). Please check the README.md for detailed compilation instructions.")
-    endif()
-else()
-    message(WARNING "You are using an unsupported compiler. The compilation is very likely to fail. God speed.")
-endif()
-
-find_package(Threads)
-
 set(VERSION "0.1")
 
 # # This section describes our general CMake setup options
@@ -223,9 +197,7 @@ if(NOT MSVC)
 endif()
 
 # # Go get us some static BOOST libraries
-find_package(Boost REQUIRED COMPONENTS date_time)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
+find_package(Boost REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
 find_package(leveldb CONFIG REQUIRED)
 find_package(miniupnpc CONFIG REQUIRED)
