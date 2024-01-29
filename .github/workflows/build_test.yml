@@ -50,8 +50,8 @@ jobs:
                     ninja-build
                     crossbuild-essential-arm64
                   output_folder: DeroGold-linux-arm64
-                  configure_preset: linux-arm64-gcc-publish
-                  build_preset: linux-arm64-gcc-publish
+                  configure_preset: linux-arm64-gcc-cross-publish
+                  build_preset: linux-arm64-gcc-cross-publish
       
                 - os: macos-latest
                   arch: x64

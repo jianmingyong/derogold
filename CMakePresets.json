@@ -142,10 +142,7 @@
                 "default-gcc"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "cmake/raspberrypi-arm64.cmake",
-                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
-                "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
+                "VCPKG_TARGET_TRIPLET": "arm64-linux"
             }
         },
         {
@@ -154,10 +151,37 @@
                 "default-publish-gcc"
             ],
             "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release"
+            }
+        },
+        {
+            "name": "linux-arm64-gcc-cross",
+            "inherits": [
+                "default-gcc"
+            ],
+            "installDir": "${sourceDir}/build",
+            "environment": {
+                "CC": "aarch64-linux-gnu-gcc",
+                "CXX": "aarch64-linux-gnu-g++"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake"
+            }
+        },
+        {
+            "name": "linux-arm64-gcc-cross-publish",
+            "inherits": [
+                "default-publish-gcc"
+            ],
+            "installDir": "${sourceDir}/build",
+            "environment": {
+                "CC": "aarch64-linux-gnu-gcc",
+                "CXX": "aarch64-linux-gnu-g++"
+            },
+            "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "cmake/raspberrypi-arm64.cmake",
-                "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
-                "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake"
             }
         },
         {
@@ -193,7 +217,10 @@
         {
             "name": "windows-x64-msvc-publish",
             "configurePreset": "windows-x64-msvc-publish",
-            "configuration": "Release"
+            "configuration": "Release",
+            "targets": [
+                "INSTALL"
+            ]
         },
         {
             "name": "linux-x64-gcc-debug",
@@ -207,7 +234,10 @@
         },
         {
             "name": "linux-x64-gcc-publish",
-            "configurePreset": "linux-x64-gcc-publish"
+            "configurePreset": "linux-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
         },
         {
             "name": "linux-arm64-gcc-debug",
@@ -221,7 +251,27 @@
         },
         {
             "name": "linux-arm64-gcc-publish",
-            "configurePreset": "linux-arm64-gcc-publish"
+            "configurePreset": "linux-arm64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-gcc-cross-debug",
+            "configurePreset": "linux-arm64-gcc-cross",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-arm64-gcc-cross-release",
+            "configurePreset": "linux-arm64-gcc-cross",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-arm64-gcc-cross-publish",
+            "configurePreset": "linux-arm64-gcc-cross-publish",
+            "targets": [
+                "install"
+            ]
         },
         {
             "name": "osx-x64-gcc-debug",
@@ -235,7 +285,10 @@
         },
         {
             "name": "osx-x64-gcc-publish",
-            "configurePreset": "osx-x64-gcc-publish"
+            "configurePreset": "osx-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
         }
     ]
 }
