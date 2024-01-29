@@ -763,24 +763,24 @@ namespace CryptoNote
 
     void CryptoNoteProtocolHandler::adjust_block_rate(CryptoNoteConnectionContext &context)
     {
-        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - context.m_request_block_start);
+        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - context.m_request_block_start);
         const auto time_taken_ms = duration.count();
 
         if (time_taken_ms == 0) {
             context.m_request_block_rate = context.m_next_request_block_rate;
-            context.m_next_request_block_rate += 10;
+            context.m_next_request_block_rate += 5;
         } else {
             context.m_request_block_rate = ((context.m_next_request_block_rate / (time_taken_ms / 1000.0)) + context.m_request_block_rate) / 2.0;
 
             if (time_taken_ms > 1000) {
-                context.m_next_request_block_rate -= 10;
+                context.m_next_request_block_rate -= 5;
             } else {
-                context.m_next_request_block_rate += 10;
+                context.m_next_request_block_rate += 5;
             }
         }
 
-        if (context.m_next_request_block_rate < 10) {
-            context.m_next_request_block_rate = 10;
+        if (context.m_next_request_block_rate < 5) {
+            context.m_next_request_block_rate = 5;
         } else if (context.m_next_request_block_rate > BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT) {
             context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
         }

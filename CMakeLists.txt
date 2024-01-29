@@ -9,6 +9,7 @@ find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    message(STATUS "ccache is found and will be used to speed up compilation for DeroGold source code.")
 endif()
 
 if(DEFINED CMAKE_BUILD_TYPE)
@@ -21,10 +22,6 @@ set(VERSION "0.7.2")
 
 # # This section describes our general CMake setup options
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_SKIP_INSTALL_RULES OFF FORCE)
-set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON FORCE)
-set(CMAKE_SUPPRESS_REGENERATION ON)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Enable c++17
 set(CMAKE_CXX_STANDARD 17)
