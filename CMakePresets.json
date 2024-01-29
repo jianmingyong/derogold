@@ -143,6 +143,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "cmake/raspberrypi-arm64.cmake",
                 "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
                 "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
             }
@@ -154,6 +155,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "cmake/raspberrypi-arm64.cmake",
                 "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc",
                 "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++"
             }

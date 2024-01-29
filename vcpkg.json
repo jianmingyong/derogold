@@ -15,6 +15,12 @@
     "boost-uuid",
     "boost-variant",
     "cryptopp",
+    {
+      "name": "leveldb",
+      "features": [
+        "snappy"
+      ]
+    },
     "miniupnpc",
     "openssl",
     "rapidjson",
@@ -22,12 +28,6 @@
       "name": "rocksdb",
       "features": [
         "zstd"
-      ]
-    },
-    {
-      "name": "leveldb",
-      "features": [
-        "snappy"
       ]
     }
   ]
