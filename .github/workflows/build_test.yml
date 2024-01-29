@@ -75,7 +75,7 @@ jobs:
                     curl
                     zip
                     unzip
-                    tar
+                    gnu-tar
                     pkg-config
                   output_folder: DeroGold-osx-x64
                   configure_preset: osx-x64-gcc-publish
