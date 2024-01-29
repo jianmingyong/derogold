@@ -36,9 +36,15 @@ jobs:
                 - os: ubuntu-latest
                   arch: x64
                   install: >-
+                    git
                     cmake
                     ninja-build
                     build-essential
+                    curl
+                    zip
+                    unzip
+                    tar
+                    pkg-config
                   output_folder: DeroGold-linux-x64
                   configure_preset: linux-x64-gcc-publish
                   build_preset: linux-x64-gcc-publish
@@ -46,9 +52,15 @@ jobs:
                 - os: ubuntu-latest
                   arch: arm64
                   install: >-
+                    git
                     cmake
                     ninja-build
                     crossbuild-essential-arm64
+                    curl
+                    zip
+                    unzip
+                    tar
+                    pkg-config
                   output_folder: DeroGold-linux-arm64
                   configure_preset: linux-arm64-gcc-cross-publish
                   build_preset: linux-arm64-gcc-cross-publish
@@ -56,7 +68,15 @@ jobs:
                 - os: macos-latest
                   arch: x64
                   install: >-
+                    git
+                    cmake
                     ninja
+                    gcc
+                    curl
+                    zip
+                    unzip
+                    tar
+                    pkg-config
                   output_folder: DeroGold-osx-x64
                   configure_preset: osx-x64-gcc-publish
                   build_preset: osx-x64-gcc-publish
