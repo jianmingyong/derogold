@@ -3,7 +3,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external/cpp-httplib)
 include_directories(${CMAKE_SOURCE_DIR}/external/cpp-linenoise)
 include_directories(${CMAKE_SOURCE_DIR}/external/cxxopts)
 include_directories(${CMAKE_SOURCE_DIR}/external/nlohmann-json)
-#include_directories(${CMAKE_SOURCE_DIR}/external/rapidjson)
 
 # Show cmake where the source files are
 # Note, if you add remove a source file, you will need to re-run cmake so it
@@ -71,28 +70,14 @@ add_library(Utilities STATIC ${Utilities})
 add_library(Wallet STATIC ${Wallet})
 add_library(WalletBackend STATIC ${WalletBackend})
 
-if(MSVC)
-    set(DAEMON_SOURCES_OS
-        binaryinfo/daemon.rc
-    )
-    set(ZED_WALLET_SOURCES_OS
-        binaryinfo/zedwallet.rc
-    )
-    set(MINER_SOURCES_OS
-        binaryinfo/miner.rc
-    )
-    set(PG_SOURCES_OS
-        binaryinfo/service.rc
-    )
-    set(CT_SOURCES_OS
-        binaryinfo/cryptotest.rc
-    )
-    set(WALLET_API_SOURCES_OS
-        binaryinfo/walletapi.rc
-    )
-    set(WALLET_UPGRADER_SOURCES_OS
-        binaryinfo/walletupgrader.rc
-    )
+if(MSVC OR MINGW)
+    set(DAEMON_SOURCES_OS binaryinfo/daemon.rc)
+    set(ZED_WALLET_SOURCES_OS binaryinfo/zedwallet.rc)
+    set(MINER_SOURCES_OS binaryinfo/miner.rc)
+    set(PG_SOURCES_OS binaryinfo/service.rc)
+    set(CT_SOURCES_OS binaryinfo/cryptotest.rc)
+    set(WALLET_API_SOURCES_OS binaryinfo/walletapi.rc)
+    set(WALLET_UPGRADER_SOURCES_OS binaryinfo/walletupgrader.rc)
 endif()
 
 add_executable(cryptotest ${CryptoTest} ${CT_SOURCES_OS})
@@ -103,7 +88,7 @@ add_executable(WalletApi ${WalletApi} ${WALLET_API_SOURCES_OS})
 add_executable(WalletUpgrader ${WalletUpgrader} ${WALLET_UPGRADER_SOURCES_OS})
 add_executable(zedwallet++ ${zedwallet++} ${ZED_WALLET_SOURCES_OS})
 
-if(MSVC)
+if(MSVC OR MINGW)
     target_link_libraries(System ws2_32)
     target_link_libraries(DeroGoldd Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletService Rpcrt4 ws2_32 advapi32 crypt32 gdi32 user32)
@@ -111,6 +96,8 @@ if(MSVC)
     target_link_libraries(WalletApi ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(miner ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletUpgrader ws2_32 advapi32 crypt32 gdi32 user32)
+    target_link_libraries(P2P bcrypt)
+    target_compile_definitions(P2P INTERFACE BOOST_UUID_FORCE_AUTO_LINK)
 endif()
 
 # Add the dependencies we need
@@ -140,8 +127,6 @@ target_link_libraries(WalletBackend Config Logger Mnemonics Nigel Serialization 
 target_link_libraries(WalletService Errors JsonRpcServer Mnemonics Wallet Boost::boost OpenSSL::Crypto OpenSSL::SSL rapidjson)
 target_link_libraries(WalletUpgrader Common Utilities WalletBackend)
 target_link_libraries(zedwallet++ WalletBackend OpenSSL::Crypto OpenSSL::SSL rapidjson)
-
-set_target_properties(P2P PROPERTIES COMPILE_FLAGS -DBOOST_UUID_FORCE_AUTO_LINK)
 
 # Add dependencies means we have to build the latter before we build the former
 # In this case it's because we need to have the current version name rather

@@ -1595,12 +1595,18 @@ inline bool enableRawMode(int fd) {
 #ifndef _WIN32
     struct termios raw;
 
-    if (!isatty(STDIN_FILENO)) goto fatal;
+    if (!isatty(STDIN_FILENO)) {
+        errno = ENOTTY;
+        return false;
+    }
     if (!atexit_registered) {
         atexit(linenoiseAtExit);
         atexit_registered = true;
     }
-    if (tcgetattr(fd,&orig_termios) == -1) goto fatal;
+    if (tcgetattr(fd,&orig_termios) == -1) {
+        errno = ENOTTY;
+        return false;
+    }
 
     raw = orig_termios;  /* modify the original mode */
     /* input modes: no break, no CR to NL, no parity check, no strip char,
@@ -1626,7 +1632,10 @@ inline bool enableRawMode(int fd) {
     raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0; /* 1 byte, no timer */
 
     /* put terminal in raw mode after flushing */
-    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) goto fatal;
+    if (tcsetattr(fd,TCSAFLUSH,&raw) < 0) {
+        errno = ENOTTY;
+        return false;
+    }
     rawmode = true;
 #else
     if (!atexit_registered) {
@@ -1636,7 +1645,10 @@ inline bool enableRawMode(int fd) {
 
         /* Init windows console handles only once */
         hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (hOut==INVALID_HANDLE_VALUE) goto fatal;
+        if (hOut==INVALID_HANDLE_VALUE) {
+            errno = ENOTTY;
+            return false;
+        }
     }
 
     DWORD consolemodeOut;
@@ -1660,10 +1672,6 @@ inline bool enableRawMode(int fd) {
     rawmode = true;
 #endif
     return true;
-
-fatal:
-    errno = ENOTTY;
-    return false;
 }
 
 inline void disableRawMode(int fd) {

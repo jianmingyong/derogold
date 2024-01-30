@@ -13,7 +13,7 @@
 #include <string.h>
 #include <thread>
 
-#ifdef WIN32
+#if defined(WIN32) || defined(__MINGW32__)
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
