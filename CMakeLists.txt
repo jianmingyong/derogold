@@ -152,6 +152,10 @@ if(NOT MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${STATICASSERTC_FLAG} ${WARNINGS} ${C_WARNINGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ${STATICASSERTCPP_FLAG} ${WARNINGS} ${CXX_WARNINGS}")
 
+    if(MINGW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+    endif()
+    
     if(APPLE)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
             # Need to build against libc++ instead of libstc++ on apple
