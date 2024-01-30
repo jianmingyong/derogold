@@ -2,13 +2,17 @@
     "version": 3,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 8
+        "minor": 15
     },
     "configurePresets": [
         {
             "name": "default",
             "hidden": true,
-            "binaryDir": "${sourceDir}/build"
+            "binaryDir": "${sourceDir}/build",
+            "environment": {
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/ports",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets"
+            }
         },
         {
             "name": "default-publish",
@@ -119,6 +123,26 @@
             }
         },
         {
+            "name": "windows-x64-mingw",
+            "inherits": [
+                "default-gcc"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-publish",
+            "inherits": [
+                "default-publish-gcc"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release"
+            }
+        },
+        {
             "name": "linux-x64-gcc",
             "inherits": [
                 "default-gcc"
@@ -220,6 +244,24 @@
             "configuration": "Release",
             "targets": [
                 "INSTALL"
+            ]
+        },
+        {
+            "name": "windows-x64-mingw-debug",
+            "configurePreset": "windows-x64-mingw",
+            "configuration": "Debug"
+        },
+		{
+            "name": "windows-x64-mingw-release",
+            "configurePreset": "windows-x64-mingw",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-x64-mingw-publish",
+            "configurePreset": "windows-x64-mingw-publish",
+            "configuration": "Release",
+            "targets": [
+                "install"
             ]
         },
         {

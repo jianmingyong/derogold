@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <stdexcept>
 
 template<typename T> class ThreadSafeQueue
 {

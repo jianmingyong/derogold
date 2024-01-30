@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
@@ -18,7 +19,7 @@ else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
 endif()
 
-set(VERSION "0.7.2")
+set(VERSION "0.7.3")
 
 # # This section describes our general CMake setup options
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -100,14 +101,13 @@ include_directories(include "${CMAKE_CURRENT_BINARY_DIR}/version" src external)
 
 # # Platform specific code base information is applied here
 if(MSVC)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _WIN32_WINNT=0x0A00 WIN32_LEAN_AND_MEAN)
+    add_compile_options(/bigobj /MP /W3 /GS-)
+    add_link_options(/STACK:10485760)
+
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
-    add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10485760")
-
-    foreach(VAR CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE)
-        string(REPLACE "/MD" "/MT" ${VAR} "${${VAR}}")
-    endforeach()
-
     include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
 elseif(MINGW)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
