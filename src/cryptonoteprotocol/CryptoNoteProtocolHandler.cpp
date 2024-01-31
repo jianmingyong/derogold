@@ -286,7 +286,7 @@ namespace CryptoNote
                << std::setw(17) << std::hex << peer_id
                << std::setw(26) << get_protocol_state_string(cntxt.m_state)
                << std::setw(21) << std::to_string(time(NULL) - cntxt.m_started)
-               << std::setw(14) << std::to_string(cntxt.m_request_block_rate) + " (" + std::to_string(cntxt.m_next_request_block_rate) + ")"
+               << std::setw(14) << std::to_string(cntxt.m_request_block_rate)
                << ENDL;
         });
         logger(INFO) << "Connections: " << ENDL << ss.str();
@@ -767,16 +767,11 @@ namespace CryptoNote
         const auto time_taken_ms = duration.count();
 
         if (time_taken_ms == 0) {
-            context.m_request_block_rate = context.m_next_request_block_rate;
-            context.m_next_request_block_rate += 5;
+            context.m_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
+            context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
         } else {
-            context.m_request_block_rate = ((context.m_next_request_block_rate / (time_taken_ms / 1000.0)) + context.m_request_block_rate) / 2.0;
-
-            if (time_taken_ms > 1000) {
-                context.m_next_request_block_rate -= 5;
-            } else {
-                context.m_next_request_block_rate += 5;
-            }
+            context.m_request_block_rate = static_cast<size_t>(context.m_next_request_block_rate / (time_taken_ms / 1000.0));
+            context.m_next_request_block_rate = context.m_request_block_rate;
         }
 
         if (context.m_next_request_block_rate < 5) {
