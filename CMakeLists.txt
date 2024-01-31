@@ -19,10 +19,14 @@ else()
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
 endif()
 
-set(VERSION "0.7.3")
+set(VERSION "0.7.2")
 
 # # This section describes our general CMake setup options
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Enable c11
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Enable c++17
 set(CMAKE_CXX_STANDARD 17)
@@ -126,7 +130,7 @@ if(NOT MSVC)
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         # This option has no effect in glibc version less than 2.20.
         # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
-        add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
+        add_compile_definitions(_DEFAULT_SOURCE _GNU_SOURCE)
     endif()
 
     # # These options generate all those nice warnings we see while building
@@ -146,11 +150,8 @@ if(NOT MSVC)
         set(WARNINGS "${WARNINGS} -Wno-error=odr")
     endif()
 
-    set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
-    set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${STATICASSERTC_FLAG} ${WARNINGS} ${C_WARNINGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ${STATICASSERTCPP_FLAG} ${WARNINGS} ${CXX_WARNINGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${WARNINGS} -Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers")
 
     if(MINGW)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
@@ -184,15 +185,6 @@ if(NOT MSVC)
     # # Setting up RELEASE flags
     set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
 
-    if(NOT APPLE)
-        # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
-        if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_BUILD_TYPE STREQUAL "Release")
-            # On linux, to build in lto mode, check that ld.gold linker is used: 'update-alternatives --install /usr/bin/ld ld /usr/bin/ld.gold HIGHEST_PRIORITY'
-            set(CMAKE_AR gcc-ar)
-            set(CMAKE_RANLIB gcc-ranlib)
-        endif()
-    endif()
-
     # # Set up the normal CMake flags as we've built them
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
@@ -215,6 +207,6 @@ find_package(RocksDB CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 
 # So we can use std::string with rapidjson
-add_definitions(-DRAPIDJSON_HAS_STDSTRING)
+add_compile_definitions(RAPIDJSON_HAS_STDSTRING)
 
 add_subdirectory(src)
