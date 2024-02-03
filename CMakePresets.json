@@ -1,79 +1,13 @@
 {
-    "version": 3,
+    "version": 4,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 15
+        "minor": 23
     },
+    "include": [
+        "cmake/CMakePresets.json"
+    ],
     "configurePresets": [
-        {
-            "name": "default",
-            "hidden": true,
-            "binaryDir": "${sourceDir}/build",
-            "environment": {
-                "VCPKG_OVERLAY_PORTS": "${sourceDir}/ports",
-                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets"
-            }
-        },
-        {
-            "name": "default-publish",
-            "hidden": true,
-            "inherits": [
-                "default"
-            ],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "default-msvc",
-            "hidden": true,
-            "inherits": [
-                "default"
-            ],
-            "generator": "Visual Studio 17 2022",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "default-gcc",
-            "hidden": true,
-            "inherits": [
-                "default"
-            ],
-            "generator": "Ninja Multi-Config",
-            "environment": {
-                "CC": "gcc",
-                "CXX": "g++"
-            }
-        },
-        {
-            "name": "default-publish-msvc",
-            "hidden": true,
-            "inherits": [
-                "default-publish"
-            ],
-            "generator": "Visual Studio 17 2022",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "default-publish-gcc",
-            "hidden": true,
-            "inherits": [
-                "default-publish"
-            ],
-            "generator": "Ninja",
-            "environment": {
-                "CC": "gcc",
-                "CXX": "g++"
-            }
-        },
         {
             "name": "windows-x64-msvc",
             "inherits": [
@@ -123,7 +57,7 @@
             }
         },
         {
-            "name": "windows-x64-mingw",
+            "name": "windows-x64-mingw-gcc",
             "inherits": [
                 "default-gcc"
             ],
@@ -133,13 +67,35 @@
             }
         },
         {
-            "name": "windows-x64-mingw-publish",
+            "name": "windows-x64-mingw-gcc-publish",
             "inherits": [
                 "default-publish-gcc"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release"
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "ARCH": "x86-64"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-clang",
+            "inherits": [
+                "default-clang"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-clang-publish",
+            "inherits": [
+                "default-publish-clang"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "ARCH": "x86-64"
             }
         },
         {
@@ -247,19 +203,35 @@
             ]
         },
         {
-            "name": "windows-x64-mingw-debug",
-            "configurePreset": "windows-x64-mingw",
+            "name": "windows-x64-mingw-gcc-debug",
+            "configurePreset": "windows-x64-mingw-gcc",
             "configuration": "Debug"
         },
 		{
-            "name": "windows-x64-mingw-release",
-            "configurePreset": "windows-x64-mingw",
+            "name": "windows-x64-mingw-gcc-release",
+            "configurePreset": "windows-x64-mingw-gcc",
             "configuration": "Release"
         },
         {
-            "name": "windows-x64-mingw-publish",
-            "configurePreset": "windows-x64-mingw-publish",
-            "configuration": "Release",
+            "name": "windows-x64-mingw-gcc-publish",
+            "configurePreset": "windows-x64-mingw-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "windows-x64-mingw-clang-debug",
+            "configurePreset": "windows-x64-mingw-clang",
+            "configuration": "Debug"
+        },
+		{
+            "name": "windows-x64-mingw-clang-release",
+            "configurePreset": "windows-x64-mingw-clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-x64-mingw-clang-publish",
+            "configurePreset": "windows-x64-mingw-clang-publish",
             "targets": [
                 "install"
             ]
@@ -277,6 +249,23 @@
         {
             "name": "linux-x64-gcc-publish",
             "configurePreset": "linux-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "linux-x64-clang-debug",
+            "configurePreset": "linux-x64-clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-x64-clang-release",
+            "configurePreset": "linux-x64-clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-x64-clang-publish",
+            "configurePreset": "linux-x64-clang-publish",
             "targets": [
                 "install"
             ]

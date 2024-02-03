@@ -3,22 +3,7 @@ cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-project(DeroGold)
-
-find_program(CCACHE_PROGRAM ccache)
-
-if(CCACHE_PROGRAM)
-    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    message(STATUS "ccache is found and will be used to speed up compilation for DeroGold source code.")
-endif()
-
-if(DEFINED CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
-else()
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
-endif()
-
+project(DeroGold VERSION 0.7.2 HOMEPAGE_URL https://derogold.com)
 set(VERSION "0.7.2")
 
 # # This section describes our general CMake setup options
@@ -33,41 +18,58 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Use ccache to optimize compile speed
+find_program(CCACHE_PROGRAM ccache)
+
+if(CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    message(STATUS "ccache is found and will be used to speed up compilation for DeroGold source code.")
+endif()
+
+# Set default build type.
+if(DEFINED CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
+else()
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
+endif()
+
+# Set target architecture for optimizations
+if(DEFINED ARCH)
+    set(ARCH ${ARCH} CACHE STRING "Set target architecture, options are: native, x86-64, armv8-a")
+else()
+    set(ARCH native CACHE STRING "Set target architecture, options are: native, x86-64, armv8-a")
+endif()
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-march=${ARCH})
+endif()
+
 # # This section is for settings found in the slow-hash routine(s) that may benefit some systems (mostly ARM)
 set(FORCE_USE_HEAP ON CACHE BOOL "Force the use of heap memory allocation")
 set(NO_AES OFF CACHE BOOL "Turn off Hardware AES instructions?")
 set(NO_OPTIMIZED_MULTIPLY_ON_ARM OFF CACHE BOOL "Turn off Optimized Multiplication on ARM?")
 
 if(FORCE_USE_HEAP)
-    add_definitions(-DFORCE_USE_HEAP)
+    add_compile_definitions(FORCE_USE_HEAP)
     message(STATUS "FORCE_USE_HEAP: ENABLED")
 else()
     message(STATUS "FORCE_USE_HEAP: DISABLED")
 endif()
 
 if(NO_AES)
-    add_definitions(-DNO_AES)
+    add_compile_definitions(NO_AES)
     message(STATUS "HW AES: DISABLED")
 else()
     message(STATUS "HW AES: ENABLED")
-    
-    include(CheckCCompilerFlag)
-    check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT_FLAG)
-
-    if(HAS_AES_NI_SUPPORT_FLAG)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
-    endif()
 endif()
 
 if(NO_OPTIMIZED_MULTIPLY_ON_ARM)
-    add_definitions(-DNO_OPTIMIZED_MULTIPLY_ON_ARM)
+    add_compile_definitions(NO_OPTIMIZED_MULTIPLY_ON_ARM)
     message(STATUS "OPTIMIZED_ARM_MULTIPLICATION: DISABLED")
 else()
     message(STATUS "OPTIMIZED_ARM_MULTIPLICATION: ENABLED")
 endif()
-
-# # We only build static binaries -- this is left here for our dependencies
-set(STATIC ON CACHE BOOL FORCE "Link libraries statically? Forced to ON")
 
 # # This section helps us tag our builds with the git commit information
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
@@ -114,6 +116,8 @@ if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
     include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
 elseif(MINGW)
+    add_link_options(-static)
+    
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
     include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/mingw)
 elseif(APPLE)
@@ -150,12 +154,8 @@ if(NOT MSVC)
         set(WARNINGS "${WARNINGS} -Wno-error=odr")
     endif()
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${WARNINGS} -Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers")
-
-    if(MINGW)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-    endif()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNINGS} -Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers")
     
     if(APPLE)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")

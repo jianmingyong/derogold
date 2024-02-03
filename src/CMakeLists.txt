@@ -97,7 +97,6 @@ if(MSVC OR MINGW)
     target_link_libraries(miner ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(WalletUpgrader ws2_32 advapi32 crypt32 gdi32 user32)
     target_link_libraries(P2P bcrypt)
-    target_compile_definitions(P2P INTERFACE BOOST_UUID_FORCE_AUTO_LINK)
 endif()
 
 # Add the dependencies we need
