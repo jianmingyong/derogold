@@ -1,0 +1,92 @@
+{
+    "version": 4,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "environment": {
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/ports",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets"
+            }
+        },
+        {
+            "name": "default-msvc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Visual Studio 17 2022",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "default-gcc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "default-clang",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        },
+        {
+            "name": "default-publish-msvc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Visual Studio 17 2022",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "default-publish-gcc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "default-publish-clang",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        }
+    ]
+}
