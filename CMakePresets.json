@@ -74,7 +74,7 @@
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
-                "ARCH": "x86-64"
+                "ARCH": "default"
             }
         },
         {
@@ -95,7 +95,7 @@
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
-                "ARCH": "x86-64"
+                "ARCH": "default"
             }
         },
         {
@@ -114,7 +114,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
-                "ARCH": "x86-64"
+                "ARCH": "default"
             }
         },
         {
@@ -133,7 +133,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
-                "ARCH": "x86-64"
+                "ARCH": "default"
             }
         },
         {
@@ -152,7 +152,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
-                "ARCH": "armv8-a"
+                "ARCH": "default"
             }
         },
         {
@@ -171,7 +171,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
-                "ARCH": "armv8-a"
+                "ARCH": "default"
             }
         },
         {
@@ -219,7 +219,27 @@
                 "default-gcc-publish"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx-release"
+                "VCPKG_TARGET_TRIPLET": "x64-osx-release",
+                "ARCH": "default"
+            }
+        },
+        {
+            "name": "osx-x64-clang",
+            "inherits": [
+                "default-clang"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx"
+            }
+        },
+        {
+            "name": "osx-x64-clang-publish",
+            "inherits": [
+                "default-clang-publish"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx-release",
+                "ARCH": "default"
             }
         }
     ],
@@ -357,6 +377,23 @@
         {
             "name": "osx-x64-gcc-publish",
             "configurePreset": "osx-x64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "osx-x64-clang-debug",
+            "configurePreset": "osx-x64-clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "osx-x64-clang-release",
+            "configurePreset": "osx-x64-clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "osx-x64-clang-publish",
+            "configurePreset": "osx-x64-clang-publish",
             "targets": [
                 "install"
             ]
