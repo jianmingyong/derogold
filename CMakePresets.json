@@ -35,7 +35,7 @@
         {
             "name": "windows-x64-msvc-publish",
             "inherits": [
-                "default-publish-msvc"
+                "default-msvc-publish"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
@@ -69,7 +69,7 @@
         {
             "name": "windows-x64-mingw-gcc-publish",
             "inherits": [
-                "default-publish-gcc"
+                "default-gcc-publish"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
@@ -90,7 +90,7 @@
         {
             "name": "windows-x64-mingw-clang-publish",
             "inherits": [
-                "default-publish-clang"
+                "default-clang-publish"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
@@ -110,10 +110,30 @@
         {
             "name": "linux-x64-gcc-publish",
             "inherits": [
-                "default-publish-gcc"
+                "default-gcc-publish"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-release"
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "ARCH": "x86-64"
+            }
+        },
+        {
+            "name": "linux-x64-clang",
+            "inherits": [
+                "default-clang"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "linux-x64-clang-publish",
+            "inherits": [
+                "default-clang-publish"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "ARCH": "x86-64"
             }
         },
         {
@@ -128,10 +148,30 @@
         {
             "name": "linux-arm64-gcc-publish",
             "inherits": [
-                "default-publish-gcc"
+                "default-gcc-publish"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-release"
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "ARCH": "armv8-a"
+            }
+        },
+        {
+            "name": "linux-arm64-clang",
+            "inherits": [
+                "default-clang"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux"
+            }
+        },
+        {
+            "name": "linux-arm64-clang-publish",
+            "inherits": [
+                "default-clang-publish"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "ARCH": "armv8-a"
             }
         },
         {
@@ -152,7 +192,7 @@
         {
             "name": "linux-arm64-gcc-cross-publish",
             "inherits": [
-                "default-publish-gcc"
+                "default-gcc-publish"
             ],
             "installDir": "${sourceDir}/build",
             "environment": {
@@ -176,7 +216,7 @@
         {
             "name": "osx-x64-gcc-publish",
             "inherits": [
-                "default-publish-gcc"
+                "default-gcc-publish"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release"

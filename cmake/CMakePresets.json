@@ -20,12 +20,7 @@
             "inherits": [
                 "default"
             ],
-            "generator": "Visual Studio 17 2022",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "generator": "Visual Studio 17 2022"
         },
         {
             "name": "default-gcc",
@@ -52,20 +47,15 @@
             }
         },
         {
-            "name": "default-publish-msvc",
+            "name": "default-msvc-publish",
             "hidden": true,
             "inherits": [
                 "default"
             ],
-            "generator": "Visual Studio 17 2022",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "generator": "Visual Studio 17 2022"
         },
         {
-            "name": "default-publish-gcc",
+            "name": "default-gcc-publish",
             "hidden": true,
             "inherits": [
                 "default"
@@ -77,7 +67,7 @@
             }
         },
         {
-            "name": "default-publish-clang",
+            "name": "default-clang-publish",
             "hidden": true,
             "inherits": [
                 "default"
