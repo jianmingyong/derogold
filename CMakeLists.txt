@@ -36,13 +36,15 @@ endif()
 
 # Set target architecture for optimizations
 if(DEFINED ARCH)
-    set(ARCH ${ARCH} CACHE STRING "Set target architecture, options are: native, x86-64, armv8-a")
+    set(ARCH ${ARCH} CACHE STRING "Set target architecture, options are: native, default")
 else()
-    set(ARCH native CACHE STRING "Set target architecture, options are: native, x86-64, armv8-a")
+    set(ARCH native CACHE STRING "Set target architecture, options are: native, default")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-march=${ARCH})
+    if(NOT ARCH STREQUAL "default")
+        add_compile_options(-march=${ARCH})
+    endif()
 endif()
 
 # # This section is for settings found in the slow-hash routine(s) that may benefit some systems (mostly ARM)
@@ -62,6 +64,15 @@ if(NO_AES)
     message(STATUS "HW AES: DISABLED")
 else()
     message(STATUS "HW AES: ENABLED")
+
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        include(CheckCCompilerFlag)
+        check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
+
+        if(HAS_AES_NI_SUPPORT)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+        endif()
+    endif()
 endif()
 
 if(NO_OPTIMIZED_MULTIPLY_ON_ARM)
