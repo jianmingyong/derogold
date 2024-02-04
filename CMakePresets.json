@@ -142,7 +142,8 @@
                 "default-gcc"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux"
+                "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "ARCH": "default"
             }
         },
         {
@@ -161,7 +162,8 @@
                 "default-clang"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux"
+                "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "ARCH": "default"
             }
         },
         {
@@ -186,7 +188,8 @@
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
+                "ARCH": "default"
             }
         },
         {
@@ -201,7 +204,8 @@
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake"
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
+                "ARCH": "default"
             }
         },
         {
