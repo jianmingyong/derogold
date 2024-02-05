@@ -157,4 +157,5 @@ add_custom_target(solominer DEPENDS DeroGoldd zedwallet++ miner)
 add_custom_target(cli DEPENDS DeroGoldd zedwallet++)
 add_custom_target(cli-wallet DEPENDS zedwallet++)
 
-install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader)
+install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader 
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
