@@ -12,10 +12,14 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+include(CheckCCompilerFlag)
+
 # Enable c++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(CheckCXXCompilerFlag)
 
 # Use ccache to optimize compile speed
 find_program(CCACHE_PROGRAM ccache)
@@ -65,11 +69,10 @@ else()
     message(STATUS "HW AES: ENABLED")
 
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        include(CheckCCompilerFlag)
         check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
 
         if(HAS_AES_NI_SUPPORT)
-            add_compile_options($<$<COMPILE_LANGUAGE:C>:-maes>)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
         endif()
     endif()
 endif()
@@ -153,8 +156,14 @@ if(NOT MSVC)
     endif()
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNINGS} -Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers -Wno-error=inconsistent-missing-override")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers")
     
+    check_cxx_compiler_flag(-Wno-error=inconsistent-missing-override HAS_INCONSISTENT_MISSING_OVERRIDE)
+
+    if(HAS_INCONSISTENT_MISSING_OVERRIDE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=inconsistent-missing-override")
+    endif()
+
     if(APPLE)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
             # Need to build against libc++ instead of libstc++ on apple
