@@ -4,7 +4,6 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 project(DeroGold VERSION 0.7.2 HOMEPAGE_URL https://derogold.com)
-set(VERSION "0.7.2")
 
 # # This section describes our general CMake setup options
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -70,7 +69,7 @@ else()
         check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
 
         if(HAS_AES_NI_SUPPORT)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+            add_compile_options($<$<COMPILE_LANGUAGE:C>:-maes>)
         endif()
     endif()
 endif()
@@ -88,31 +87,23 @@ set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
 
 if(NOT COMMIT_ID_IN_VERSION)
-    set(VERSION "${VERSION}-unknown")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-    add_custom_target(version ALL)
-elseif(DEFINED COMMIT)
-    string(REPLACE "." "\\." VERSION_RE "${VERSION}")
-
-    if(NOT REFS MATCHES "(\\(|, )tag: v${VERSION_RE}(\\)|, )")
-        set(VERSION "${VERSION}-g${COMMIT}")
-    endif()
-
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-    add_custom_target(version ALL)
-else()
+    unset(VERSION)
+elseif(NOT DEFINED VERSION)
     find_package(Git QUIET)
 
     if(Git_FOUND OR GIT_FOUND)
-        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-        add_custom_target(version ALL "${CMAKE_COMMAND}" "-D" "VERSION=${VERSION}" "-D" "GIT=${GIT_EXECUTABLE}" "-D" "TO=${CMAKE_CURRENT_BINARY_DIR}/version/version.h" "-P" "${CMAKE_CURRENT_SOURCE_DIR}/src/version.cmake" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    else()
-        message(STATUS "WARNING: Git was not found!")
-        set(VERSION "${VERSION}-unknown")
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-        add_custom_target(version ALL)
+        execute_process(COMMAND "${GIT}" rev-parse --short HEAD RESULT_VARIABLE RET OUTPUT_VARIABLE DESCRIPTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+        if(RET)
+            message(WARNING "Cannot determine current revision. Make sure that you are building either from a Git working tree or from a source archive.")
+        else()
+            set(VERSION "${DESCRIPTION}")
+        endif()
     endif()
 endif()
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
+add_custom_target(version ALL)
 
 include_directories(include "${CMAKE_CURRENT_BINARY_DIR}/version" src external)
 
@@ -152,21 +143,17 @@ if(NOT MSVC)
     set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=unused-function -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
 
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces -Wno-error=unused-command-line-argument")
+        set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces -Wno-error=unused-command-line-argument -Wno-error=integer-overflow")
     else()
-        set(WARNINGS "${WARNINGS} -Wno-error=unused-but-set-variable")
+        set(WARNINGS "${WARNINGS} -Wno-error=unused-but-set-variable -Wno-error=odr")
 
         if(NOT APPLE)
             set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-error=clobbered")
         endif()
     endif()
 
-    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        set(WARNINGS "${WARNINGS} -Wno-error=odr")
-    endif()
-
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNINGS} -Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes -Wno-implicit-fallthrough")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS} -Wno-reorder -Wno-missing-field-initializers -Wno-error=inconsistent-missing-override")
     
     if(APPLE)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")

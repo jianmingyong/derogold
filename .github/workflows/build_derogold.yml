@@ -10,7 +10,7 @@ defaults:
 
 jobs:
     build_derogold:
-        name: Build DeroGold (${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }})
+        name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}
         runs-on: ${{ matrix.os }}
 
         strategy:
