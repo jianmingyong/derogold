@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -11,6 +11,7 @@
 #include "rocksdb/cache.h"
 #include "rocksdb/db.h"
 #include "rocksdb/table.h"
+#include "rocksdb/utilities/options_util.h"
 
 using namespace CryptoNote;
 using namespace Logging;
@@ -36,6 +37,12 @@ void RocksDBWrapper::init()
     if (state.load() != NOT_INITIALIZED)
     {
         throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::ALREADY_INITIALIZED));
+    }
+
+    if (m_config.optimize)
+    {
+        optimize();
+        return;
     }
 
     std::string dataDir = getDataDir(m_config);
@@ -244,8 +251,8 @@ std::error_code RocksDBWrapper::readThreadSafe(IReadBatch &batch)
 rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 {
     rocksdb::DBOptions dbOptions;
+    dbOptions.info_log_level = rocksdb::InfoLogLevel::INFO_LEVEL;
     dbOptions.IncreaseParallelism(config.backgroundThreadsCount);
-    dbOptions.info_log_level = rocksdb::InfoLogLevel::WARN_LEVEL;
     dbOptions.max_open_files = config.maxOpenFiles;
     // For spinning disk
     dbOptions.skip_stats_update_on_db_open = true;
@@ -253,44 +260,37 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 
     rocksdb::ColumnFamilyOptions fOptions;
 
-    fOptions.level_compaction_dynamic_level_bytes = true;
     // sets the size of a single memtable. Once memtable exceeds this size, it is marked immutable and a new one is created.
-    fOptions.write_buffer_size = static_cast<size_t>(config.writeBufferSize);
+    fOptions.write_buffer_size = config.writeBufferSize / 4;
     // merge two memtables when flushing to L0
     fOptions.min_write_buffer_number_to_merge = 2;
     // this means we'll use 50% extra memory in the worst case, but will reduce
     // write stalls.
-    fOptions.max_write_buffer_number = 4;
+    fOptions.max_write_buffer_number = 6;
     // start flushing L0->L1 as soon as possible. each file on level0 is
     // (memtable_memory_budget / 2). This will flush level 0 when it's bigger than
     // memtable_memory_budget.
-    fOptions.level0_file_num_compaction_trigger = 20;
-    fOptions.level0_slowdown_writes_trigger = 30;
-    fOptions.level0_stop_writes_trigger = 40;
+    fOptions.level0_file_num_compaction_trigger = 2;
 
     // doesn't really matter much, but we don't want to create too many files
-    fOptions.target_file_size_base = config.writeBufferSize / 10;
+    fOptions.target_file_size_base = config.writeBufferSize / 8;
     // make Level1 size equal to Level0 size, so that L0->L1 compactions are fast
     fOptions.max_bytes_for_level_base = config.writeBufferSize;
+
     fOptions.num_levels = 10;
-    fOptions.target_file_size_multiplier = 2;
+
     // level style compaction
     fOptions.compaction_style = rocksdb::kCompactionStyleLevel;
+    fOptions.compression_per_level.resize(fOptions.num_levels);
 
-    //fOptions.compression_per_level.resize(fOptions.num_levels);
+    const auto compressionLevel = config.compressionEnabled ? rocksdb::kZSTD : rocksdb::kNoCompression;
 
-    const auto compressionLevel = config.compressionEnabled
-        ? rocksdb::kZSTD
-        : rocksdb::kNoCompression;
-
-    //for (int i = 0; i < fOptions.num_levels; ++i)
-    //{
+    for (int i = 0; i < fOptions.num_levels; ++i)
+    {
         // don't compress l0 & l1
-        // fOptions.compression_per_level[i] = (i < 2 ? rocksdb::kNoCompression : compressionLevel);
-    //}
+        fOptions.compression_per_level[i] = (i < 2 ? rocksdb::kNoCompression : compressionLevel);
+    }
 
-    // bottom most use kZSTD
-    fOptions.compression = compressionLevel;
     fOptions.bottommost_compression = compressionLevel;
 
     rocksdb::BlockBasedTableOptions tableOptions;
@@ -315,4 +315,71 @@ void RocksDBWrapper::recreate()
 
     destroy();
     init();
+}
+
+void RocksDBWrapper::optimize()
+{
+    const rocksdb::ConfigOptions configOptions;
+    const std::string dbData = getDataDir(m_config);
+    rocksdb::DBOptions dbOptions;
+    std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
+
+    rocksdb::Status status = LoadLatestOptions(configOptions, dbData, &dbOptions, &descriptors);
+
+    if (status.ok())
+    {
+        const std::string optimizeData = m_config.dataDir + "/DB_OPTIMIZED";
+        rocksdb::Options optimizedConfig = getDBOptions(m_config);
+
+        std::vector<rocksdb::ColumnFamilyHandle*> handles;
+        rocksdb::DB *db;
+        rocksdb::DB *db2;
+
+        if (rocksdb::DB::OpenForReadOnly(dbOptions, dbData, descriptors, &handles, &db).ok())
+        {
+            status = rocksdb::DB::Open(optimizedConfig, optimizeData, &db2);
+
+            if (status.ok())
+            {
+                logger(INFO) << "DB Already Exists";
+            }
+            else
+            {
+                optimizedConfig.create_if_missing = true;
+
+                if (rocksdb::DB::Open(optimizedConfig, optimizeData, &db2).ok())
+                {
+                    logger(INFO) << "Preparing to optimize database for reading...";
+                    logger(INFO) << "This will take a long time. Please do not close.";
+
+                    rocksdb::Iterator *it = db->NewIterator(rocksdb::ReadOptions());
+                    const auto writeOptions = rocksdb::WriteOptions();
+
+                    for (it->SeekToFirst(); it->Valid(); it->Next())
+                    {
+                        db2->Put(writeOptions, it->key(), it->value());
+                    }
+
+                    db2->Flush(rocksdb::FlushOptions());
+                }
+            }
+        }
+
+        if (db != nullptr)
+        {
+            for (const auto handle : handles)
+            {
+                db->DestroyColumnFamilyHandle(handle);
+            }
+
+            db->Close();
+        }
+
+        if (db2 != nullptr)
+        {
+            db2->Close();
+        }
+
+        exit(0);
+    }
 }

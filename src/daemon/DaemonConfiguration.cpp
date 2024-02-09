@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2019, The CyprusCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -211,7 +211,10 @@ namespace DaemonConfig
             ("db-max-file-size",
              "Max file size of database files in megabytes (MB) (LevelDB only)",
              cxxopts::value<int>()->default_value(std::to_string(CryptoNote::LEVELDB_MAX_FILE_SIZE_MB)),
-             "#");
+             "#")
+            ("db-optimize",
+             "Optimize database and close",
+             cxxopts::value<bool>()->default_value("false")->implicit_value("true"));
 
         options.add_options("Syncing")(
             "transaction-validation-threads",
@@ -362,6 +365,11 @@ namespace DaemonConfig
             if (cli.count("db-max-file-size") > 0)
             {
                 config.dbMaxFileSizeMB = cli["db-max-file-size"].as<int>();
+            }
+
+            if (cli.count("db-optimize") > 0)
+            {
+                config.dbOptimize = cli["db-optimize"].as<bool>();
             }
 
             if (cli.count("local-ip") > 0)

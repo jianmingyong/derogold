@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2019, The CyprusCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -34,7 +34,7 @@ namespace DaemonConfig
             p2pInterface = "0.0.0.0";
             p2pPort = CryptoNote::P2P_DEFAULT_PORT;
             p2pExternalPort = 0;
-	    transactionValidationThreads = std::thread::hardware_concurrency();
+	        transactionValidationThreads = std::thread::hardware_concurrency();
             rpcInterface = "127.0.0.1";
             rpcPort = CryptoNote::RPC_DEFAULT_PORT;
             noConsole = false;
@@ -55,6 +55,8 @@ namespace DaemonConfig
             importChain = false;
             exportChain = false;
             exportNumBlocks = 0;
+            feeAmount = 0;
+            dbOptimize = false;
         }
 
         std::string dataDirectory;
@@ -144,6 +146,8 @@ namespace DaemonConfig
         bool dumpConfig;
 
         bool enableDbCompression;
+
+        bool dbOptimize;
     };
 
     DaemonConfiguration initConfiguration(const char *path);
