@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -11,8 +11,6 @@
 #include <crypto/hash.h>
 #include <cstddef>
 #include <cstdint>
-#include <initializer_list>
-#include <limits>
 #include <string>
 
 namespace CryptoNote
@@ -23,14 +21,14 @@ namespace CryptoNote
 
         const uint64_t DIFFICULTY_TARGET_V2 = 20; // seconds
 
-	const uint64_t DIFFICULTY_TARGET_V3 = 300; // seconds
+        const uint64_t DIFFICULTY_TARGET_V3 = 300; // seconds
 
         /* Height to swap to DIFFICULTY_TARGET_V2 */
         const uint64_t DIFFICULTY_TARGET_V2_HEIGHT = 700000;
 
-	/* Height to change to DIFFICULTY_TARGET_V3 */
+        /* Height to change to DIFFICULTY_TARGET_V3 */
 
-	const uint64_t DIFFICULTY_TARGET_V3_HEIGHT = 2325000;
+        const uint64_t DIFFICULTY_TARGET_V3_HEIGHT = 2325000;
 
         const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER = 500000000;
 
@@ -78,8 +76,7 @@ namespace CryptoNote
 
         const size_t CRYPTONOTE_REWARD_BLOCKS_WINDOW = 100;
 
-        const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE =
-            100000; // size of block (bytes) after which reward for block calculated using block size
+        const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE = 100000; // size of block (bytes) after which reward for block calculated using block size
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2 = 20000;
 
         const size_t CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1 = 10000;
@@ -188,7 +185,7 @@ namespace CryptoNote
         const uint64_t CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME = 60 * 60 * 24 * 7; // seconds, one week
         const uint64_t CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL =
             7; // CRYPTONOTE_NUMBER_OF_PERIODS_TO_FORGET_TX_DELETED_FROM_POOL * CRYPTONOTE_MEMPOOL_TX_LIVETIME = time to
-               // forget tx
+        // forget tx
 
         const size_t FUSION_TX_MAX_SIZE = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT * 30 / 100;
 
@@ -198,7 +195,7 @@ namespace CryptoNote
 
         const uint64_t FUSION_FEE_V1_HEIGHT = 2325000;
 
-	const uint64_t FUSION_FEE_V1_EXIT_HEIGHT = 2361823;
+        const uint64_t FUSION_FEE_V1_EXIT_HEIGHT = 2361823;
 
         const uint64_t FUSION_FEE_V1 = 1000000;
 
@@ -218,8 +215,8 @@ namespace CryptoNote
 
         const uint32_t UPGRADE_HEIGHT_V5 = 4; // Upgrade height for CN-Turtle Variant 2 switch.
 
-	const uint32_t UPGRADE_HEIGHT_V6 = 2325000; // Upgrade height for DIFFICULTY_TARGET_V3
-    
+        const uint32_t UPGRADE_HEIGHT_V6 = 2325000; // Upgrade height for DIFFICULTY_TARGET_V3
+
         const uint32_t UPGRADE_HEIGHT_V7 = 2420000; // Upgrade height for CN-UPX switch
 
         const uint32_t UPGRADE_HEIGHT_CURRENT = UPGRADE_HEIGHT_V7;
@@ -235,11 +232,11 @@ namespace CryptoNote
             700000, // 0
             1470000, // 1
             1980000, // 2
-	    2325000, // 3
-	    2361823, // 4
-	    2370000, // 5
-	    2420000, // 6
-	    2450000, // 7
+            2325000, // 3
+            2361823, // 4
+            2370000, // 5
+            2420000, // 6
+            2450000, // 7
             2480000, // 8
             2500000, // 9
             2517000, // 10
@@ -282,8 +279,7 @@ namespace CryptoNote
         /* Maximum allowable blocks to rewind from existing chain */
         const uint64_t MAX_BLOCK_ALLOWED_TO_REWIND = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY * 3;
 
-    const uint64_t INPUT_NOT_SENDING = 1000;
-
+        const uint64_t INPUT_NOT_SENDING = 1000;
     } // namespace parameters
 
     const char CRYPTONOTE_NAME[] = "DeroGold";
@@ -307,19 +303,20 @@ namespace CryptoNote
     const uint8_t BLOCK_MINOR_VERSION_1 = 1;
 
     const std::unordered_map<uint8_t, std::function<void(const void *data, size_t length, Crypto::Hash &hash)>>
-        HASHING_ALGORITHMS_BY_BLOCK_VERSION = {
-            {BLOCK_MAJOR_VERSION_1, Crypto::cn_slow_hash_v0}, /* From zero */
-            {BLOCK_MAJOR_VERSION_2, Crypto::cn_slow_hash_v0}, /* UPGRADE_HEIGHT_V2 */
-            {BLOCK_MAJOR_VERSION_3, Crypto::cn_slow_hash_v0}, /* UPGRADE_HEIGHT_V3 */
-            {BLOCK_MAJOR_VERSION_4, Crypto::cn_lite_slow_hash_v1}, /* UPGRADE_HEIGHT_V4 */
-            {BLOCK_MAJOR_VERSION_5, Crypto::cn_turtle_lite_slow_hash_v2}, /* UPGRADE_HEIGHT_V5 */
-            {BLOCK_MAJOR_VERSION_6, Crypto::cn_turtle_lite_slow_hash_v2}, /* UPGRADE_HEIGHT_V6 */
-            {BLOCK_MAJOR_VERSION_7, Crypto::cn_upx}, /* UPGRADE_HEIGHT_V7 */
+    HASHING_ALGORITHMS_BY_BLOCK_VERSION = {
+        {BLOCK_MAJOR_VERSION_1, Crypto::cn_slow_hash_v0}, /* From zero */
+        {BLOCK_MAJOR_VERSION_2, Crypto::cn_slow_hash_v0}, /* UPGRADE_HEIGHT_V2 */
+        {BLOCK_MAJOR_VERSION_3, Crypto::cn_slow_hash_v0}, /* UPGRADE_HEIGHT_V3 */
+        {BLOCK_MAJOR_VERSION_4, Crypto::cn_lite_slow_hash_v1}, /* UPGRADE_HEIGHT_V4 */
+        {BLOCK_MAJOR_VERSION_5, Crypto::cn_turtle_lite_slow_hash_v2}, /* UPGRADE_HEIGHT_V5 */
+        {BLOCK_MAJOR_VERSION_6, Crypto::cn_turtle_lite_slow_hash_v2}, /* UPGRADE_HEIGHT_V6 */
+        {BLOCK_MAJOR_VERSION_7, Crypto::cn_upx}, /* UPGRADE_HEIGHT_V7 */
     };
 
     const size_t BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT = 1000; // by default, blocks ids count in synchronizing
 
-    const uint64_t BLOCKS_SYNCHRONIZING_DEFAULT_COUNT = 100; // by default, blocks count in blocks downloading, reduced from 100 to 20 prior the 2,325,000 fork
+    const uint64_t BLOCKS_SYNCHRONIZING_DEFAULT_COUNT = 100;
+    // by default, blocks count in blocks downloading, reduced from 100 to 20 prior the 2,325,000 fork
 
     const size_t COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT = 100;
 
@@ -378,7 +375,7 @@ namespace CryptoNote
     const static boost::uuids::uuid CRYPTONOTE_NETWORK = {
         {0x20, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x20, 0x67, 0x65, 0x6e, 0x74, 0x6f, 0x6f, 0x20}};
 
-    const char* const SEED_NODES[] = {
+    const char *const SEED_NODES[] = {
         "80.60.19.222:42069", // sniperviperman
     };
 } // namespace CryptoNote
