@@ -1,13 +1,75 @@
 {
-    "version": 4,
+    "version": 3,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 23
+        "minor": 15
     },
-    "include": [
-        "cmake/CMakePresets.json"
-    ],
     "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "environment": {
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/ports",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/triplets"
+            }
+        },
+        {
+            "name": "default-msvc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Visual Studio 17 2022"
+        },
+        {
+            "name": "default-gcc",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        },
+        {
+            "name": "default-clang",
+            "hidden": true,
+            "inherits": [
+                "default"
+            ],
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            }
+        },
+        {
+            "name": "default-msvc-publish",
+            "hidden": true,
+            "inherits": [
+                "default-msvc"
+            ],
+            "generator": "Visual Studio 17 2022"
+        },
+        {
+            "name": "default-gcc-publish",
+            "hidden": true,
+            "inherits": [
+                "default-gcc"
+            ],
+            "generator": "Ninja"
+        },
+        {
+            "name": "default-clang-publish",
+            "hidden": true,
+            "inherits": [
+                "default-clang"
+            ],
+            "generator": "Ninja"
+        },
         {
             "name": "windows-x64-msvc",
             "inherits": [

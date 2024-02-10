@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
@@ -95,7 +95,7 @@ ZedConfig parseArguments(int argc, char **argv)
         /* We could check if the string is empty, but an empty password is valid */
         config.passGiven = result.count("password") != 0;
     }
-    catch (const cxxopts::OptionException &e)
+    catch (const cxxopts::exceptions::exception &e)
     {
         std::cout << "Error: Unable to parse command line argument options: " << e.what() << std::endl << std::endl;
         std::cout << options.help({}) << std::endl;
