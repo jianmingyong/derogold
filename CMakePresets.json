@@ -213,6 +213,10 @@
             "inherits": [
                 "default-gcc"
             ],
+			"environment": {
+                "CC": "gcc-13",
+                "CXX": "g++-13"
+            }
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx"
             }
@@ -222,6 +226,10 @@
             "inherits": [
                 "default-gcc-publish"
             ],
+			"environment": {
+                "CC": "gcc-13",
+                "CXX": "g++-13"
+            }
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
                 "ARCH": "default"
