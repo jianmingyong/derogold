@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -24,7 +24,7 @@ namespace CryptoNote
             std::shared_ptr<Logging::ILogger> logger,
             const DataBaseConfig &config);
 
-        virtual ~LevelDBWrapper();
+        ~LevelDBWrapper() override;
 
         LevelDBWrapper(const LevelDBWrapper &) = delete;
 
@@ -34,11 +34,11 @@ namespace CryptoNote
 
         LevelDBWrapper &operator=(LevelDBWrapper &&) = delete;
 
-        void init();
+        void init() override;
 
         void shutdown() override;
 
-        void destroy(); // Be careful with this method!
+        void destroy() override; // Be careful with this method!
 
         std::error_code write(IWriteBatch &batch) override;
 

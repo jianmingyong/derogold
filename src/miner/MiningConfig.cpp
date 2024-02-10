@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -88,7 +88,7 @@ namespace CryptoNote
         {
             auto result = options.parse(argc, argv);
         }
-        catch (const cxxopts::OptionException &e)
+        catch (const cxxopts::exceptions::exception &e)
         {
             std::cout << WarningMsg("Error: Unable to parse command line argument options: ") << WarningMsg(e.what())
                       << "\n\n";

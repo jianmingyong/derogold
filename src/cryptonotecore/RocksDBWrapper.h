@@ -24,7 +24,7 @@ namespace CryptoNote
             std::shared_ptr<Logging::ILogger> logger,
             const DataBaseConfig &config);
 
-        virtual ~RocksDBWrapper();
+        ~RocksDBWrapper() override;
 
         RocksDBWrapper(const RocksDBWrapper &) = delete;
 

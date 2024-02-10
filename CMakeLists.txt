@@ -3,22 +3,18 @@ cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-project(DeroGold VERSION 0.7.2 HOMEPAGE_URL https://derogold.com)
-
-# # This section describes our general CMake setup options
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+project(DeroGold VERSION 0.7.2.0 HOMEPAGE_URL https://derogold.com)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-
-include(CheckCCompilerFlag)
 
 # Enable c++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
 # Use ccache to optimize compile speed
@@ -50,7 +46,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     endif()
 endif()
 
-# # This section is for settings found in the slow-hash routine(s) that may benefit some systems (mostly ARM)
+# This section is for settings found in the slow-hash routine(s) that may benefit some systems (mostly ARM)
 set(FORCE_USE_HEAP ON CACHE BOOL "Force the use of heap memory allocation")
 set(NO_AES OFF CACHE BOOL "Turn off Hardware AES instructions?")
 set(NO_OPTIMIZED_MULTIPLY_ON_ARM OFF CACHE BOOL "Turn off Optimized Multiplication on ARM?")
@@ -72,7 +68,7 @@ else()
         check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
 
         if(HAS_AES_NI_SUPPORT)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+            string(APPEND CMAKE_C_FLAGS " -maes")
         endif()
     endif()
 endif()
@@ -90,17 +86,19 @@ set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
 
 if(NOT COMMIT_ID_IN_VERSION)
-    unset(VERSION)
+    unset(BUILD_COMMIT_ID)
 elseif(NOT DEFINED VERSION)
     find_package(Git QUIET)
 
-    if(Git_FOUND OR GIT_FOUND)
-        execute_process(COMMAND "${GIT}" rev-parse --short HEAD RESULT_VARIABLE RET OUTPUT_VARIABLE DESCRIPTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(Git_FOUND)
+        execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                RESULT_VARIABLE RET
+                OUTPUT_VARIABLE BUILD_COMMIT_ID
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
         if(RET)
-            message(WARNING "Cannot determine current revision. Make sure that you are building either from a Git working tree or from a source archive.")
-        else()
-            set(VERSION "${DESCRIPTION}")
+            message(WARNING "Cannot determine current revision. Make sure that you are building either from a Git working tree.")
         endif()
     endif()
 endif()
@@ -206,6 +204,7 @@ endif()
 
 find_package(Boost REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
+find_package(cxxopts CONFIG REQUIRED)
 find_package(leveldb CONFIG REQUIRED)
 find_package(miniupnpc CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)

@@ -69,7 +69,6 @@ jobs:
                   arch: x64
                   compiler: gcc
                   install: >-
-                    git
                     cmake
                     ninja-build
                     build-essential
@@ -85,7 +84,6 @@ jobs:
                   arch: x64
                   compiler: clang
                   install: >-
-                    git
                     cmake
                     ninja-build
                     clang
@@ -101,7 +99,6 @@ jobs:
                   arch: arm64
                   compiler: gcc
                   install: >-
-                    git
                     cmake
                     ninja-build
                     crossbuild-essential-arm64
@@ -117,7 +114,6 @@ jobs:
                   arch: x64
                   compiler: gcc
                   install: >-
-                    git
                     cmake
                     ninja
                     gcc
@@ -133,7 +129,6 @@ jobs:
                   arch: x64
                   compiler: clang
                   install: >-
-                    git
                     cmake
                     ninja
                     llvm

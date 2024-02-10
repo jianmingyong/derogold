@@ -30,7 +30,7 @@ RocksDBWrapper::RocksDBWrapper(
 {
 }
 
-RocksDBWrapper::~RocksDBWrapper() {}
+RocksDBWrapper::~RocksDBWrapper() = default;
 
 void RocksDBWrapper::init()
 {
@@ -332,54 +332,56 @@ void RocksDBWrapper::optimize()
         rocksdb::Options optimizedConfig = getDBOptions(m_config);
 
         std::vector<rocksdb::ColumnFamilyHandle*> handles;
-        rocksdb::DB *db;
-        rocksdb::DB *db2;
+        rocksdb::DB *rocksDb;
+        rocksdb::DB *rocksDb2;
 
-        if (rocksdb::DB::OpenForReadOnly(dbOptions, dbData, descriptors, &handles, &db).ok())
+        if (rocksdb::DB::OpenForReadOnly(dbOptions, dbData, descriptors, &handles, &rocksDb).ok())
         {
-            status = rocksdb::DB::Open(optimizedConfig, optimizeData, &db2);
+            status = rocksdb::DB::Open(optimizedConfig, optimizeData, &rocksDb2);
 
             if (status.ok())
             {
                 logger(INFO) << "DB Already Exists";
+                exit(-1);
             }
             else
             {
                 optimizedConfig.create_if_missing = true;
 
-                if (rocksdb::DB::Open(optimizedConfig, optimizeData, &db2).ok())
+                if (rocksdb::DB::Open(optimizedConfig, optimizeData, &rocksDb2).ok())
                 {
                     logger(INFO) << "Preparing to optimize database for reading...";
                     logger(INFO) << "This will take a long time. Please do not close.";
 
-                    rocksdb::Iterator *it = db->NewIterator(rocksdb::ReadOptions());
+                    rocksdb::Iterator *it = rocksDb->NewIterator(rocksdb::ReadOptions());
                     const auto writeOptions = rocksdb::WriteOptions();
 
                     for (it->SeekToFirst(); it->Valid(); it->Next())
                     {
-                        db2->Put(writeOptions, it->key(), it->value());
+                        rocksDb2->Put(writeOptions, it->key(), it->value());
                     }
-
-                    db2->Flush(rocksdb::FlushOptions());
                 }
             }
         }
 
-        if (db != nullptr)
+        if (rocksDb != nullptr)
         {
             for (const auto handle : handles)
             {
-                db->DestroyColumnFamilyHandle(handle);
+                rocksDb->DestroyColumnFamilyHandle(handle);
             }
 
-            db->Close();
+            rocksDb->Close();
         }
 
-        if (db2 != nullptr)
+        if (rocksDb2 != nullptr)
         {
-            db2->Close();
+            auto waitForCompactOptions = rocksdb::WaitForCompactOptions();
+            waitForCompactOptions.flush = true;
+            waitForCompactOptions.close_db = true;
+            rocksDb2->WaitForCompact(waitForCompactOptions);
         }
-
-        exit(0);
     }
+
+    exit(0);
 }
