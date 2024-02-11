@@ -302,6 +302,9 @@
             "inherits": [
                 "default-clang"
             ],
+			"environment": {
+                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}"
+            },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx"
             }
@@ -311,6 +314,9 @@
             "inherits": [
                 "default-clang-publish"
             ],
+			"environment": {
+                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}"
+            },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
                 "ARCH": "default"
