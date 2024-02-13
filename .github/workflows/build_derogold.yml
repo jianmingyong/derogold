@@ -117,10 +117,6 @@ jobs:
                     cmake
                     ninja
                     gcc
-                    curl
-                    zip
-                    unzip
-                    gnu-tar
                     pkg-config
                   configure_preset: osx-x64-gcc-publish
                   build_preset: osx-x64-gcc-publish
@@ -132,10 +128,6 @@ jobs:
                     cmake
                     ninja
                     llvm
-                    curl
-                    zip
-                    unzip
-                    gnu-tar
                     pkg-config
                   configure_preset: osx-x64-clang-publish
                   build_preset: osx-x64-clang-publish
