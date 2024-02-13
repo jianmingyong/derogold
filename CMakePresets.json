@@ -275,7 +275,7 @@
             "inherits": [
                 "default-gcc"
             ],
-			"environment": {
+            "environment": {
                 "CC": "gcc-13",
                 "CXX": "g++-13"
             },
@@ -288,7 +288,7 @@
             "inherits": [
                 "default-gcc-publish"
             ],
-			"environment": {
+            "environment": {
                 "CC": "gcc-13",
                 "CXX": "g++-13"
             },
@@ -302,8 +302,10 @@
             "inherits": [
                 "default-clang"
             ],
-			"environment": {
-                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}"
+            "environment": {
+                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib",
+                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx"
@@ -314,8 +316,10 @@
             "inherits": [
                 "default-clang-publish"
             ],
-			"environment": {
-                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}"
+            "environment": {
+                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib",
+                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
@@ -329,7 +333,7 @@
             "configurePreset": "windows-x64-msvc",
             "configuration": "Debug"
         },
-		{
+        {
             "name": "windows-x64-msvc-release",
             "configurePreset": "windows-x64-msvc",
             "configuration": "Release"
@@ -347,7 +351,7 @@
             "configurePreset": "windows-x64-mingw-gcc",
             "configuration": "Debug"
         },
-		{
+        {
             "name": "windows-x64-mingw-gcc-release",
             "configurePreset": "windows-x64-mingw-gcc",
             "configuration": "Release"
@@ -364,7 +368,7 @@
             "configurePreset": "windows-x64-mingw-clang",
             "configuration": "Debug"
         },
-		{
+        {
             "name": "windows-x64-mingw-clang-release",
             "configurePreset": "windows-x64-mingw-clang",
             "configuration": "Release"
