@@ -10,7 +10,7 @@ defaults:
 
 jobs:
   build_derogold:
-    name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}
+    name: ${{ matrix.build_preset }}
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -117,6 +117,7 @@ jobs:
               cmake
               ninja
               gcc
+              llvm
               pkg-config
             configure_preset: osx-x64-gcc-publish
             build_preset: osx-x64-gcc-publish

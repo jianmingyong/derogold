@@ -277,7 +277,10 @@
             ],
             "environment": {
                 "CC": "gcc-13",
-                "CXX": "g++-13"
+                "CXX": "g++-13",
+				"PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
+                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx"
@@ -290,7 +293,10 @@
             ],
             "environment": {
                 "CC": "gcc-13",
-                "CXX": "g++-13"
+                "CXX": "g++-13",
+				"PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
+                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
