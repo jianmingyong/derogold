@@ -1,190 +1,198 @@
 name: Build DeroGold
 
 on:
-    push:
-    pull_request:
+  push:
+  pull_request:
 
 defaults:
-    run:
-        shell: pwsh
+  run:
+      shell: pwsh
 
 jobs:
-    build_derogold:
-        name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}
-        runs-on: ${{ matrix.os }}
+  build_derogold:
+    name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
 
-        strategy:
-            fail-fast: false
-            matrix:
-              os: [windows-latest, ubuntu-latest, macos-latest]
-              arch: [x64, arm64]
-              compiler: [msvc, gcc, clang]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        arch: [x64, arm64]
+        compiler: [msvc, gcc, clang]
 
-              exclude:
-                - os: windows-latest
-                  arch: arm64
-                - os: macos-latest
-                  arch: arm64
-                - os: ubuntu-latest
-                  compiler: msvc
-                - os: ubuntu-latest
-                  arch: arm64
-                  compiler: clang
-                - os: macos-latest
-                  compiler: msvc
+        exclude:
+          - os: windows-latest
+            arch: arm64
+          - os: macos-latest
+            arch: arm64
+          - os: ubuntu-latest
+            compiler: msvc
+          - os: ubuntu-latest
+            arch: arm64
+            compiler: clang
+          - os: macos-latest
+            compiler: msvc
 
-              include:
-                - os: windows-latest
-                  arch: x64
-                  compiler: msvc
-                  install: ""
-                  configure_preset: windows-x64-msvc-publish
-                  build_preset: windows-x64-msvc-publish
+        include:
+          - os: windows-latest
+            arch: x64
+            compiler: msvc
+            install: ""
+            configure_preset: windows-x64-msvc-publish
+            build_preset: windows-x64-msvc-publish
 
-                - os: windows-latest
-                  arch: x64
-                  compiler: gcc
-                  install: ""
-                  msys2_environment: MINGW64
-                  msys2_install: >-
-                    mingw-w64-x86_64-toolchain
-                    mingw-w64-x86_64-cmake
-                    mingw-w64-x86_64-ninja
-                  configure_preset: windows-x64-mingw-gcc-publish
-                  build_preset: windows-x64-mingw-gcc-publish
+          - os: windows-latest
+            arch: x64
+            compiler: gcc
+            install: ""
+            msys2_environment: MINGW64
+            msys2_install: >-
+              mingw-w64-x86_64-toolchain
+              mingw-w64-x86_64-cmake
+              mingw-w64-x86_64-ninja
+            configure_preset: windows-x64-mingw-gcc-publish
+            build_preset: windows-x64-mingw-gcc-publish
 
-                - os: windows-latest
-                  arch: x64
-                  compiler: clang
-                  install: ""
-                  msys2_environment: CLANG64
-                  msys2_install: >-
-                    mingw-w64-clang-x86_64-toolchain
-                    mingw-w64-clang-x86_64-cmake
-                    mingw-w64-clang-x86_64-ninja
-                  configure_preset: windows-x64-mingw-clang-publish
-                  build_preset: windows-x64-mingw-clang-publish
+          - os: windows-latest
+            arch: x64
+            compiler: clang
+            install: ""
+            msys2_environment: CLANG64
+            msys2_install: >-
+              mingw-w64-clang-x86_64-toolchain
+              mingw-w64-clang-x86_64-cmake
+              mingw-w64-clang-x86_64-ninja
+            configure_preset: windows-x64-mingw-clang-publish
+            build_preset: windows-x64-mingw-clang-publish
 
-                - os: ubuntu-latest
-                  arch: x64
-                  compiler: gcc
-                  install: >-
-                    cmake
-                    ninja-build
-                    build-essential
-                    curl
-                    zip
-                    unzip
-                    tar
-                    pkg-config
-                  configure_preset: linux-x64-gcc-publish
-                  build_preset: linux-x64-gcc-publish
+          - os: ubuntu-latest
+            arch: x64
+            compiler: gcc
+            install: >-
+              cmake
+              ninja-build
+              build-essential
+              curl
+              zip
+              unzip
+              tar
+              pkg-config
+            configure_preset: linux-x64-gcc-publish
+            build_preset: linux-x64-gcc-publish
 
-                - os: ubuntu-latest
-                  arch: x64
-                  compiler: clang
-                  install: >-
-                    cmake
-                    ninja-build
-                    clang
-                    curl
-                    zip
-                    unzip
-                    tar
-                    pkg-config
-                  configure_preset: linux-x64-clang-publish
-                  build_preset: linux-x64-clang-publish
+          - os: ubuntu-latest
+            arch: x64
+            compiler: clang
+            install: >-
+              cmake
+              ninja-build
+              clang
+              curl
+              zip
+              unzip
+              tar
+              pkg-config
+            configure_preset: linux-x64-clang-publish
+            build_preset: linux-x64-clang-publish
 
-                - os: ubuntu-latest
-                  arch: arm64
-                  compiler: gcc
-                  install: >-
-                    cmake
-                    ninja-build
-                    crossbuild-essential-arm64
-                    curl
-                    zip
-                    unzip
-                    tar
-                    pkg-config
-                  configure_preset: linux-arm64-gcc-cross-publish
-                  build_preset: linux-arm64-gcc-cross-publish
+          - os: ubuntu-latest
+            arch: arm64
+            compiler: gcc
+            install: >-
+              cmake
+              ninja-build
+              crossbuild-essential-arm64
+              curl
+              zip
+              unzip
+              tar
+              pkg-config
+            configure_preset: linux-arm64-gcc-cross-publish
+            build_preset: linux-arm64-gcc-cross-publish
+
+          - os: macos-latest
+            arch: x64
+            compiler: gcc
+            install: >-
+              cmake
+              ninja
+              gcc
+              pkg-config
+            configure_preset: osx-x64-gcc-publish
+            build_preset: osx-x64-gcc-publish
+
+          - os: macos-latest
+            arch: x64
+            compiler: clang
+            install: >-
+              cmake
+              ninja
+              llvm
+              pkg-config
+            configure_preset: osx-x64-clang-publish
+            build_preset: osx-x64-clang-publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Program / Dependencies
+        run: |
+          if ("${{ runner.os }}" -eq "Windows")
+          {
+            if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+            {
+              choco install ${{ matrix.install }} -y
+            }
+          }
+          elseif ("${{ runner.os }}" -eq "Linux")
+          {
+            if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+            {
+              sudo apt-get update -y
+              sudo apt-get install ${{ matrix.install }} -y
+            }
+          }
+          elseif ("${{ runner.os }}" -eq "macOS")
+          {
+            if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
+            {
+              brew update
+              brew install ${{ matrix.install }}
+            }
+          }
+
+      - name: Setup msys2 environemnt
+        uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows' && matrix.compiler != 'msvc'
+        with:
+          update: true
+          install: ${{ matrix.msys2_install }}
+          msystem: ${{ matrix.msys2_environment }}
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Build DeroGold
+        working-directory: ${{ github.workspace }}
+        run: |
+          if ("${{ runner.os }}" -eq 'Windows' -And "${{ matrix.compiler }}" -ne 'msvc')
+          {
+            msys2 -c "cmake --preset ${{ matrix.configure_preset }}"
+            msys2 -c "cmake --build --preset ${{ matrix.build_preset }}"
+          }
+          else
+          {
+            cmake --preset ${{ matrix.configure_preset }}
+            cmake --build --preset ${{ matrix.build_preset }}
+          }
       
-                - os: macos-latest
-                  arch: x64
-                  compiler: gcc
-                  install: >-
-                    cmake
-                    ninja
-                    gcc
-                    pkg-config
-                  configure_preset: osx-x64-gcc-publish
-                  build_preset: osx-x64-gcc-publish
-
-                - os: macos-latest
-                  arch: x64
-                  compiler: clang
-                  install: >-
-                    cmake
-                    ninja
-                    llvm
-                    pkg-config
-                  configure_preset: osx-x64-clang-publish
-                  build_preset: osx-x64-clang-publish
-
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-            with:
-              submodules: recursive
-
-          - name: Install Program / Dependencies
-            run: |
-              if ("${{ runner.os }}" -eq "Windows")
-              {
-                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
-                {
-                  choco install ${{ matrix.install }} -y
-                }
-              }
-              elseif ("${{ runner.os }}" -eq "Linux")
-              {
-                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
-                {
-                  sudo apt-get update -y
-                  sudo apt-get install ${{ matrix.install }} -y
-                }
-              }
-              elseif ("${{ runner.os }}" -eq "macOS")
-              {
-                if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
-                {
-                  brew update
-                  brew install ${{ matrix.install }}
-                }
-              }
-
-          - name: Setup msys2 environemnt
-            uses: msys2/setup-msys2@v2
-            if: runner.os == 'Windows' && matrix.compiler != 'msvc'
-            with:
-              update: true
-              install: ${{ matrix.msys2_install }}
-              msystem: ${{ matrix.msys2_environment }}
-
-          - name: Setup vcpkg
-            uses: lukka/run-vcpkg@v11
-
-          - name: Build DeroGold
-            working-directory: ${{ github.workspace }}
-            run: |
-              if ("${{ runner.os }}" -eq 'Windows' -And "${{ matrix.compiler }}" -ne 'msvc')
-              {
-                msys2 -c "cmake --preset ${{ matrix.configure_preset }}"
-                msys2 -c "cmake --build --preset ${{ matrix.build_preset }}"
-              }
-              else
-              {
-                cmake --preset ${{ matrix.configure_preset }}
-                cmake --build --preset ${{ matrix.build_preset }}
-              }
+      - name: Collect Logs
+        uses: actions/upload-artifact@v4
+        if: ${{ success() || failure() }}
+        with:
+          name: vcpkg-build-logs
+          path: ${{ github.workspace }}/vcpkg/buildtrees/**/*.log
+          if-no-files-found: ignore
