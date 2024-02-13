@@ -304,7 +304,7 @@
             ],
             "environment": {
                 "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
                 "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
@@ -318,7 +318,7 @@
             ],
             "environment": {
                 "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib",
+                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
                 "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
