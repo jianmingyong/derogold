@@ -3,7 +3,7 @@ cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-project(DeroGold VERSION 0.7.2.0 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
+project(DeroGold VERSION 0.7.2.0 LANGUAGES C CXX ASM)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)
@@ -17,13 +17,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-# Use ccache to optimize compile speed
-find_program(CCACHE_PROGRAM ccache)
+if(DEFINED USE_CCACHE)
+    set(USE_CCACHE ${USE_CCACHE} CACHE BOOL "Use ccache to speed up incremental compilation.")
+else()
+    set(USE_CCACHE ON CACHE BOOL "Use ccache to speed up incremental compilation.")
+endif()
 
-if(CCACHE_PROGRAM)
-    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    message(STATUS "ccache is found and will be used to speed up compilation for DeroGold source code.")
+if(USE_CCACHE)
+    find_program(CCACHE_PROGRAM ccache)
+
+    if(CCACHE_PROGRAM)
+        set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    endif()
 endif()
 
 # Set default build type.
@@ -40,7 +46,7 @@ else()
     set(ARCH native CACHE STRING "Set target architecture, options are: native, default")
 endif()
 
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(NOT ARCH STREQUAL "default")
         add_compile_options(-march=${ARCH})
     endif()
@@ -64,9 +70,9 @@ if(NO_AES)
 else()
     message(STATUS "HW AES: ENABLED")
 
-    check_c_compiler_flag(-maes HAS_AES_NI_SUPPORT)
+    check_c_compiler_flag(-maes HAS_AES_NI_COMPILER_FLAG)
 
-    if(HAS_AES_NI_SUPPORT)
+    if(HAS_AES_NI_COMPILER_FLAG)
         string(APPEND CMAKE_C_FLAGS " -maes")
     endif()
 endif()
@@ -78,7 +84,7 @@ else()
     message(STATUS "OPTIMIZED_ARM_MULTIPLICATION: ENABLED")
 endif()
 
-# # This section helps us tag our builds with the git commit information
+# This section helps us tag our builds with the git commit information
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
