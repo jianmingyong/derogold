@@ -32,6 +32,8 @@ jobs:
             compiler: clang
           - os: macos-latest
             compiler: msvc
+          - os: macos-latest
+            compiler: gcc
 
         include:
           - os: windows-latest
@@ -109,18 +111,6 @@ jobs:
               pkg-config
             configure_preset: linux-arm64-gcc-cross-publish
             build_preset: linux-arm64-gcc-cross-publish
-
-          - os: macos-latest
-            arch: x64
-            compiler: gcc
-            install: >-
-              cmake
-              ninja
-              gcc
-              llvm
-              pkg-config
-            configure_preset: osx-x64-gcc-publish
-            build_preset: osx-x64-gcc-publish
 
           - os: macos-latest
             arch: x64
