@@ -22,7 +22,7 @@
       </ol>
       <li><a href="#macos-x64-only">MacOS (x64 only)</a></li>
       <ol>
-        <li><a href="#clang">CLANG</a></li>
+        <li><a href="#clang-1">CLANG</a></li>
       </ol>
     </ol>
 </ol>
@@ -36,6 +36,12 @@ If you would like to compile yourself, read on.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Build Instructions
+
+The CMake build system will, by default, create optimized *native* builds for your particular system type when you build the software. Using this method, the binaries created provide a better experience and all together faster performance.
+
+However, if you wish to create *portable* binaries that can be shared between systems, specify `-DARCH=default` in your CMake arguments during the build process. Note that *portable* binaries will have a noticable difference in performance than *native* binaries. For this reason, it is always best to build for your particular system if possible.
+
+Note that the instructions below create a *portable* binaries due to the preset setting `-DARCH=default` for compatibility reasons. You can always use different preset which may take long time to build.
 
 ### Windows (x64 only)
 
