@@ -3,7 +3,7 @@ cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-project(DeroGold VERSION 0.7.2.0 LANGUAGES C CXX ASM)
+project(DeroGold VERSION 0.7.2.0 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)

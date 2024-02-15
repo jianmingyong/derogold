@@ -156,5 +156,19 @@ add_custom_target(solominer DEPENDS DeroGoldd zedwallet++ miner)
 add_custom_target(cli DEPENDS DeroGoldd zedwallet++)
 add_custom_target(cli-wallet DEPENDS zedwallet++)
 
-install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader 
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader)
+
+set(CPACK_PACKAGE_NAME "DeroGold")
+set(CPACK_PACKAGE_VENDOR "The DeroGold Developers")
+set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/src/config/icon.ico")
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/Packaging")
+
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(CPACK_GENERATOR "ZIP")
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    set(CPACK_GENERATOR "TGZ;DEB")
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+    set(CPACK_GENERATOR "TGZ")
+endif()
+
+include(CPack)

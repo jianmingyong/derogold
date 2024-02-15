@@ -110,12 +110,6 @@
             "toolset": {
                 "strategy": "set",
                 "value": "host=x64"
-            },
-            "vendor": {
-                "microsoft.com/VisualStudioSettings/CMake/1.0": {
-                    "hostOS":"Windows",
-                    "intelliSenseMode": "windows-msvc-x64"
-                }
             }
         },
         {
@@ -271,39 +265,6 @@
             }
         },
         {
-            "name": "osx-x64-gcc",
-            "inherits": [
-                "default-gcc"
-            ],
-            "environment": {
-                "CC": "gcc-13",
-                "CXX": "g++-13",
-				"PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
-            },
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx"
-            }
-        },
-        {
-            "name": "osx-x64-gcc-publish",
-            "inherits": [
-                "default-gcc-publish"
-            ],
-            "environment": {
-                "CC": "gcc-13",
-                "CXX": "g++-13",
-				"PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
-            },
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx-release",
-                "ARCH": "default"
-            }
-        },
-        {
             "name": "osx-x64-clang",
             "inherits": [
                 "default-clang"
@@ -450,23 +411,6 @@
         {
             "name": "linux-arm64-gcc-cross-publish",
             "configurePreset": "linux-arm64-gcc-cross-publish",
-            "targets": [
-                "install"
-            ]
-        },
-        {
-            "name": "osx-x64-gcc-debug",
-            "configurePreset": "osx-x64-gcc",
-            "configuration": "Debug"
-        },
-        {
-            "name": "osx-x64-gcc-release",
-            "configurePreset": "osx-x64-gcc",
-            "configuration": "Release"
-        },
-        {
-            "name": "osx-x64-gcc-publish",
-            "configurePreset": "osx-x64-gcc-publish",
             "targets": [
                 "install"
             ]
