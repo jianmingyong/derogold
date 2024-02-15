@@ -187,3 +187,14 @@ jobs:
           name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-vcpkg-build-logs
           path: ${{ github.workspace }}/vcpkg/buildtrees/**/*.log
           if-no-files-found: ignore
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v4
+        if: ${{ success() }}
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-build
+          path: |
+            ${{ github.workspace }}/build/Packaging/*.zip
+            ${{ github.workspace }}/build/Packaging/*.tar.gz
+            ${{ github.workspace }}/build/Packaging/*.deb
+          if-no-files-found: ignore
