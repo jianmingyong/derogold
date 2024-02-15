@@ -172,12 +172,12 @@ jobs:
           if ("${{ runner.os }}" -eq 'Windows' -And "${{ matrix.compiler }}" -ne 'msvc')
           {
             msys2 -c "cmake --preset ${{ matrix.configure_preset }}"
-            msys2 -c "cmake --build --preset ${{ matrix.build_preset }}"
+            msys2 -c "cmake --build --preset ${{ matrix.build_preset }} --target package"
           }
           else
           {
             cmake --preset ${{ matrix.configure_preset }}
-            cmake --build --preset ${{ matrix.build_preset }}
+            cmake --build --preset ${{ matrix.build_preset }} --target package
           }
       
       - name: Collect Logs
