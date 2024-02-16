@@ -149,7 +149,7 @@ namespace CryptoNote
             std::vector<RawBlock> &&rawBlocks,
             const std::vector<CachedBlock> &cachedBlocks);
 
-        void adjust_block_rate(CryptoNoteConnectionContext &context);
+        static void adjust_block_rate(CryptoNoteConnectionContext &context);
 
         Logging::LoggerRef logger;
 
@@ -157,7 +157,7 @@ namespace CryptoNote
         int doPushLiteBlock(
             NOTIFY_NEW_LITE_BLOCK::request block,
             CryptoNoteConnectionContext &context,
-            std::vector<BinaryArray> missingTxs);
+            const std::vector<BinaryArray>&& missingTxs);
 
       private:
         System::Dispatcher &m_dispatcher;

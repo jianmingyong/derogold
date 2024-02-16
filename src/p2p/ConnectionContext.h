@@ -30,7 +30,7 @@ namespace CryptoNote
 
         std::chrono::high_resolution_clock::time_point m_request_block_start;
         size_t m_request_block_rate = 0;
-        size_t m_next_request_block_rate = BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
+        size_t m_next_request_block_rate = 1;
 
         enum state
         {
