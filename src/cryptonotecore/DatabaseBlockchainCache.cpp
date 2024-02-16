@@ -1264,7 +1264,7 @@ namespace CryptoNote
         txHashes.insert(txHashes.begin(), cachedBaseTransaction.getTransactionHash());
 
         batch.insertCachedBlock(blockInfo, getTopBlockIndex() + 1, txHashes);
-        batch.insertRawBlock(getTopBlockIndex() + 1, std::move(rawBlock));
+        batch.insertRawBlock(getTopBlockIndex() + 1, rawBlock);
 
         auto transactionIndex = 0;
         pushTransaction(cachedBaseTransaction, getTopBlockIndex() + 1, transactionIndex++, batch);
