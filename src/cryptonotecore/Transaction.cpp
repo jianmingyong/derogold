@@ -16,6 +16,7 @@
 #include <memory>
 #include <numeric>
 #include <unordered_set>
+#include <utility>
 
 using namespace Crypto;
 
@@ -51,7 +52,7 @@ namespace CryptoNote
 
         TransactionImpl(const BinaryArray &txblob);
 
-        TransactionImpl(const CryptoNote::Transaction &tx);
+        TransactionImpl(CryptoNote::Transaction tx);
 
         // ITransactionReader
         virtual Hash getTransactionHash() const override;
@@ -199,7 +200,7 @@ namespace CryptoNote
         transactionHash = getBinaryArrayHash(ba); // avoid serialization if we already have blob
     }
 
-    TransactionImpl::TransactionImpl(const CryptoNote::Transaction &tx): transaction(tx)
+    TransactionImpl::TransactionImpl(CryptoNote::Transaction tx): transaction(std::move(tx))
     {
         extra.parse(transaction.extra);
     }
