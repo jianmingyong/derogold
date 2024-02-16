@@ -22,7 +22,7 @@ namespace CryptoNote
       public:
         RocksDBWrapper(
             std::shared_ptr<Logging::ILogger> logger,
-            const DataBaseConfig &config);
+            DataBaseConfig config);
 
         ~RocksDBWrapper() override;
 

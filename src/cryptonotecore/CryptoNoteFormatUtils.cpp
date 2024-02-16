@@ -72,7 +72,7 @@ namespace CryptoNote
             amount_out += o.amount;
         }
 
-        if (!(amount_in >= amount_out))
+        if (amount_in < amount_out)
         {
             return false;
         }

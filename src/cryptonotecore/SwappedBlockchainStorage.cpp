@@ -12,6 +12,7 @@
 #include "serialization/SerializationOverloads.h"
 
 #include <cassert>
+#include <memory>
 
 namespace CryptoNote
 {
@@ -58,7 +59,7 @@ namespace CryptoNote
         assert(splitIndex > 0);
         assert(splitIndex < blocks.size());
         std::unique_ptr<MemoryBlockchainStorage> newStorage =
-            std::unique_ptr<MemoryBlockchainStorage>(new MemoryBlockchainStorage(splitIndex));
+            std::make_unique<MemoryBlockchainStorage>(splitIndex);
 
         uint64_t blocksCount = blocks.size();
 

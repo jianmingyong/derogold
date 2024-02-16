@@ -1738,9 +1738,9 @@ namespace CryptoNote
 
             std::vector<Crypto::Hash> transactionHashes;
 
-            for (const auto rawBlock : mainChain->getBlocksByHeight(startHeight, endHeight))
+            for (const auto& rawBlock : mainChain->getBlocksByHeight(startHeight, endHeight))
             {
-                for (const auto transaction : rawBlock.transactions)
+                for (const auto& transaction : rawBlock.transactions)
                 {
                     transactionHashes.push_back(getBinaryArrayHash(transaction));
                 }

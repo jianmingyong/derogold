@@ -605,7 +605,7 @@ namespace CryptoNote
             {
                 logger(INFO) << "Failed to save config to file " << state_file_path;
                 return false;
-            };
+            }
 
             StdOutputStream stream(p2p_data);
             BinaryOutputStreamSerializer a(stream);
@@ -937,7 +937,7 @@ namespace CryptoNote
         {
             ++rand_count;
             size_t random_index = get_random_index_with_fixed_probability(max_random_index);
-            if (!(random_index < local_peers_count))
+            if (random_index >= local_peers_count)
             {
                 logger(ERROR, BRIGHT_RED) << "random_starter_index < peers_local.size() failed!!";
                 return false;

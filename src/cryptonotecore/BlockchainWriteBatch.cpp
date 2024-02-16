@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -10,9 +10,9 @@
 
 using namespace CryptoNote;
 
-BlockchainWriteBatch::BlockchainWriteBatch() {}
+BlockchainWriteBatch::BlockchainWriteBatch() = default;
 
-BlockchainWriteBatch::~BlockchainWriteBatch() {}
+BlockchainWriteBatch::~BlockchainWriteBatch() = default;
 
 BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
     uint32_t blockIndex,

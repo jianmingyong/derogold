@@ -1,6 +1,35 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
 
+# Set vcpkg toolchain options
+set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_SOURCE_DIR}/ports")
+set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_CURRENT_SOURCE_DIR}/triplets")
+
+if(DEFINED CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(VCPKG_BUILD_TYPE release)
+endif()
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+    message(WARNING "vcpkg installtion is missing from your source. Did you forget to clone with --recursive flag?")
+
+    find_package(Git QUIET)
+
+    if(Git_FOUND)
+        if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+            execute_process(COMMAND "${GIT_EXECUTABLE}" submodule init WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_SUBMODULE_INIT_RESULT)
+            execute_process(COMMAND "${GIT_EXECUTABLE}" submodule update WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_SUBMODULE_UPDATE_RESULT)
+
+            if(GIT_SUBMODULE_INIT_RESULT OR GIT_SUBMODULE_UPDATE_RESULT)
+                message(FATAL_ERROR "Unable to initialize vcpkg submodule. Please ensure that you have clone the repository instead of downloading the soruce.")
+            endif()
+        else()
+            message(FATAL_ERROR "Unable to initialize vcpkg submodule. Please ensure that you have clone the repository instead of downloading the soruce.")
+        endif()
+    else()
+        message(FATAL_ERROR "Unable to initialize vcpkg submodule. Please ensure that you have clone the repository instead of downloading the soruce.")
+    endif()
+endif()
+
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
 project(DeroGold VERSION 0.7.2.0 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
@@ -13,15 +42,12 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
-if(DEFINED USE_CCACHE)
-    set(USE_CCACHE ${USE_CCACHE} CACHE BOOL "Use ccache to speed up incremental compilation.")
-else()
-    set(USE_CCACHE ON CACHE BOOL "Use ccache to speed up incremental compilation.")
-endif()
+set(USE_CCACHE ON CACHE BOOL "Use ccache to speed up incremental compilation.")
 
 if(USE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
@@ -33,18 +59,10 @@ if(USE_CCACHE)
 endif()
 
 # Set default build type.
-if(DEFINED CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
-else()
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
-endif()
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug, Release, RelWithDebInfo")
 
 # Set target architecture for optimizations
-if(DEFINED ARCH)
-    set(ARCH ${ARCH} CACHE STRING "Set target architecture, options are: native, default")
-else()
-    set(ARCH native CACHE STRING "Set target architecture, options are: native, default")
-endif()
+set(ARCH native CACHE STRING "Set target architecture, options are: native, default")
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(NOT ARCH STREQUAL "default")
@@ -95,14 +113,15 @@ elseif(NOT DEFINED VERSION)
     find_package(Git QUIET)
 
     if(Git_FOUND)
-        execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
-                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                RESULT_VARIABLE RET
-                OUTPUT_VARIABLE BUILD_COMMIT_ID
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE BUILD_COMMIT_ID_RESULT
+            OUTPUT_VARIABLE BUILD_COMMIT_ID
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        if(RET)
-            message(WARNING "Cannot determine current revision. Make sure that you are building either from a Git working tree.")
+        if(BUILD_COMMIT_ID_RESULT)
+            message(WARNING "Cannot determine current revision. Make sure that you are building from a Git working tree.")
         endif()
     endif()
 endif()
@@ -110,7 +129,7 @@ endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
 add_custom_target(version ALL)
 
-include_directories(include "${CMAKE_CURRENT_BINARY_DIR}/version" src external)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/version" external include src)
 
 # # Platform specific code base information is applied here
 if(MSVC)
@@ -121,12 +140,12 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
-    include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
 elseif(MINGW)
     add_link_options(-static)
     
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
-    include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/mingw)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/mingw)
 elseif(APPLE)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/osx)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/posix)

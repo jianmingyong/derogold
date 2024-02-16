@@ -7,6 +7,8 @@
 
 #include "RocksDBWrapper.h"
 
+#include <utility>
+
 #include "DataBaseErrors.h"
 #include "rocksdb/cache.h"
 #include "rocksdb/db.h"
@@ -23,9 +25,9 @@ namespace
 
 RocksDBWrapper::RocksDBWrapper(
     std::shared_ptr<Logging::ILogger> logger,
-    const DataBaseConfig &config):
-    logger(logger, "RocksDBWrapper"),
-    m_config(config),
+    DataBaseConfig config):
+    logger(std::move(logger), "RocksDBWrapper"),
+    m_config(std::move(config)),
     state(NOT_INITIALIZED)
 {
 }
@@ -173,13 +175,13 @@ std::error_code RocksDBWrapper::read(IReadBatch &batch)
     rocksdb::ReadOptions readOptions;
 
     std::vector<std::string> rawKeys(batch.getRawKeys());
-    if (rawKeys.size() > 0)
+    if (!rawKeys.empty())
     {
         std::vector<rocksdb::Slice> keySlices;
         keySlices.reserve(rawKeys.size());
         for (const std::string &key : rawKeys)
         {
-            keySlices.emplace_back(rocksdb::Slice(key));
+            keySlices.emplace_back(key);
         }
 
         std::vector<std::string> values;
