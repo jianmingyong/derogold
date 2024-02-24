@@ -10,7 +10,7 @@ file(TO_CMAKE_PATH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR_NORMAL)
 
 if ("${CMAKE_SOURCE_DIR_NORMAL}" STREQUAL "${CMAKE_BINARY_DIR_NORMAL}")
     message(CHECK_FAIL "${CMAKE_BINARY_DIR_NORMAL}")
-    message(FATAL_ERROR "CMAKE_BINARY_DIR cannot be the same as CMAKE_SOURCE_DIR. Create a new directory and run cmake from there instead.")
+    message(FATAL_ERROR "CMAKE_BINARY_DIR cannot be the same as CMAKE_SOURCE_DIR.")
 else ()
     message(CHECK_PASS "${CMAKE_BINARY_DIR_NORMAL}")
 endif ()
@@ -49,12 +49,12 @@ endif ()
 
 message(CHECK_PASS "${VCPKG_ROOT}")
 
-if (DEFINED CMAKE_TOOLCHAIN_FILE AND NOT DEFINED CACHE{CMAKE_TOOLCHAIN_FILE})
+if (DEFINED CMAKE_TOOLCHAIN_FILE)
     message(WARNING "You are trying to override CMAKE_TOOLCHAIN_FILE which is required for vcpkg. Set VCPKG_CHAINLOAD_TOOLCHAIN_FILE instead.")
     set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}")
 endif ()
 
-set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file" FORCE)
+set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
 
 set(SUPPORTED_VCPKG_TARGET_TRIPLET
         "x64-windows-static"
