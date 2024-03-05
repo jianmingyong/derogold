@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2019, The CyprusCoin Developers
@@ -28,6 +28,7 @@
 #include <system/TcpListener.h>
 #include <system/Timer.h>
 #include <unordered_map>
+#include <utility>
 
 namespace System
 {
@@ -49,10 +50,10 @@ namespace CryptoNote
             NOTIFY
         };
 
-        P2pMessage(Type type, uint32_t command, const BinaryArray &buffer, int32_t returnCode = 0):
+        P2pMessage(Type type, uint32_t command, BinaryArray buffer, int32_t returnCode = 0):
             type(type),
             command(command),
-            buffer(buffer),
+            buffer(std::move(buffer)),
             returnCode(returnCode)
         {
         }
@@ -60,7 +61,7 @@ namespace CryptoNote
         P2pMessage(P2pMessage &&msg):
             type(msg.type),
             command(msg.command),
-            buffer(std::move(msg.buffer)),
+            buffer(msg.buffer),
             returnCode(msg.returnCode)
         {
         }
@@ -111,7 +112,7 @@ namespace CryptoNote
             connection(std::move(ctx.connection)),
             logger(ctx.logger.getLogger(), "node_server"),
             queueEvent(std::move(ctx.queueEvent)),
-            stopped(std::move(ctx.stopped))
+            stopped(ctx.stopped)
         {
         }
 
