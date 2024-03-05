@@ -553,7 +553,7 @@ namespace CryptoNote
         currency(curr),
         database(dataBase),
         blockchainCacheFactory(blockchainCacheFactory),
-        logger(_logger, "DatabaseBlockchainCache")
+        logger(std::move(_logger), "DatabaseBlockchainCache")
     {
         DatabaseVersionReadBatch readBatch;
         auto ec = database.read(readBatch);
@@ -1792,7 +1792,7 @@ namespace CryptoNote
         auto result = readDatabase(request);
         logger(Logging::TRACE) << "DatabaseBlockchainCache::getBlockHashes:result.getCachedBlocks().size(): " << std::to_string(result.getCachedBlocks().size());
         logger(Logging::TRACE) << "DatabaseBlockchainCache::getBlockHashes:count " << std::to_string(count);
-        if (result.getCachedBlocks().size() > 0)
+        if (!result.getCachedBlocks().empty())
         {
             assert(result.getCachedBlocks().size() == count);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -19,6 +19,7 @@
 #include <config/CryptoNoteConfig.h>
 #include <crypto/random.h>
 #include <random>
+#include <utility>
 #include <system/ContextGroupTimeout.h>
 #include <system/InterruptedException.h>
 #include <system/Ipv4Address.h>
@@ -128,7 +129,7 @@ namespace CryptoNote
         std::shared_ptr<Logging::ILogger> log,
         const Crypto::Hash &genesisHash,
         uint64_t peerId):
-        logger(log, "P2pNode:" + std::to_string(cfg.getBindPort())),
+        logger(std::move(log), "P2pNode:" + std::to_string(cfg.getBindPort())),
         m_stopRequested(false),
         m_cfg(cfg),
         m_myPeerId(peerId),
@@ -154,8 +155,8 @@ namespace CryptoNote
 
     void P2pNode::start()
     {
-        workingContextGroup.spawn(std::bind(&P2pNode::acceptLoop, this));
-        workingContextGroup.spawn(std::bind(&P2pNode::connectorLoop, this));
+        workingContextGroup.spawn([this] { acceptLoop(); });
+        workingContextGroup.spawn([this] { connectorLoop(); });
     }
 
     void P2pNode::stop()

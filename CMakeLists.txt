@@ -49,7 +49,7 @@ endif ()
 
 message(CHECK_PASS "${VCPKG_ROOT}")
 
-if (DEFINED CMAKE_TOOLCHAIN_FILE)
+if (DEFINED CMAKE_TOOLCHAIN_FILE AND NOT CMAKE_TOOLCHAIN_FILE STREQUAL "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
     message(WARNING "You are trying to override CMAKE_TOOLCHAIN_FILE which is required for vcpkg. Set VCPKG_CHAINLOAD_TOOLCHAIN_FILE instead.")
     set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}")
 endif ()

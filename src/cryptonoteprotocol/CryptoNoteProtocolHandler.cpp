@@ -31,22 +31,16 @@ namespace CryptoNote
 {
     namespace
     {
-        template<class t_parametr>
-        bool post_notify(
-            IP2pEndpoint &p2p,
-            typename t_parametr::request &arg,
-            const CryptoNoteConnectionContext &context)
+        template<class t_parameter>
+        bool post_notify(IP2pEndpoint &p2p, typename t_parameter::request &arg, const CryptoNoteConnectionContext &context)
         {
-            return p2p.invoke_notify_to_peer(t_parametr::ID, LevinProtocol::encode(arg), context);
+            return p2p.invoke_notify_to_peer(t_parameter::ID, LevinProtocol::encode(arg), context);
         }
 
-        template<class t_parametr>
-        void relay_post_notify(
-            IP2pEndpoint &p2p,
-            typename t_parametr::request &arg,
-            const boost::uuids::uuid *excludeConnection = nullptr)
+        template<class t_parameter>
+        void relay_post_notify(IP2pEndpoint &p2p, typename t_parameter::request &arg, const boost::uuids::uuid *excludeConnection = nullptr)
         {
-            p2p.externalRelayNotifyToAll(t_parametr::ID, LevinProtocol::encode(arg), excludeConnection);
+            p2p.externalRelayNotifyToAll(t_parameter::ID, LevinProtocol::encode(arg), excludeConnection);
         }
 
         std::vector<RawBlockLegacy> convertRawBlocksToRawBlocksLegacy(const std::vector<RawBlock> &rawBlocks)
@@ -180,12 +174,12 @@ namespace CryptoNote
     CryptoNoteProtocolHandler::CryptoNoteProtocolHandler(
         const Currency &currency,
         System::Dispatcher &dispatcher,
-        ICore &rcore,
+        ICore &core,
         IP2pEndpoint *p_net_layout,
         std::shared_ptr<Logging::ILogger> log):
         m_dispatcher(dispatcher),
         m_currency(currency),
-        m_core(rcore),
+        m_core(core),
         m_p2p(p_net_layout),
         m_synchronized(false),
         m_stop(false),
@@ -238,7 +232,7 @@ namespace CryptoNote
             m_observerManager.notify(&ICryptoNoteProtocolObserver::lastKnownBlockHeightUpdated, m_observedHeight);
         }
 
-        if (context.m_state != CryptoNoteConnectionContext::state_befor_handshake)
+        if (context.m_state != CryptoNoteConnectionContext::state_before_handshake)
         {
             m_peersCount--;
             m_observerManager.notify(&ICryptoNoteProtocolObserver::peerCountUpdated, m_peersCount.load());
@@ -308,7 +302,7 @@ namespace CryptoNote
         CryptoNoteConnectionContext &context,
         bool is_initial)
     {
-        if (context.m_state == CryptoNoteConnectionContext::state_befor_handshake && !is_initial)
+        if (context.m_state == CryptoNoteConnectionContext::state_before_handshake && !is_initial)
         {
             return true;
         }
@@ -773,7 +767,7 @@ namespace CryptoNote
             context.m_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
             context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
         } else {
-            context.m_request_block_rate = static_cast<size_t>(context.m_next_request_block_rate / (time_taken_ms / 1000.0));
+            context.m_request_block_rate = static_cast<size_t>((double) context.m_next_request_block_rate / ((double) time_taken_ms / 1000.0));
             context.m_next_request_block_rate = context.m_request_block_rate;
         }
 
@@ -994,8 +988,7 @@ namespace CryptoNote
                 }
                 it = context.m_needed_objects.erase(it);
             }
-            logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size()
-                                   << ", txs.size()=" << req.txs.size();
+            logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size();
             post_notify<NOTIFY_REQUEST_GET_OBJECTS>(*m_p2p, req, context);
         }
         else if (context.m_last_response_height < context.m_remote_blockchain_height - 1)
