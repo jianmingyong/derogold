@@ -171,20 +171,10 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
 
-      - name: Build DeroGold (MSVC)
-        if: matrix.compiler == 'msvc'
-        working-directory: ${{ github.workspace }}
-        shell: cmd
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" amd64 -vcvars_ver=14.39.33519
-          cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }} --target package
-
-      - name: Build DeroGold (GCC/CLANG)
-        if: matrix.compiler != 'msvc'
+      - name: Build DeroGold
         working-directory: ${{ github.workspace }}
         run: |
-          if ("${{ runner.os }}" -eq 'Windows')
+          if ("${{ runner.os }}" -eq 'Windows' -And "${{ matrix.compiler }}" -ne 'msvc')
           {
             msys2 -c "cmake --preset ${{ matrix.configure_preset }}"
             msys2 -c "cmake --build --preset ${{ matrix.build_preset }} --target package"
