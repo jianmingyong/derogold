@@ -77,7 +77,8 @@
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-msvc"
             },
             "architecture": {
                 "strategy": "set",
@@ -101,7 +102,8 @@
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static-release"
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-msvc"
             },
             "architecture": {
                 "strategy": "set",
@@ -119,7 +121,8 @@
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-gcc"
             }
         },
         {
@@ -130,6 +133,7 @@
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-gcc",
                 "ARCH": "default"
             }
         },
@@ -140,7 +144,8 @@
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-clang"
             }
         },
         {
@@ -151,6 +156,7 @@
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-clang",
                 "ARCH": "default"
             }
         },
@@ -160,7 +166,8 @@
                 "default-gcc"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux"
+                "VCPKG_TARGET_TRIPLET": "x64-linux",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-gcc"
             }
         },
         {
@@ -170,6 +177,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-gcc",
                 "ARCH": "default"
             }
         },
@@ -179,7 +187,8 @@
                 "default-clang"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux"
+                "VCPKG_TARGET_TRIPLET": "x64-linux",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang"
             }
         },
         {
@@ -189,6 +198,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang",
                 "ARCH": "default"
             }
         },
@@ -199,6 +209,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
                 "ARCH": "default"
             }
         },
@@ -209,6 +220,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
                 "ARCH": "default"
             }
         },
@@ -219,6 +231,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
                 "ARCH": "default"
             }
         },
@@ -229,6 +242,7 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
                 "ARCH": "default"
             }
         },
@@ -245,6 +259,7 @@
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
                 "ARCH": "default"
             }
         },
@@ -261,6 +276,7 @@
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
                 "ARCH": "default"
             }
         },
@@ -275,7 +291,8 @@
                 "CPPFLAGS": "-I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx"
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "osx-x64-clang"
             }
         },
         {
@@ -290,6 +307,7 @@
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "osx-x64-clang",
                 "ARCH": "default"
             }
         }

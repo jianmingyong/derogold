@@ -159,6 +159,8 @@ else ()
     message(STATUS "OPTIMIZED_ARM_MULTIPLICATION: ENABLED")
 endif ()
 
+set(SET_PACKAGE_OUTPUT_SUFFIX "${CPACK_SYSTEM_NAME}" CACHE STRING "Set the CPack package file name suffix")
+
 # This section helps us tag our builds with the git commit information
 set(SET_COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 
