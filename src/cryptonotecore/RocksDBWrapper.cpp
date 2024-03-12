@@ -253,7 +253,7 @@ std::error_code RocksDBWrapper::readThreadSafe(IReadBatch &batch)
 rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 {
     rocksdb::DBOptions dbOptions;
-    dbOptions.info_log_level = rocksdb::InfoLogLevel::INFO_LEVEL;
+    dbOptions.info_log_level = rocksdb::InfoLogLevel::WARN_LEVEL;
     dbOptions.IncreaseParallelism(config.backgroundThreadsCount);
     dbOptions.max_open_files = config.maxOpenFiles;
     // For spinning disk
