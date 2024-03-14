@@ -420,7 +420,8 @@ int main(int argc, char *argv[])
                           << std::endl;
                 exit(0);
             }
-        } else if (config.exportChain)
+        }
+        else if (config.exportChain)
         {
             logger(INFO) << "Exporting blockchain...";
             error = ccore->exportBlockchain(filepath, config.exportNumBlocks);
@@ -439,6 +440,33 @@ int main(int argc, char *argv[])
                           << std::endl;
                 exit(0);
             }
+        }
+        else if (config.exportCheckPoints)
+        {
+            logger(INFO) << "Exporting checkpoints...";
+            std::string checkpointFileName = "checkpoints.csv";
+
+            std::fstream out(checkpointFileName, std::fstream::out | std::fstream::trunc);
+
+            auto topHeight = ccore->getTopBlockIndex();
+
+            for (size_t i = 0; i < topHeight; i++)
+            {
+                auto hash = ccore->getBlockHashByIndex(i);
+                out << std::to_string(i) << "," << Common::podToHex(hash) << std::endl;
+                out.flush();
+
+                if (i % 1000 == 0)
+                {
+                    logger(INFO) << "Exporting checkpoints (" << std::to_string(i) << "/" << std::to_string(topHeight) << ")";
+                }
+            }
+
+            out.close();
+
+            logger(INFO) << "Export completed.";
+
+            exit(0);
         }
 
         /* If we were told to rewind the blockchain to a certain height

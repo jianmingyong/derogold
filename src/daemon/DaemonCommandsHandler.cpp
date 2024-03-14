@@ -451,3 +451,4 @@ bool DaemonCommandsHandler::status(const std::vector<std::string> &args)
 
     return true;
 }
+

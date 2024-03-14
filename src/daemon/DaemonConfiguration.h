@@ -55,6 +55,7 @@ namespace DaemonConfig
             importChain = false;
             exportChain = false;
             exportNumBlocks = 0;
+            exportCheckPoints = false;
             feeAmount = 0;
             dbOptimize = false;
         }
@@ -128,6 +129,8 @@ namespace DaemonConfig
         bool exportChain;
 
         uint32_t exportNumBlocks;
+
+        bool exportCheckPoints;
 
         std::string configFile;
 

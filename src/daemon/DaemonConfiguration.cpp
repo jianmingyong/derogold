@@ -63,7 +63,10 @@ namespace DaemonConfig
             "max-export-blocks",
             "Maximum number of blocks for export to dump file.",
             cxxopts::value<uint32_t>(),
-            "#");
+            "#")(
+            "export-checkpoints",
+            "Export checkpoints.",
+            cxxopts::value<bool>(config.exportCheckPoints)->default_value("false")->implicit_value("true"));
 
         options.add_options("Genesis Block")(
             "print-genesis-tx",
