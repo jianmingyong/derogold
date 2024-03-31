@@ -9,13 +9,14 @@
 #include <common/StringTools.h>
 #include <config/Constants.h>
 #include <fstream>
+#include <utility>
 
 using namespace Logging;
 
 namespace CryptoNote
 {
     //---------------------------------------------------------------------------
-    Checkpoints::Checkpoints(std::shared_ptr<Logging::ILogger> log): logger(log, "checkpoints") {}
+    Checkpoints::Checkpoints(std::shared_ptr<Logging::ILogger> log): logger(std::move(log), "checkpoints") {}
 
     //---------------------------------------------------------------------------
     bool Checkpoints::addCheckpoint(uint32_t index, const std::string &hash_str)
