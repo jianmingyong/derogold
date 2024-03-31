@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
 
             auto topHeight = ccore->getTopBlockIndex();
 
-            for (size_t i = 0; i < topHeight; i++)
+            for (size_t i = 0; i <= topHeight; i++)
             {
                 auto hash = ccore->getBlockHashByIndex(i);
                 out << std::to_string(i) << "," << Common::podToHex(hash) << std::endl;
