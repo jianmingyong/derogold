@@ -512,7 +512,8 @@ int main(int argc, char *argv[])
             rpcMode,
             ccore,
             p2psrv,
-            cprotocol
+            cprotocol,
+            config.useTrtlApi
         );
 
         cprotocol->set_p2p_endpoint(&(*p2psrv));

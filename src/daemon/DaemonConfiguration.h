@@ -49,7 +49,7 @@ namespace DaemonConfig
             osVersion = false;
             printGenesisTx = false;
             dumpConfig = false;
-            enableDbCompression = false;
+            enableDbCompression = true;
             resync = false;
             enableLevelDB = false;
             importChain = false;
@@ -58,6 +58,7 @@ namespace DaemonConfig
             exportCheckPoints = false;
             feeAmount = 0;
             dbOptimize = false;
+            useTrtlApi = false;
         }
 
         std::string dataDirectory;
@@ -151,6 +152,8 @@ namespace DaemonConfig
         bool enableDbCompression;
 
         bool dbOptimize;
+
+        bool useTrtlApi;
     };
 
     DaemonConfiguration initConfiguration(const char *path);

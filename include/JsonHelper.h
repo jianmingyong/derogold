@@ -1,4 +1,5 @@
 // Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -59,6 +60,19 @@ template<typename T> uint64_t getInt64FromJSON(const T &j, const std::string &ke
     }
 
     return val.GetInt64();
+}
+
+/**
+ * Gets a string from the JSON, with or without a given keyname
+ */
+template<typename T> std::string getStringFromJSON(const T &j)
+{
+    if (!j.IsString())
+    {
+        throw std::invalid_argument("JSON parameter is wrong type. Expected String, got " + kTypeNames[j.GetType()]);
+    }
+
+    return j.GetString();
 }
 
 /**

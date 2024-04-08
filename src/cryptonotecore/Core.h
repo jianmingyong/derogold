@@ -239,6 +239,10 @@ namespace CryptoNote
 
         virtual void rewind(const uint64_t blockIndex) override;
 
+        CryptoNote::RawBlock getRawBlock(uint32_t blockIndex) const;
+
+        CryptoNote::RawBlock getRawBlock(const Crypto::Hash &blockHash) const;
+
       private:
         const Currency &currency;
 

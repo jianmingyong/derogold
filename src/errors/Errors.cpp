@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
@@ -12,7 +12,7 @@
 std::string Error::getErrorMessage() const
 {
     /* Custom message being used, return that instead */
-    if (m_customMessage != "")
+    if (!m_customMessage.empty())
     {
         return m_customMessage;
     }
@@ -284,26 +284,60 @@ std::string Error::getErrorMessage() const
         {
             return "The extra data given for the transaction could not be decoded.";
         }
-	case UNKNOWN_ERROR:
-	{
-	    return "An unknown error occurred.";
-	}
-	case DAEMON_STILL_PROCESSING:
+        case UNKNOWN_ERROR:
         {
-	    return "The transaction was sent to the daemon, but the connection "
-		   "timed out before we could determine if the transaction "
-		   "succeeded. Wait a few minutes before retrying the transaction, "
-		   "as it may still succeed.";
-	}
-	case OUTPUT_DECOMPOSITION:
-	        {
-		   return "The transaction contains more outputs than what is permitted "
-		          "by the number of inputs that have been supplied for the "
-		          "transaction. Please try to send your transaction again. "
-		          "If the problem persists, please reduce the number of "
-		          "destinations that you are trying to send to.";
-	        }
-            /* No default case so the compiler warns us if we missed one */
+            return "An unknown error occurred.";
+        }
+        case DAEMON_STILL_PROCESSING:
+        {
+            return "The transaction was sent to the daemon, but the connection "
+                   "timed out before we could determine if the transaction "
+                   "succeeded. Wait a few minutes before retrying the transaction, "
+                   "as it may still succeed.";
+        }
+        case OUTPUT_DECOMPOSITION:
+        {
+            return "The transaction contains more outputs than what is permitted "
+                   "by the number of inputs that have been supplied for the "
+                   "transaction. Please try to send your transaction again. "
+                   "If the problem persists, please reduce the number of "
+                   "destinations that you are trying to send to.";
+        }
+        /* No default case so the compiler warns us if we missed one */
+        case API_BODY_REQUIRED:
+        {
+            return "This API endpoint requires the submission of a body for processing.";
+        }
+        case API_BLOCKEXPLORER_DISABLED:
+        {
+            return "This method has been disabled by the administrator. If you are the "
+                   "administrator relaunch your daemon with the --enable-blockexplorer "
+                   "command line option to access this method.";
+        }
+        case API_NODE_NOT_SYNCED:
+        {
+            return "Daemon must be synced to process this RPC method call, please retry when synced.";
+        }
+        case API_INVALID_ARGUMENT:
+        {
+            return "An argument supplied could not be properly decoded.";
+        }
+        case API_TRANSACTION_POOL_INSERT_FAILED:
+        {
+            return "Could not add transaction to the transaction pool.";
+        }
+        case API_INTERNAL_ERROR:
+        {
+            return "An internal error occurred.";
+        }
+        case API_BLOCK_NOT_ACCEPTED:
+        {
+            return "Could not add block candidate to blockchain.";
+        }
+        case API_HASH_NOT_FOUND:
+        {
+            return "The requested hash could not be found.";
+        }
     }
 
     throw std::invalid_argument("Invalid error code given");
