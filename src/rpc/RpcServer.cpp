@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
@@ -30,7 +30,8 @@ RpcServer::RpcServer(
     const RpcMode rpcMode,
     const std::shared_ptr<CryptoNote::Core> core,
     const std::shared_ptr<CryptoNote::NodeServer> p2p,
-    const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> syncManager):
+    const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> syncManager,
+    const bool useTrtlApi):
     m_port(bindPort),
     m_host(rpcBindIp),
     m_corsHeader(corsHeader),
@@ -39,9 +40,10 @@ RpcServer::RpcServer(
     m_rpcMode(rpcMode),
     m_core(core),
     m_p2p(p2p),
-    m_syncManager(syncManager)
+    m_syncManager(syncManager),
+    m_useTrtlApi(useTrtlApi)
 {
-    if (m_feeAddress != "")
+    if (!m_feeAddress.empty())
     {
         Error error = validateAddresses({m_feeAddress}, false);
 
@@ -93,43 +95,46 @@ RpcServer::RpcServer(
 
         if (method == "getblocktemplate")
         {
-            router(&RpcServer::getBlockTemplate, RpcMode::Default, bodyRequired, syncRequired)(req, res);
+            router(&RpcServer::getBlockTemplateJsonRpc, RpcMode::Default, bodyRequired, syncRequired)(req, res);
         }
         else if (method == "submitblock")
         {
-            router(&RpcServer::submitBlock, RpcMode::Default, bodyRequired, syncRequired)(req, res);
+            router(&RpcServer::submitBlockJsonRpc, RpcMode::Default, bodyRequired, syncRequired)(req, res);
         }
         else if (method == "getblockcount")
         {
-            router(&RpcServer::getBlockCount, RpcMode::Default, bodyNotRequired, syncNotRequired)(req, res);
+            router(&RpcServer::getBlockCountJsonRpc, RpcMode::Default, bodyNotRequired, syncNotRequired)(req, res);
         }
         else if (method == "getlastblockheader")
         {
-            router(&RpcServer::getLastBlockHeader, RpcMode::Default, bodyNotRequired, syncNotRequired)(req, res);
+            router(&RpcServer::getLastBlockHeaderJsonRpc, RpcMode::Default, bodyNotRequired, syncNotRequired)(req, res);
         }
         else if (method == "getblockheaderbyhash")
         {
-            router(&RpcServer::getBlockHeaderByHash, RpcMode::Default, bodyRequired, syncNotRequired)(req, res);
+            router(&RpcServer::getBlockHeaderByHashJsonRpc, RpcMode::Default, bodyRequired, syncNotRequired)(req, res);
         }
         else if (method == "getblockheaderbyheight")
         {
-            router(&RpcServer::getBlockHeaderByHeight, RpcMode::Default, bodyRequired, syncNotRequired)(req, res);
+            router(&RpcServer::getBlockHeaderByHeightJsonRpc, RpcMode::Default, bodyRequired, syncNotRequired)(req, res);
         }
         else if (method == "f_blocks_list_json")
         {
-            router(&RpcServer::getBlocksByHeight, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
+            router(&RpcServer::getBlocksByHeightJsonRpc, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
         }
         else if (method == "f_block_json")
         {
-            router(&RpcServer::getBlockDetailsByHash, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
+            router(
+                &RpcServer::getBlockDetailsByHashJsonRpc, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
         }
         else if (method == "f_transaction_json")
         {
-            router(&RpcServer::getTransactionDetailsByHash, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
+            router(
+                &RpcServer::getTransactionDetailsByHashJsonRpc, RpcMode::BlockExplorerEnabled, bodyRequired, syncNotRequired)(req, res);
         }
         else if (method == "f_on_transactions_pool_json")
         {
-            router(&RpcServer::getTransactionsInPool, RpcMode::BlockExplorerEnabled, bodyNotRequired, syncNotRequired)(req, res);
+            router(
+                &RpcServer::getTransactionsInPoolJsonRpc, RpcMode::BlockExplorerEnabled, bodyNotRequired, syncNotRequired)(req, res);
         }
         else
         {
@@ -137,8 +142,27 @@ RpcServer::RpcServer(
         }
     };
 
-    /* Note: /json_rpc is exposed on both GET and POST */
-    m_server.Get("/json_rpc", jsonRpc)
+    if (m_useTrtlApi)
+    {
+        m_server
+            .Post("/block", router(&RpcServer::submitBlockTrtlApi, RpcMode::Default, bodyRequired, syncNotRequired))
+
+            /* /block/{hash} */
+            .Get("/block/([a-fA-F0-9]{64})", router(&RpcServer::getBlockHeaderByHashTrtlApi, RpcMode::Default, bodyNotRequired, syncNotRequired))
+            /* /block/{height} */
+            .Get("/block/(\\d+)", router(&RpcServer::getBlockHeaderByHeightTrtlApi, RpcMode::Default, bodyNotRequired, syncNotRequired))
+            /* /block/{hash}/raw */
+            .Get("/block/([a-fA-F0-9]{64})/raw", router(&RpcServer::getRawBlockByHashTrtlApi, RpcMode::BlockExplorerEnabled, bodyNotRequired, syncNotRequired))
+            /* /block/{height}/raw */
+            .Get("/block/(\\d+)/raw", router(&RpcServer::getRawBlockByHeightTrtlApi, RpcMode::BlockExplorerEnabled, bodyNotRequired, syncNotRequired))
+            .Get("/block/count", router(&RpcServer::getBlockCountTrtlApi, RpcMode::Default, bodyNotRequired, syncNotRequired))
+
+            .Options(".*", [this](auto &req, auto &res) { handleOptions(req, res); });
+    }
+    else
+    {
+        m_server
+            .Get("/json_rpc", jsonRpc)
             .Get("/info", router(&RpcServer::info, RpcMode::Default, bodyNotRequired, syncNotRequired))
             .Get("/fee", router(&RpcServer::fee, RpcMode::Default, bodyNotRequired, syncNotRequired))
             .Get("/height", router(&RpcServer::height, RpcMode::Default, bodyNotRequired, syncNotRequired))
@@ -159,6 +183,7 @@ RpcServer::RpcServer(
             /* Matches everything */
             /* NOTE: Not passing through middleware */
             .Options(".*", [this](auto &req, auto &res) { handleOptions(req, res); });
+    }
 }
 
 RpcServer::~RpcServer()
@@ -178,7 +203,8 @@ void RpcServer::listen()
     if (listenError != httplib::SUCCESS)
     {
         std::cout << WarningMsg("Failed to start RPC server: ")
-                  << WarningMsg(httplib::detail::getSocketErrorMessage(listenError)) << std::endl;
+                  << WarningMsg(httplib::detail::getSocketErrorMessage(listenError))
+                  << std::endl;
         exit(1);
     }
 }
@@ -198,10 +224,7 @@ std::tuple<std::string, uint16_t> RpcServer::getConnectionInfo()
     return {m_host, m_port};
 }
 
-std::optional<rapidjson::Document> RpcServer::getJsonBody(
-    const httplib::Request &req,
-    httplib::Response &res,
-    const bool bodyRequired)
+std::optional<rapidjson::Document> RpcServer::getJsonBody(const httplib::Request &req, httplib::Response &res, const bool bodyRequired)
 {
     rapidjson::Document jsonBody;
 
@@ -232,7 +255,15 @@ std::optional<rapidjson::Document> RpcServer::getJsonBody(
 
         stream << "Failed to parse request body as JSON";
 
-        failRequest(400, stream.str(), res);
+        if (m_useTrtlApi)
+        {
+            failRequest(Error(API_INVALID_ARGUMENT, stream.str()), res);
+            res.status = 400;
+        }
+        else
+        {
+            failRequest(400, stream.str(), res);
+        }
 
         return std::nullopt;
     }
@@ -246,10 +277,7 @@ void RpcServer::middleware(
     const RpcMode routePermissions,
     const bool bodyRequired,
     const bool syncRequired,
-    std::function<std::tuple<Error, uint16_t>(
-        const httplib::Request &req,
-        httplib::Response &res,
-        const rapidjson::Document &body)> handler)
+    const std::function<std::tuple<Error, uint16_t>(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)>& handler)
 {
     Logger::logger.log(
         "[" + req.get_header_value("REMOTE_ADDR") + "] Incoming " + req.method + " request: " + req.path + ", User-Agent: " + req.get_header_value("User-Agent"),
@@ -257,7 +285,7 @@ void RpcServer::middleware(
         { Logger::DAEMON_RPC }
     );
 
-    if (m_corsHeader != "")
+    if (!m_corsHeader.empty())
     {
         res.set_header("Access-Control-Allow-Origin", m_corsHeader);
     }
@@ -275,19 +303,27 @@ void RpcServer::middleware(
      * reject the request */
     if (routePermissions > m_rpcMode)
     {
-        std::stringstream stream;
-
-        stream << "You do not have permission to access this method. Please "
-                  "relaunch your daemon with the --enable-blockexplorer";
-
-        if (routePermissions == RpcMode::AllMethodsEnabled)
+        if (m_useTrtlApi)
         {
-            stream << "-detailed";
+            failRequest(Error(API_BLOCKEXPLORER_DISABLED), res);
+            res.status = 403;
         }
+        else
+        {
+            std::stringstream stream;
 
-        stream << " command line option to access this method.";
+            stream << "You do not have permission to access this method. Please "
+                      "relaunch your daemon with the --enable-blockexplorer";
 
-        failRequest(403, stream.str(), res);
+            if (routePermissions == RpcMode::AllMethodsEnabled)
+            {
+                stream << "-detailed";
+            }
+
+            stream << " command line option to access this method.";
+
+            failRequest(403, stream.str(), res);
+        }
 
         return;
     }
@@ -299,7 +335,16 @@ void RpcServer::middleware(
 
     if (syncRequired && !areSynced)
     {
-        failRequest(200, "Daemon must be synced to process this RPC method call, please retry when synced", res);
+        if (m_useTrtlApi)
+        {
+            failRequest(Error(API_NODE_NOT_SYNCED), res);
+            res.status = 503;
+        }
+        else
+        {
+            failRequest(200, "Daemon must be synced to process this RPC method call, please retry when synced", res);
+        }
+
         return;
     }
 
@@ -309,21 +354,29 @@ void RpcServer::middleware(
 
         if (error)
         {
-            rapidjson::StringBuffer sb;
-            rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+            if (m_useTrtlApi)
+            {
+                failRequest(error, res);
+                res.status = statusCode;
+            }
+            else
+            {
+                rapidjson::StringBuffer sb;
+                rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
 
-            writer.StartObject();
+                writer.StartObject();
 
-            writer.Key("errorCode");
-            writer.Uint(error.getErrorCode());
+                writer.Key("errorCode");
+                writer.Uint(error.getErrorCode());
 
-            writer.Key("errorMessage");
-            writer.String(error.getErrorMessage());
+                writer.Key("errorMessage");
+                writer.String(error.getErrorMessage());
 
-            writer.EndObject();
+                writer.EndObject();
 
-            res.body = sb.GetString();
-            res.status = 400;
+                res.body = sb.GetString();
+                res.status = 400;
+            }
         }
         else
         {
@@ -340,7 +393,15 @@ void RpcServer::middleware(
             { Logger::DAEMON_RPC }
         );
 
-        failRequest(400, e.what(), res);
+        if (m_useTrtlApi)
+        {
+            failRequest(Error(API_INVALID_ARGUMENT, e.what()), res);
+            res.status = 400;
+        }
+        else
+        {
+            failRequest(400, e.what(), res);
+        }
     }
     catch (const std::exception &e)
     {
@@ -349,26 +410,26 @@ void RpcServer::middleware(
         error << "Caught unexpected exception: " << e.what() << " while processing "
               << req.path << " request for User-Agent: " << req.get_header_value("User-Agent");
 
-        Logger::logger.log(
-            error.str(),
-            Logger::FATAL,
-            { Logger::DAEMON_RPC }
-        );
+        Logger::logger.log(error.str(), Logger::FATAL, { Logger::DAEMON_RPC });
 
-        if (req.body != "")
+        if (!req.body.empty())
         {
-            Logger::logger.log(
-                "Body: " + req.body,
-                Logger::FATAL,
-                { Logger::DAEMON_RPC }
-            );
+            Logger::logger.log("Body: " + req.body, Logger::FATAL, { Logger::DAEMON_RPC });
         }
 
-        failRequest(500, "Internal server error: " + std::string(e.what()), res);
+        if (m_useTrtlApi)
+        {
+            failRequest(Error(API_INTERNAL_ERROR, e.what()), res);
+            res.status = 500;
+        }
+        else
+        {
+            failRequest(500, "Internal server error: " + std::string(e.what()), res);
+        }
     }
 }
 
-void RpcServer::failRequest(uint16_t statusCode, std::string body, httplib::Response &res)
+void RpcServer::failRequest(const int errorCode, const std::string& body, httplib::Response &res)
 {
     rapidjson::StringBuffer sb;
     rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
@@ -384,13 +445,31 @@ void RpcServer::failRequest(uint16_t statusCode, std::string body, httplib::Resp
     writer.EndObject();
 
     res.body = sb.GetString();
-    res.status = statusCode;
+    res.status = errorCode;
 }
 
-void RpcServer::failJsonRpcRequest(
-    const int64_t errorCode,
-    const std::string errorMessage,
-    httplib::Response &res)
+void RpcServer::failRequest(const Error& error, httplib::Response &res)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    writer.StartObject();
+    {
+        writer.Key("error");
+        writer.StartObject();
+        {
+            writer.Key("code");
+            writer.Uint(error.getErrorCode());
+
+            writer.Key("message");
+            writer.String(error.getErrorMessage());
+        }
+        writer.EndObject();
+    }
+    writer.EndObject();
+}
+
+void RpcServer::failJsonRpcRequest(const int64_t errorCode, const std::string& errorMessage, httplib::Response &res)
 {
     rapidjson::StringBuffer sb;
     rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
@@ -417,17 +496,222 @@ void RpcServer::failJsonRpcRequest(
     res.status = 200;
 }
 
+uint64_t RpcServer::calculateTotalFeeAmount(const std::vector<Crypto::Hash> &transactionHashes)
+{
+    uint64_t totalFeeAmount = 0;
+
+    std::vector<std::vector<uint8_t>> transactions;
+    std::vector<Crypto::Hash> ignore;
+
+    m_core->getTransactions(transactionHashes, transactions, ignore);
+
+    for (const std::vector<uint8_t>& rawTX : transactions)
+    {
+        CryptoNote::Transaction tx;
+
+        fromBinaryArray(tx, rawTX);
+
+        const uint64_t outputAmount = std::accumulate(
+            tx.outputs.begin(),
+            tx.outputs.end(),
+            0ull,
+            [](const auto acc, const auto out) { return acc + out.amount; });
+
+        const uint64_t inputAmount = std::accumulate(
+            tx.inputs.begin(),
+            tx.inputs.end(),
+            0ull,
+            [](const auto acc, const auto in)
+            {
+                if (in.type() == typeid(CryptoNote::KeyInput))
+                {
+                    return acc + boost::get<CryptoNote::KeyInput>(in).amount;
+                }
+
+                return acc;
+            });
+
+        const uint64_t fee = inputAmount - outputAmount;
+
+        totalFeeAmount += fee;
+    }
+
+    return totalFeeAmount;
+}
+
+void RpcServer::generateBlockHeader(const Crypto::Hash &blockHash, rapidjson::Writer<rapidjson::StringBuffer> &writer, const bool headerOnly)
+{
+    CryptoNote::BlockTemplate block = m_core->getBlockByHash(blockHash);
+    CryptoNote::CachedBlock cachedBlock(block);
+
+    const auto topHeight = m_core->getTopBlockIndex();
+    const auto height = cachedBlock.getBlockIndex();
+
+    const auto outputs = block.baseTransaction.outputs;
+
+    const auto extraDetails = m_core->getBlockDetails(blockHash);
+
+    const uint64_t reward = std::accumulate(outputs.begin(), outputs.end(), 0ull, [](const auto acc, const auto out) { return acc + out.amount; });
+    const uint64_t totalFeeAmount = calculateTotalFeeAmount(block.transactionHashes);
+
+    writer.StartObject();
+    {
+        writer.Key("alreadyGeneratedCoins");
+        writer.String(std::to_string(extraDetails.alreadyGeneratedCoins));
+
+        writer.Key("alreadyGeneratedTransactions");
+        writer.Uint64(extraDetails.alreadyGeneratedTransactions);
+
+        writer.Key("baseReward");
+        writer.Uint64(extraDetails.baseReward);
+
+        writer.Key("depth");
+        writer.Uint64(topHeight - height);
+
+        writer.Key("difficulty");
+        writer.Uint64(m_core->getBlockDifficulty(height));
+
+        writer.Key("hash");
+        blockHash.toJSON(writer);
+
+        writer.Key("height");
+        writer.Uint64(height);
+
+        writer.Key("majorVersion");
+        writer.Uint64(block.majorVersion);
+
+        writer.Key("minorVersion");
+        writer.Uint64(block.minorVersion);
+
+        writer.Key("nonce");
+        writer.Uint64(block.nonce);
+
+        writer.Key("orphan");
+        writer.Bool(extraDetails.isAlternative);
+
+        writer.Key("penalty");
+        writer.Double(extraDetails.penalty);
+
+        writer.Key("prevHash");
+        block.previousBlockHash.toJSON(writer);
+
+        writer.Key("reward");
+        writer.Uint64(reward);
+
+        writer.Key("size");
+        writer.Uint64(extraDetails.blockSize);
+
+        writer.Key("sizeMedian");
+        writer.Uint64(extraDetails.sizeMedian);
+
+        writer.Key("timestamp");
+        writer.Uint64(block.timestamp);
+
+        writer.Key("totalFeeAmount");
+        writer.Uint64(totalFeeAmount);
+
+        writer.Key("transactionCount");
+        writer.Uint64(extraDetails.transactions.size());
+
+        /* If we are not part of a sub-object (such as /transaction) then we can
+         * include basic information about the transactions */
+        if (!headerOnly)
+        {
+            writer.Key("transactions");
+            writer.StartArray();
+            {
+                /* Coinbase transaction */
+                writer.StartObject();
+                {
+                    const auto txOutputs = block.baseTransaction.outputs;
+
+                    const uint64_t outputAmount = std::accumulate(
+                        txOutputs.begin(),
+                        txOutputs.end(),
+                        0ull,
+                        [](const auto acc, const auto out) { return acc + out.amount; });
+
+                    writer.Key("amountOut");
+                    writer.Uint64(outputAmount);
+
+                    writer.Key("fee");
+                    writer.Uint64(0);
+
+                    writer.Key("hash");
+                    const auto baseTransactionBranch = getObjectHash(block.baseTransaction);
+                    baseTransactionBranch.toJSON(writer);
+
+                    writer.Key("size");
+                    writer.Uint64(getObjectBinarySize(block.baseTransaction));
+                }
+                writer.EndObject();
+
+                std::vector<std::vector<uint8_t>> transactions;
+                std::vector<Crypto::Hash> ignore;
+                m_core->getTransactions(block.transactionHashes, transactions, ignore);
+
+                for (const std::vector<uint8_t>& rawTX : transactions)
+                {
+                    writer.StartObject();
+                    {
+                        CryptoNote::Transaction tx;
+
+                        fromBinaryArray(tx, rawTX);
+
+                        const uint64_t outputAmount = std::accumulate(
+                            tx.outputs.begin(),
+                            tx.outputs.end(),
+                            0ull,
+                            [](const auto acc, const auto out) { return acc + out.amount; });
+
+                        const uint64_t inputAmount = std::accumulate(
+                            tx.inputs.begin(),
+                            tx.inputs.end(),
+                            0ull,
+                            [](const auto acc, const auto in)
+                            {
+                                if (in.type() == typeid(CryptoNote::KeyInput))
+                                {
+                                    return acc + boost::get<CryptoNote::KeyInput>(in).amount;
+                                }
+
+                                return acc;
+                            });
+
+                        const uint64_t fee = inputAmount - outputAmount;
+
+                        writer.Key("amountOut");
+                        writer.Uint64(outputAmount);
+
+                        writer.Key("fee");
+                        writer.Uint64(fee);
+
+                        writer.Key("hash");
+                        const auto txHash = getObjectHash(tx);
+                        txHash.toJSON(writer);
+
+                        writer.Key("size");
+                        writer.Uint64(getObjectBinarySize(tx));
+                    }
+                    writer.EndObject();
+                }
+            }
+            writer.EndArray();
+        }
+
+        writer.Key("transactionsCumulativeSize");
+        writer.Uint64(extraDetails.transactionsCumulativeSize);
+    }
+    writer.EndObject();
+}
+
 void RpcServer::handleOptions(const httplib::Request &req, httplib::Response &res) const
 {
-    Logger::logger.log(
-        "Incoming " + req.method + " request: " + req.path,
-        Logger::DEBUG,
-        { Logger::DAEMON_RPC }
-    );
+    Logger::logger.log("Incoming " + req.method + " request: " + req.path, Logger::DEBUG, { Logger::DAEMON_RPC });
 
     std::string supported = "OPTIONS, GET, POST";
 
-    if (m_corsHeader == "")
+    if (m_corsHeader.empty())
     {
         supported = "";
     }
@@ -441,7 +725,7 @@ void RpcServer::handleOptions(const httplib::Request &req, httplib::Response &re
         res.set_header("Allow", supported);
     }
 
-    if (m_corsHeader != "")
+    if (!m_corsHeader.empty())
     {
         res.set_header("Access-Control-Allow-Origin", m_corsHeader);
         res.set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -450,10 +734,161 @@ void RpcServer::handleOptions(const httplib::Request &req, httplib::Response &re
     res.status = 200;
 }
 
-std::tuple<Error, uint16_t> RpcServer::info(
-    const httplib::Request &req,
-    httplib::Response &res,
-    const rapidjson::Document &body)
+std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHashTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    std::string hashStr = req.matches[1];
+    Crypto::Hash hash;
+
+    if (!Common::podFromHex(hashStr, hash))
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+
+    const auto topHeight = m_core->getTopBlockIndex();
+
+    try
+    {
+        generateBlockHeader(hash, writer);
+
+        res.body = sb.GetString();
+
+        return {SUCCESS, 200};
+    }
+    catch (const std::exception &)
+    {
+        return {Error(API_HASH_NOT_FOUND), 404};
+    }
+}
+
+std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHeightTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    uint64_t height = 0;
+    const auto topHeight = m_core->getTopBlockIndex();
+
+    try
+    {
+        std::string heightStr = req.matches[1];
+        height = std::stoull(heightStr);
+
+        /* We cannot request a block height higher than the current top block */
+        if (height > topHeight)
+        {
+            return {Error(API_INVALID_ARGUMENT, "Requested height cannot be greater than the top block height."), 400};
+        }
+    }
+    catch (const std::out_of_range &)
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+    catch (const std::invalid_argument &)
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+
+    try
+    {
+        const auto hash = m_core->getBlockHashByIndex(height);
+
+        generateBlockHeader(hash, writer);
+
+        res.body = sb.GetString();
+
+        return {SUCCESS, 200};
+    }
+    catch (const std::exception &)
+    {
+        return {Error(API_HASH_NOT_FOUND), 404};
+    }
+}
+
+std::tuple<Error, uint16_t> RpcServer::getRawBlockByHashTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    std::string hashStr = req.matches[1];
+    Crypto::Hash hash;
+
+    if (!Common::podFromHex(hashStr, hash))
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+
+    try
+    {
+        m_core->getRawBlock(hash).toJSON(writer);
+
+        res.body = sb.GetString();
+
+        return {SUCCESS, 200};
+    }
+    catch (const std::exception &)
+    {
+        return {Error(API_HASH_NOT_FOUND), 404};
+    }
+}
+
+std::tuple<Error, uint16_t> RpcServer::getRawBlockByHeightTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    std::string heightStr = req.matches[1];
+
+    uint32_t height = 0;
+    const auto topHeight = m_core->getTopBlockIndex();
+
+    try
+    {
+        height = std::stoull(heightStr);
+
+        if (height > topHeight)
+        {
+            return {Error(API_INVALID_ARGUMENT, "Requested height cannot be greater than the top block height."), 400};
+        }
+    }
+    catch (const std::out_of_range &)
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+    catch (const std::invalid_argument &)
+    {
+        return {Error(API_INVALID_ARGUMENT), 400};
+    }
+
+    try
+    {
+        m_core->getRawBlock(height).toJSON(writer);
+
+        res.body = sb.GetString();
+
+        return {SUCCESS, 200};
+    }
+    catch (const std::exception &)
+    {
+        return {Error(API_HASH_NOT_FOUND), 404};
+    }
+}
+
+std::tuple<Error, uint16_t> RpcServer::getBlockCountTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    writer.Uint64(m_core->getTopBlockIndex() + 1);
+
+    res.body = sb.GetString();
+
+    return {SUCCESS, 200};
+}
+
+std::tuple<Error, uint16_t> RpcServer::info(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
 {
     const uint64_t height = m_core->getTopBlockIndex() + 1;
     const uint64_t networkHeight = std::max(1u, m_syncManager->getBlockchainHeight());
@@ -649,6 +1084,51 @@ std::tuple<Error, uint16_t> RpcServer::peers(
     res.body = sb.GetString();
 
     return {SUCCESS, 200};
+}
+
+std::tuple<Error, uint16_t> RpcServer::submitBlockTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+{
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+
+    const auto blockBlob = getStringFromJSON(body);
+
+    std::vector<uint8_t> rawBlob;
+
+    if (!Common::fromHex(blockBlob, rawBlob))
+    {
+        return {Error(API_INVALID_ARGUMENT, "Submitted block blob is not hex!"), 400};
+    }
+
+    const auto submitResult = m_core->submitBlock(rawBlob);
+
+    if (submitResult != CryptoNote::error::AddBlockErrorCondition::BLOCK_ADDED)
+    {
+        return {Error(API_BLOCK_NOT_ACCEPTED), 409};
+    }
+
+    if (submitResult == CryptoNote::error::AddBlockErrorCode::ADDED_TO_MAIN
+        || submitResult == CryptoNote::error::AddBlockErrorCode::ADDED_TO_ALTERNATIVE_AND_SWITCHED)
+    {
+        CryptoNote::NOTIFY_NEW_BLOCK::request newBlockMessage;
+        CryptoNote::BlockTemplate blockTemplate;
+        CryptoNote::fromBinaryArray(blockTemplate, rawBlob);
+
+        newBlockMessage.block = CryptoNote::RawBlockLegacy(rawBlob, blockTemplate, m_core);
+        newBlockMessage.hop = 0;
+        newBlockMessage.current_blockchain_height = m_core->getTopBlockIndex() + 1;
+
+        m_syncManager->relayBlock(newBlockMessage);
+
+        const CryptoNote::CachedBlock block(blockTemplate);
+        const auto hash = block.getBlockHash();
+
+        hash.toJSON(writer);
+
+        res.body = sb.GetString();
+    }
+
+    return {SUCCESS, 202};
 }
 
 std::tuple<Error, uint16_t> RpcServer::sendTransaction(
@@ -1091,7 +1571,7 @@ std::tuple<Error, uint16_t> RpcServer::getGlobalIndexes(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlockTemplate(
+std::tuple<Error, uint16_t> RpcServer::getBlockTemplateJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1220,7 +1700,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlockTemplate(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::submitBlock(
+std::tuple<Error, uint16_t> RpcServer::submitBlockJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1303,7 +1783,7 @@ std::tuple<Error, uint16_t> RpcServer::submitBlock(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlockCount(
+std::tuple<Error, uint16_t> RpcServer::getBlockCountJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1334,7 +1814,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlockCount(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getLastBlockHeader(
+std::tuple<Error, uint16_t> RpcServer::getLastBlockHeaderJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1418,7 +1898,7 @@ std::tuple<Error, uint16_t> RpcServer::getLastBlockHeader(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHash(
+std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHashJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1536,7 +2016,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHash(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHeight(
+std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHeightJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1636,7 +2116,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlockHeaderByHeight(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlocksByHeight(
+std::tuple<Error, uint16_t> RpcServer::getBlocksByHeightJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1718,7 +2198,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlocksByHeight(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getBlockDetailsByHash(
+std::tuple<Error, uint16_t> RpcServer::getBlockDetailsByHashJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -1972,7 +2452,7 @@ std::tuple<Error, uint16_t> RpcServer::getBlockDetailsByHash(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getTransactionDetailsByHash(
+std::tuple<Error, uint16_t> RpcServer::getTransactionDetailsByHashJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -2192,7 +2672,7 @@ std::tuple<Error, uint16_t> RpcServer::getTransactionDetailsByHash(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t> RpcServer::getTransactionsInPool(
+std::tuple<Error, uint16_t> RpcServer::getTransactionsInPoolJsonRpc(
     const httplib::Request &req,
     httplib::Response &res,
     const rapidjson::Document &body)
@@ -3223,4 +3703,3 @@ std::tuple<Error, uint16_t> RpcServer::getRawBlocks(
 
     return {SUCCESS, 200};
 }
-

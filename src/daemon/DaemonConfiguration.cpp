@@ -115,6 +115,9 @@ namespace DaemonConfig
             "specified as the domain. Use * for all.",
             cxxopts::value<std::string>(),
             "<domain>")(
+            "enable-trtl-api",
+            "Enable the turtlecoin RPC API",
+            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
             "fee-address",
             "Sets the convenience charge <address> for light wallets that use the daemon",
             cxxopts::value<std::string>(),
@@ -194,7 +197,7 @@ namespace DaemonConfig
              cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
             ("db-enable-compression",
              "Enable database compression",
-             cxxopts::value<bool>()->default_value("false")->implicit_value("true"))
+             cxxopts::value<bool>()->default_value("true")->implicit_value("true"))
             ("db-max-open-files",
              "Number of files that can be used by the database at one time " + maxOpenFiles,
              cxxopts::value<int>(),
@@ -332,37 +335,23 @@ namespace DaemonConfig
             if (cli.count("db-enable-level-db") > 0 && cli["db-enable-level-db"].as<bool>())
             {
                 config.enableLevelDB = true;
-                config.dbMaxOpenFiles = CryptoNote::LEVELDB_MAX_OPEN_FILES;
-                config.dbReadCacheSizeMB = CryptoNote::LEVELDB_READ_BUFFER_MB;
-                config.dbWriteBufferSizeMB = CryptoNote::LEVELDB_WRITE_BUFFER_MB;
-                config.dbMaxFileSizeMB = CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
+
+                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>() : CryptoNote::LEVELDB_MAX_OPEN_FILES;
+                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>() : CryptoNote::LEVELDB_READ_BUFFER_MB;
+                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0 ? cli["db-write-buffer-size"].as<int>() : CryptoNote::LEVELDB_WRITE_BUFFER_MB;
+                config.dbMaxFileSizeMB = cli.count("db-max-file-size") > 0 ? cli["db-max-file-size"].as<int>() : CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
             }
             else
             {
-                config.dbMaxOpenFiles = CryptoNote::ROCKSDB_MAX_OPEN_FILES;
-                config.dbReadCacheSizeMB = CryptoNote::ROCKSDB_READ_BUFFER_MB;
-                config.dbWriteBufferSizeMB = CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
-                config.dbThreads = CryptoNote::ROCKSDB_BACKGROUND_THREADS;
-            }
-
-            if (cli.count("db-max-open-files") > 0)
-            {
-                config.dbMaxOpenFiles = cli["db-max-open-files"].as<int>();
-            }
-
-            if (cli.count("db-read-buffer-size") > 0)
-            {
-                config.dbReadCacheSizeMB = cli["db-read-buffer-size"].as<int>();
+                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>() : CryptoNote::ROCKSDB_MAX_OPEN_FILES;
+                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>() : CryptoNote::ROCKSDB_READ_BUFFER_MB;
+                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0 ? cli["db-write-buffer-size"].as<int>() : CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
+                config.dbThreads = cli.count("db-threads") > 0 ? cli["db-threads"].as<int>() : CryptoNote::ROCKSDB_BACKGROUND_THREADS;
             }
 
             if (cli.count("db-threads") > 0)
             {
                 config.dbThreads = cli["db-threads"].as<int>();
-            }
-
-            if (cli.count("db-write-buffer-size") > 0)
-            {
-                config.dbWriteBufferSizeMB = cli["db-write-buffer-size"].as<int>();
             }
 
             if (cli.count("db-max-file-size") > 0)
@@ -448,6 +437,11 @@ namespace DaemonConfig
             if (cli.count("enable-mining") > 0)
             {
                 config.enableMining = cli["enable-mining"].as<bool>();
+            }
+
+            if (cli.count("enable-trtl-api") > 0)
+            {
+                config.useTrtlApi = cli["enable-trtl-api"].as<bool>();
             }
 
             if (cli.count("enable-cors") > 0)
@@ -719,6 +713,11 @@ namespace DaemonConfig
                     config.enableMining = cfgValue.at(0) == '1';
                     updated = true;
                 }
+                else if (cfgKey.compare("enable-trtl-api") == 0)
+                {
+                    config.useTrtlApi = cfgValue.at(0) == '1';
+                    updated = true;
+                }
                 else if (cfgKey.compare("enable-cors") == 0)
                 {
                     cors = cfgValue;
@@ -965,6 +964,11 @@ namespace DaemonConfig
             config.enableMining = j["enable-mining"].GetBool();
         }
 
+        if (j.HasMember("enable-trtl-api"))
+        {
+            config.useTrtlApi = j["enable-trtl-api"].GetBool();
+        }
+
         if (j.HasMember("enable-cors"))
         {
             config.enableCors = j["enable-cors"].GetString();
@@ -1015,7 +1019,7 @@ namespace DaemonConfig
 
         {
             Value arr(rapidjson::kArrayType);
-            for (auto v : config.exclusiveNodes)
+            for (const auto& v : config.exclusiveNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -1024,7 +1028,7 @@ namespace DaemonConfig
 
         {
             Value arr(rapidjson::kArrayType);
-            for (auto v : config.peers)
+            for (const auto& v : config.peers)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -1033,7 +1037,7 @@ namespace DaemonConfig
 
         {
             Value arr(rapidjson::kArrayType);
-            for (auto v : config.priorityNodes)
+            for (const auto& v : config.priorityNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -1042,7 +1046,7 @@ namespace DaemonConfig
 
         {
             Value arr(rapidjson::kArrayType);
-            for (auto v : config.seedNodes)
+            for (const auto& v : config.seedNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -1053,6 +1057,7 @@ namespace DaemonConfig
         j.AddMember("enable-blockexplorer", config.enableBlockExplorer, alloc);
         j.AddMember("enable-blockexplorer-detailed", config.enableBlockExplorerDetailed, alloc);
         j.AddMember("enable-mining", config.enableMining, alloc);
+        j.AddMember("enable-trtl-api", config.useTrtlApi, alloc);
         j.AddMember("fee-address", config.feeAddress, alloc);
         j.AddMember("fee-amount", config.feeAmount, alloc);
         j.AddMember("transaction-validation-threads", config.transactionValidationThreads, alloc);

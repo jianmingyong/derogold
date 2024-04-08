@@ -2888,6 +2888,38 @@ namespace CryptoNote
         logger(Logging::INFO) << "Blockchain rewound to: " << blockIndex << std::endl;
     }
 
+    CryptoNote::RawBlock Core::getRawBlock(uint32_t blockIndex) const
+    {
+        assert(!chainsStorage.empty());
+        assert(!chainsLeaves.empty());
+
+        throwIfNotInitialized();
+
+        IBlockchainCache *chain = chainsLeaves[0];
+
+        return chain->getBlockByIndex(blockIndex);
+    }
+
+    CryptoNote::RawBlock Core::getRawBlock(const Crypto::Hash &blockHash) const
+    {
+        assert(!chainsStorage.empty());
+        assert(!chainsLeaves.empty());
+
+        throwIfNotInitialized();
+
+        IBlockchainCache *segment = findMainChainSegmentContainingBlock(blockHash);
+
+        if (segment == nullptr)
+        {
+            throw std::runtime_error("Requested hash wasn't found in main blockchain");
+        }
+
+        const uint32_t blockIndex = segment->getBlockIndex(blockHash);
+
+        return segment->getBlockByIndex(blockIndex);
+    }
+
+
     void Core::cutSegment(IBlockchainCache &segment, uint32_t startIndex)
     {
         if (segment.getTopBlockIndex() < startIndex)
