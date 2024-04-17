@@ -279,6 +279,7 @@ if (NOT MSVC)
 endif ()
 
 find_package(Boost REQUIRED)
+find_package(httplib CONFIG REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(leveldb CONFIG REQUIRED)

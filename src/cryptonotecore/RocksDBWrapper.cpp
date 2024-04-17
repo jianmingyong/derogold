@@ -10,8 +10,6 @@
 #include <utility>
 
 #include "DataBaseErrors.h"
-#include "rocksdb/cache.h"
-#include "rocksdb/db.h"
 #include "rocksdb/table.h"
 #include "rocksdb/utilities/options_util.h"
 
@@ -161,7 +159,7 @@ std::error_code RocksDBWrapper::write(IWriteBatch &batch, bool sync)
     }
     else
     {
-        return std::error_code();
+        return {};
     }
 }
 
@@ -200,7 +198,7 @@ std::error_code RocksDBWrapper::read(IReadBatch &batch)
         }
 
         batch.submitRawResult(values, resultStates);
-        return std::error_code();
+        return {};
     } else
     {
         logger(ERROR) << "RocksDBWrapper::read: detected rawKeys.size() == 0!!!";
@@ -247,13 +245,14 @@ std::error_code RocksDBWrapper::readThreadSafe(IReadBatch &batch)
     }
 
     batch.submitRawResult(values, resultStates);
-    return std::error_code();
+    return {};
 }
 
 rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 {
     rocksdb::DBOptions dbOptions;
-    dbOptions.info_log_level = rocksdb::InfoLogLevel::WARN_LEVEL;
+    dbOptions.info_log_level = rocksdb::InfoLogLevel::INFO_LEVEL;
+    dbOptions.keep_log_file_num = 1;
     dbOptions.IncreaseParallelism(config.backgroundThreadsCount);
     dbOptions.max_open_files = config.maxOpenFiles;
     // For spinning disk
@@ -300,7 +299,7 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
     std::shared_ptr<rocksdb::TableFactory> tfp(NewBlockBasedTableFactory(tableOptions));
     fOptions.table_factory = tfp;
 
-    return rocksdb::Options(dbOptions, fOptions);
+    return {dbOptions, fOptions};
 }
 
 std::string RocksDBWrapper::getDataDir(const DataBaseConfig &config)
@@ -321,68 +320,27 @@ void RocksDBWrapper::recreate()
 
 void RocksDBWrapper::optimize()
 {
-    const rocksdb::ConfigOptions configOptions;
     const std::string dbData = getDataDir(m_config);
-    rocksdb::DBOptions dbOptions;
-    std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
+    rocksdb::Options dbOptions = getDBOptions(m_config);
+    rocksdb::DB *rocksDb;
 
-    rocksdb::Status status = LoadLatestOptions(configOptions, dbData, &dbOptions, &descriptors);
-
-    if (status.ok())
+    if (rocksdb::DB::Open(dbOptions, dbData, &rocksDb).ok())
     {
-        const std::string optimizeData = m_config.dataDir + "/DB_OPTIMIZED";
-        rocksdb::Options optimizedConfig = getDBOptions(m_config);
+        rocksdb::CompactRangeOptions compactRangeOptions;
+        compactRangeOptions.exclusive_manual_compaction = true;
+        compactRangeOptions.change_level = true;
 
-        std::vector<rocksdb::ColumnFamilyHandle*> handles;
-        rocksdb::DB *rocksDb;
-        rocksdb::DB *rocksDb2;
+        logger(INFO) << "Preparing to optimize DB for reading... This may take a long time.";
+        logger(INFO) << "Please do not close the program abruptly to prevent DB corruption.";
 
-        if (rocksdb::DB::OpenForReadOnly(dbOptions, dbData, descriptors, &handles, &rocksDb).ok())
-        {
-            status = rocksdb::DB::Open(optimizedConfig, optimizeData, &rocksDb2);
+        rocksDb->CompactRange(compactRangeOptions, nullptr, nullptr);
 
-            if (status.ok())
-            {
-                logger(INFO) << "DB Already Exists";
-                exit(-1);
-            }
-            else
-            {
-                optimizedConfig.create_if_missing = true;
+        auto waitForCompactOptions = rocksdb::WaitForCompactOptions();
+        waitForCompactOptions.flush = true;
+        waitForCompactOptions.close_db = true;
+        rocksDb->WaitForCompact(waitForCompactOptions);
 
-                if (rocksdb::DB::Open(optimizedConfig, optimizeData, &rocksDb2).ok())
-                {
-                    logger(INFO) << "Preparing to optimize database for reading...";
-                    logger(INFO) << "This will take a long time. Please do not close.";
-
-                    rocksdb::Iterator *it = rocksDb->NewIterator(rocksdb::ReadOptions());
-                    const auto writeOptions = rocksdb::WriteOptions();
-
-                    for (it->SeekToFirst(); it->Valid(); it->Next())
-                    {
-                        rocksDb2->Put(writeOptions, it->key(), it->value());
-                    }
-                }
-            }
-        }
-
-        if (rocksDb != nullptr)
-        {
-            for (const auto handle : handles)
-            {
-                rocksDb->DestroyColumnFamilyHandle(handle);
-            }
-
-            rocksDb->Close();
-        }
-
-        if (rocksDb2 != nullptr)
-        {
-            auto waitForCompactOptions = rocksdb::WaitForCompactOptions();
-            waitForCompactOptions.flush = true;
-            waitForCompactOptions.close_db = true;
-            rocksDb2->WaitForCompact(waitForCompactOptions);
-        }
+        logger(INFO) << "Optimized DeroGold DB. You may now relaunch the node without --db-optimize option.";
     }
 
     exit(0);

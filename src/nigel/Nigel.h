@@ -97,7 +97,7 @@ class Nigel
 
     template<typename F>
     auto tryParseJSONResponse(
-        const std::shared_ptr<httplib::Response> &res,
+        const httplib::Result &res,
         const std::string &failMessage,
         const F parseFunc,
         const bool verifyStatus = true) const -> std::optional<decltype(parseFunc(nlohmann::json()))>
@@ -118,7 +118,7 @@ class Nigel
 
                     if (verifyStatus)
                     {
-                        const std::string status = j.at("status").get<std::string>();
+                        const auto status = j.at("status").get<std::string>();
 
                         if (status != "OK")
                         {
@@ -151,7 +151,7 @@ class Nigel
 
                 stream << failMessage << " - got status code " << res->status;
 
-                if (res->body != "")
+                if (!res->body.empty())
                 {
                     stream << ", body: " << res->body;
                 }

@@ -58,7 +58,7 @@ namespace DaemonConfig
             exportCheckPoints = false;
             feeAmount = 0;
             dbOptimize = false;
-            useTrtlApi = false;
+            enableTrtlRpc = false;
         }
 
         std::string dataDirectory;
@@ -153,7 +153,7 @@ namespace DaemonConfig
 
         bool dbOptimize;
 
-        bool useTrtlApi;
+        bool enableTrtlRpc;
     };
 
     DaemonConfiguration initConfiguration(const char *path);

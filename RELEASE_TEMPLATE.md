@@ -5,9 +5,9 @@ Daemon
 - Fixed upnp port forwarding issues.
 - Fixed daemon rpc method would fail due to missing transactions.
 - Fixed `--db-*` options such that it will no longer get overridden by default values.
-- Added `--db-optimize` option to rebuild your current RocksDB database. This would also allow you to load outdated RocksDB database if they are not compatible.
+- Added `--db-optimize` option to optimize your RocksDB database for reading.
 - Added `--export-checkpoints` option to export checkpoints.csv for bootstrapping.
-- Added `--enable-trtl-api` option to enable turtlecoin rpc api.
+- Added `--enable-trtl-rpc` option to enable turtlecoin rpc api.
 - Changed `--db-enable-compression` to true by default.
 
 P2P
@@ -16,6 +16,7 @@ P2P
 RocksDB
 - Update RocksDB provider to v9.0.0.
 - Changed RocksDB default read/write buffer to 2048 MB and 1024 MB respectively.
+- Changed RocksDB logger output and reduced the file history to 1.
 
 Update classification: optional / ~~mandatory~~
 

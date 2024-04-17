@@ -37,95 +37,40 @@ namespace DaemonConfig
     {
         cxxopts::Options options(argv[0], CryptoNote::getProjectCLIHeader());
 
-        options.add_options("Core")(
-            "help", "Display this help message", cxxopts::value<bool>()->implicit_value("true"))(
-            "os-version",
-            "Output Operating System version information",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "resync",
-            "Forces the daemon to delete the blockchain data and start resyncing",
-            cxxopts::value<bool>(config.resync)->default_value("false")->implicit_value("true"))(
-            "rewind-to-height",
-            "Rewinds the local blockchain cache to the specified height.",
-            cxxopts::value<uint32_t>(),
-            "#")(
-            "version",
-            "Output daemon version information",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"));
+        options.add_options("Core")
+            ("help", "Display this help message.", cxxopts::value<bool>(config.help))
+            ("version", "Output daemon version information.", cxxopts::value<bool>(config.version))
+            ("os-version", "Output Operating System version information.", cxxopts::value<bool>(config.osVersion))
+            ("resync", "Forces the daemon to delete the blockchain data and start resyncing", cxxopts::value<bool>(config.resync))
+            ("rewind-to-height", "Rewinds the local blockchain cache to the specified height.", cxxopts::value<uint32_t>());
 
-        options.add_options("Import / Export")(
-            "import-blockchain",
-            "Import blockchain DB from dump file",
-            cxxopts::value<bool>(config.importChain)->default_value("false")->implicit_value("true"))(
-            "export-blockchain",
-            "Export blockchain DB to a dump file",
-            cxxopts::value<bool>(config.exportChain)->default_value("false")->implicit_value("true"))(
-            "max-export-blocks",
-            "Maximum number of blocks for export to dump file.",
-            cxxopts::value<uint32_t>(),
-            "#")(
-            "export-checkpoints",
-            "Export checkpoints.",
-            cxxopts::value<bool>(config.exportCheckPoints)->default_value("false")->implicit_value("true"));
+        options.add_options("Import / Export")
+            ("import-blockchain", "Import blockchain from dump file", cxxopts::value<bool>(config.importChain))
+            ("export-blockchain", "Export blockchain to a dump file", cxxopts::value<bool>(config.exportChain))
+            ("max-export-blocks", "Maximum number of blocks for export to dump file.", cxxopts::value<uint32_t>())
+            ("export-checkpoints", "Export blockchain checkpoints.", cxxopts::value<bool>(config.exportCheckPoints));
 
-        options.add_options("Genesis Block")(
-            "print-genesis-tx",
-            "Print the genesis block transaction hex and exits",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"));
+        options.add_options("Genesis Block")
+            ("print-genesis-tx", "Print the genesis block transaction hex and exits", cxxopts::value<bool>(config.printGenesisTx));
 
-        options.add_options("Daemon")(
-            "c,config-file", "Specify the <path> to a configuration file", cxxopts::value<std::string>(), "<path>")(
-            "data-dir",
-            "Specify the <path> to the Blockchain data directory",
-            cxxopts::value<std::string>()->default_value(config.dataDirectory),
-            "<path>")(
-            "dump-config",
-            "Prints the current configuration to the screen",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "load-checkpoints",
-            "Specify a file <path> containing a CSV of Blockchain checkpoints for faster sync. A value of 'default' "
-            "uses the built-in checkpoints.",
-            cxxopts::value<std::string>()->default_value(config.checkPoints),
-            "<path>")(
-            "log-file",
-            "Specify the <path> to the log file",
-            cxxopts::value<std::string>()->default_value(config.logFile),
-            "<path>")(
-            "log-level",
-            "Specify log level",
-            cxxopts::value<int>()->default_value(std::to_string(config.logLevel)),
-            "#")(
-            "no-console",
-            "Disable daemon console commands",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "save-config", "Save the configuration to the specified <file>", cxxopts::value<std::string>(), "<file>");
+        options.add_options("Daemon")
+            ("c,config-file", "Specify the <path> to a configuration file", cxxopts::value<std::string>(), "<path>")
+            ("data-dir", "Specify the <path> to the Blockchain data directory", cxxopts::value<std::string>()->default_value(config.dataDirectory), "<path>")
+            ("dump-config", "Prints the current configuration to the screen", cxxopts::value<bool>(config.dumpConfig))
+            ("load-checkpoints", "Specify a file <path> containing a CSV of Blockchain checkpoints for faster sync. A value of 'default' uses the built-in checkpoints.", cxxopts::value<std::string>()->default_value(config.checkPoints), "<path>")
+            ("log-file", "Specify the <path> to the log file", cxxopts::value<std::string>()->default_value(config.logFile), "<path>")
+            ("log-level", "Specify log level", cxxopts::value<int>()->default_value(std::to_string(config.logLevel)))
+            ("no-console", "Disable daemon console commands", cxxopts::value<bool>(config.noConsole))
+            ("save-config", "Save the configuration to the specified <file>", cxxopts::value<std::string>(), "<file>");
 
-        options.add_options("RPC")(
-            "enable-blockexplorer",
-            "Enable the Blockchain Explorer RPC",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "enable-blockexplorer-detailed",
-            "Enable the Blockchain Explorer Detailed RPC",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "enable-mining",
-            "Enable Mining RPC",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "enable-cors",
-            "Adds header 'Access-Control-Allow-Origin' to the RPC responses using the <domain>. Uses the value "
-            "specified as the domain. Use * for all.",
-            cxxopts::value<std::string>(),
-            "<domain>")(
-            "enable-trtl-api",
-            "Enable the turtlecoin RPC API",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "fee-address",
-            "Sets the convenience charge <address> for light wallets that use the daemon",
-            cxxopts::value<std::string>(),
-            "<address>")(
-            "fee-amount",
-            "Sets the convenience charge amount for light wallets that use the daemon",
-            cxxopts::value<int>()->default_value("0"),
-            "#");
+        options.add_options("RPC")
+            ("enable-blockexplorer", "Enable the Blockchain Explorer RPC", cxxopts::value<bool>(config.enableBlockExplorer))
+            ("enable-blockexplorer-detailed", "Enable the Blockchain Explorer Detailed RPC", cxxopts::value<bool>(config.enableBlockExplorerDetailed))
+            ("enable-mining", "Enable Mining RPC", cxxopts::value<bool>(config.enableMining))
+            ("enable-cors", "Adds header 'Access-Control-Allow-Origin' to the RPC responses using the <domain>. Uses the value specified as the domain. Use * for all.", cxxopts::value<std::string>(), "<domain>")
+            ("enable-trtl-rpc", "Enable the turtlecoin RPC API", cxxopts::value<bool>(config.enableTrtlRpc))
+            ("fee-address", "Sets the convenience charge <address> for light wallets that use the daemon", cxxopts::value<std::string>(), "<address>")
+            ("fee-amount", "Sets the convenience charge amount for light wallets that use the daemon", cxxopts::value<int>());
 
         options.add_options("Network")(
             "allow-local-ip",
@@ -441,7 +386,7 @@ namespace DaemonConfig
 
             if (cli.count("enable-trtl-api") > 0)
             {
-                config.useTrtlApi = cli["enable-trtl-api"].as<bool>();
+                config.enableTrtlRpc = cli["enable-trtl-api"].as<bool>();
             }
 
             if (cli.count("enable-cors") > 0)
@@ -715,7 +660,7 @@ namespace DaemonConfig
                 }
                 else if (cfgKey.compare("enable-trtl-api") == 0)
                 {
-                    config.useTrtlApi = cfgValue.at(0) == '1';
+                    config.enableTrtlRpc = cfgValue.at(0) == '1';
                     updated = true;
                 }
                 else if (cfgKey.compare("enable-cors") == 0)
@@ -966,7 +911,7 @@ namespace DaemonConfig
 
         if (j.HasMember("enable-trtl-api"))
         {
-            config.useTrtlApi = j["enable-trtl-api"].GetBool();
+            config.enableTrtlRpc = j["enable-trtl-api"].GetBool();
         }
 
         if (j.HasMember("enable-cors"))
@@ -993,9 +938,9 @@ namespace DaemonConfig
     Document asJSON(const DaemonConfiguration &config)
     {
         Document j;
-        j.SetObject();
         Document::AllocatorType &alloc = j.GetAllocator();
 
+        j.SetObject();
         j.AddMember("data-dir", config.dataDirectory, alloc);
         j.AddMember("load-checkpoints", config.checkPoints, alloc);
         j.AddMember("log-file", config.logFile, alloc);
@@ -1057,7 +1002,7 @@ namespace DaemonConfig
         j.AddMember("enable-blockexplorer", config.enableBlockExplorer, alloc);
         j.AddMember("enable-blockexplorer-detailed", config.enableBlockExplorerDetailed, alloc);
         j.AddMember("enable-mining", config.enableMining, alloc);
-        j.AddMember("enable-trtl-api", config.useTrtlApi, alloc);
+        j.AddMember("enable-trtl-api", config.enableTrtlRpc, alloc);
         j.AddMember("fee-address", config.feeAddress, alloc);
         j.AddMember("fee-amount", config.feeAmount, alloc);
         j.AddMember("transaction-validation-threads", config.transactionValidationThreads, alloc);
@@ -1069,20 +1014,15 @@ namespace DaemonConfig
     {
         StringBuffer stringBuffer;
         PrettyWriter<StringBuffer> writer(stringBuffer);
-
-        Document j = asJSON(config);
-        j.Accept(writer);
-
+        asJSON(config).Accept(writer);
         return stringBuffer.GetString();
     }
 
     void asFile(const DaemonConfiguration &config, const std::string &filename)
     {
-        Document j = asJSON(config);
         std::ofstream data(filename);
         OStreamWrapper osw(data);
-
         PrettyWriter<OStreamWrapper> writer(osw);
-        j.Accept(writer);
+        asJSON(config).Accept(writer);
     }
 } // namespace DaemonConfig
