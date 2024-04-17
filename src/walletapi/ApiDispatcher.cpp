@@ -235,11 +235,9 @@ void ApiDispatcher::start()
 {
     const auto listenError = m_server.listen(m_host, m_port);
 
-    if (listenError != httplib::SUCCESS)
+    if (!listenError)
     {
-        std::cout << WarningMsg("Failed to start RPC server: ")
-                  << WarningMsg(httplib::detail::getSocketErrorMessage(listenError)) << std::endl;
-
+        std::cout << WarningMsg("Failed to start RPC server") << std::endl;
         exit(1);
     }
 }

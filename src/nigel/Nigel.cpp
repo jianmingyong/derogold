@@ -28,18 +28,23 @@ inline std::shared_ptr<httplib::Client> getClient(
     const bool daemonSSL,
     const std::chrono::seconds timeout)
 {
+    std::shared_ptr<httplib::Client> client;
+
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     if (daemonSSL)
     {
-        return std::make_shared<httplib::SSLClient>(daemonHost.c_str(), daemonPort, timeout.count());
+        client = std::make_shared<httplib::SSLClient>(daemonHost.c_str(), daemonPort);
     }
     else
     {
 #endif
-        return std::make_shared<httplib::Client>(daemonHost.c_str(), daemonPort, timeout.count());
+        client = std::make_shared<httplib::Client>(daemonHost.c_str(), daemonPort);
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
     }
 #endif
+
+    client->set_connection_timeout(timeout);
+    return client;
 }
 
 ////////////////////////////////
