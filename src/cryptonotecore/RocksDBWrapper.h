@@ -51,9 +51,9 @@ namespace CryptoNote
       private:
         std::error_code write(IWriteBatch &batch, bool sync);
 
-        rocksdb::Options getDBOptions(const DataBaseConfig &config);
+        static rocksdb::Options getDBOptions(const DataBaseConfig &config);
 
-        std::string getDataDir(const DataBaseConfig &config);
+        static std::string getDataDir(const DataBaseConfig &config);
 
         void optimize();
 

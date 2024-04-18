@@ -18,16 +18,13 @@ namespace CryptoNote
     namespace parameters
     {
         const uint64_t DIFFICULTY_TARGET = 10; // seconds
-
         const uint64_t DIFFICULTY_TARGET_V2 = 20; // seconds
-
         const uint64_t DIFFICULTY_TARGET_V3 = 300; // seconds
 
         /* Height to swap to DIFFICULTY_TARGET_V2 */
         const uint64_t DIFFICULTY_TARGET_V2_HEIGHT = 700000;
 
         /* Height to change to DIFFICULTY_TARGET_V3 */
-
         const uint64_t DIFFICULTY_TARGET_V3_HEIGHT = 2325000;
 
         const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER = 500000000;
@@ -208,15 +205,10 @@ namespace CryptoNote
         const size_t TX_MAX_POOL_COUNT = 260;
 
         const uint32_t UPGRADE_HEIGHT_V2 = 1;
-
         const uint32_t UPGRADE_HEIGHT_V3 = 2;
-
         const uint32_t UPGRADE_HEIGHT_V4 = 3; // Upgrade height for CN-Lite Variant 1 switch.
-
         const uint32_t UPGRADE_HEIGHT_V5 = 4; // Upgrade height for CN-Turtle Variant 2 switch.
-
         const uint32_t UPGRADE_HEIGHT_V6 = 2325000; // Upgrade height for DIFFICULTY_TARGET_V3
-
         const uint32_t UPGRADE_HEIGHT_V7 = 2420000; // Upgrade height for CN-UPX switch
 
         const uint32_t UPGRADE_HEIGHT_CURRENT = UPGRADE_HEIGHT_V7;
@@ -285,7 +277,6 @@ namespace CryptoNote
     const char CRYPTONOTE_NAME[] = "DeroGold";
 
     const uint8_t TRANSACTION_VERSION_1 = 1;
-
     const uint8_t TRANSACTION_VERSION_2 = 2;
 
     const uint8_t CURRENT_TRANSACTION_VERSION = TRANSACTION_VERSION_1;
@@ -299,7 +290,6 @@ namespace CryptoNote
     const uint8_t BLOCK_MAJOR_VERSION_7 = 7; /* UPGRADE_HEIGHT_V7 */
 
     const uint8_t BLOCK_MINOR_VERSION_0 = 0;
-
     const uint8_t BLOCK_MINOR_VERSION_1 = 1;
 
     const std::unordered_map<uint8_t, std::function<void(const void *data, size_t length, Crypto::Hash &hash)>>
