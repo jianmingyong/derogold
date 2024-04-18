@@ -253,8 +253,8 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
     rocksdb::DBOptions dbOptions;
     dbOptions.info_log_level = rocksdb::InfoLogLevel::INFO_LEVEL;
     dbOptions.keep_log_file_num = 1;
-    dbOptions.IncreaseParallelism(config.backgroundThreadsCount);
-    dbOptions.max_open_files = config.maxOpenFiles;
+    dbOptions.IncreaseParallelism((int) config.backgroundThreadsCount);
+    dbOptions.max_open_files = (int) config.maxOpenFiles;
     // For spinning disk
     dbOptions.skip_stats_update_on_db_open = true;
     dbOptions.compaction_readahead_size  = 2 * 1024 * 1024;
@@ -296,8 +296,8 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
 
     rocksdb::BlockBasedTableOptions tableOptions;
     tableOptions.block_cache = rocksdb::NewLRUCache(config.readCacheSize);
-    std::shared_ptr<rocksdb::TableFactory> tfp(NewBlockBasedTableFactory(tableOptions));
-    fOptions.table_factory = tfp;
+    std::shared_ptr<rocksdb::TableFactory> tableFactory(NewBlockBasedTableFactory(tableOptions));
+    fOptions.table_factory = tableFactory;
 
     return {dbOptions, fOptions};
 }

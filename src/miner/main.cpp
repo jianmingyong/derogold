@@ -20,8 +20,10 @@ int main(int argc, char **argv)
             System::Dispatcher dispatcher;
 
             auto httpClient = std::make_shared<httplib::Client>(
-                config.daemonHost.c_str(), config.daemonPort, 10 /* 10 second timeout */
+                config.daemonHost.c_str(), config.daemonPort /* 10 second timeout */
             );
+
+            httpClient->set_connection_timeout(10);
 
             Miner::MinerManager app(dispatcher, config, httpClient);
 
