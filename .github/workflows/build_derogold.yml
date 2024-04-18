@@ -160,7 +160,38 @@ jobs:
             }
           }
 
-      - name: Setup msys2 environemnt
+      - name: Setup MSVC
+        if: runner.os == 'Windows' && matrix.compiler == 'msvc'
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $componentsToRemove= @(
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ARM"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ARM.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ARM64"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ARM64.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.x86.x64"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.x86.x64.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL.ARM"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL.ARM.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL.ARM64"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.ATL.ARM64.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC.ARM"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC.ARM.Spectre"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC.ARM64"
+            "Microsoft.VisualStudio.Component.VC.14.38.17.8.MFC.ARM64.Spectre"
+          )
+          [string]$workloadArgs = $componentsToRemove | ForEach-Object {" --remove " + $_}
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $workloadArgs, '--quiet', '--norestart', '--nocache')
+          # should be run twice
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
         with:
@@ -171,20 +202,29 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
 
-      - name: Build DeroGold
+      - name: Build DeroGold (MSVC)
+        if: runner.os == 'Windows' && matrix.compiler == 'msvc'
+        working-directory: ${{ github.workspace }}
+        shell: cmd
+        run: |
+          cmake --preset ${{ matrix.configure_preset }}
+          cmake --build --preset ${{ matrix.build_preset }} --target package
+
+      - name: Build DeroGold (MSYS2)
+        if: runner.os == 'Windows' && matrix.compiler != 'msvc'
+        working-directory: ${{ github.workspace }}
+        shell: msys2 {0}
+        run: |
+          cmake --preset ${{ matrix.configure_preset }}
+          cmake --build --preset ${{ matrix.build_preset }} --target package
+
+      - name: Build DeroGold (GCC/CLANG)
+        if: runner.os != 'Windows'
         working-directory: ${{ github.workspace }}
         run: |
-          if ("${{ runner.os }}" -eq 'Windows' -And "${{ matrix.compiler }}" -ne 'msvc')
-          {
-            msys2 -c "cmake --preset ${{ matrix.configure_preset }}"
-            msys2 -c "cmake --build --preset ${{ matrix.build_preset }} --target package"
-          }
-          else
-          {
-            cmake --preset ${{ matrix.configure_preset }}
-            cmake --build --preset ${{ matrix.build_preset }} --target package
-          }
-      
+          cmake --preset ${{ matrix.configure_preset }}
+          cmake --build --preset ${{ matrix.build_preset }} --target package
+
       - name: Collect Logs
         uses: actions/upload-artifact@v4
         if: failure()
@@ -243,4 +283,3 @@ jobs:
             ${{ github.workspace }}/build/*.zip
             ${{ github.workspace }}/build/*.tar.gz
             ${{ github.workspace }}/build/*.deb
-            
