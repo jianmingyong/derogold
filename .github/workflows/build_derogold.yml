@@ -31,23 +31,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest-large]
+        os: [windows-latest, ubuntu-latest, macos-13]
         arch: [x64, arm64]
         compiler: [msvc, gcc, clang]
 
         exclude:
           - os: windows-latest
             arch: arm64
-          - os: macos-latest-large
+          - os: macos-13
             arch: arm64
           - os: ubuntu-latest
             compiler: msvc
           - os: ubuntu-latest
             arch: arm64
             compiler: clang
-          - os: macos-latest-large
+          - os: macos-13
             compiler: msvc
-          - os: macos-latest-large
+          - os: macos-13
             compiler: gcc
 
         include:
@@ -127,7 +127,7 @@ jobs:
             configure_preset: linux-arm64-gcc-cross-publish
             build_preset: linux-arm64-gcc-cross-publish
 
-          - os: macos-latest-large
+          - os: macos-13
             arch: x64
             compiler: clang
             install: >-
