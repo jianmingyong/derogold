@@ -41,7 +41,7 @@ namespace DaemonConfig
             ("help", "Display this help message.", cxxopts::value<bool>(config.help))
             ("version", "Output daemon version information.", cxxopts::value<bool>(config.version))
             ("os-version", "Output Operating System version information.", cxxopts::value<bool>(config.osVersion))
-            ("resync", "Forces the daemon to delete the blockchain data and start resyncing", cxxopts::value<bool>(config.resync))
+            ("resync", "Forces the daemon to delete the blockchain data and start resyncing.", cxxopts::value<bool>(config.resync))
             ("rewind-to-height", "Rewinds the local blockchain cache to the specified height.", cxxopts::value<uint32_t>());
 
         options.add_options("Import / Export")
@@ -72,36 +72,15 @@ namespace DaemonConfig
             ("fee-address", "Sets the convenience charge <address> for light wallets that use the daemon", cxxopts::value<std::string>(), "<address>")
             ("fee-amount", "Sets the convenience charge amount for light wallets that use the daemon", cxxopts::value<int>());
 
-        options.add_options("Network")(
-            "allow-local-ip",
-            "Allow the local IP to be added to the peer list",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "hide-my-port",
-            "Do not announce yourself as a peerlist candidate",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "p2p-bind-ip",
-            "Interface IP address for the P2P service",
-            cxxopts::value<std::string>()->default_value(config.p2pInterface),
-            "<ip>")(
-            "p2p-bind-port",
-            "TCP port for the P2P service",
-            cxxopts::value<int>()->default_value(std::to_string(config.p2pPort)),
-            "#")(
-            "p2p-external-port",
-            "External TCP port for the P2P service (NAT port forward)",
-            cxxopts::value<int>()->default_value("0"),
-            "#")(
-            "p2p-reset-peerstate",
-            "Generate a new peer ID and remove known peers saved previously",
-            cxxopts::value<bool>()->default_value("false")->implicit_value("true"))(
-            "rpc-bind-ip",
-            "Interface IP address for the RPC service",
-            cxxopts::value<std::string>()->default_value(config.rpcInterface),
-            "<ip>")(
-            "rpc-bind-port",
-            "TCP port for the RPC service",
-            cxxopts::value<int>()->default_value(std::to_string(config.rpcPort)),
-            "#");
+        options.add_options("Network")
+            ("allow-local-ip", "Allow the local IP to be added to the peer list", cxxopts::value<bool>(config.localIp))
+            ("hide-my-port", "Do not announce yourself as a peerlist candidate", cxxopts::value<bool>(config.hideMyPort))
+            ("p2p-bind-ip", "Interface IP address for the P2P service", cxxopts::value<std::string>()->default_value(config.p2pInterface), "<ip>")
+            ("p2p-bind-port", "TCP port for the P2P service", cxxopts::value<int>()->default_value(std::to_string(config.p2pPort)), "#")
+            ("p2p-external-port", "External TCP port for the P2P service (NAT port forward)", cxxopts::value<int>()->default_value("0"), "#")
+            ("p2p-reset-peerstate", "Generate a new peer ID and remove known peers saved previously", cxxopts::value<bool>(config.p2pResetPeerstate))
+            ("rpc-bind-ip", "Interface IP address for the RPC service", cxxopts::value<std::string>()->default_value(config.rpcInterface), "<ip>")
+            ("rpc-bind-port", "TCP port for the RPC service", cxxopts::value<int>()->default_value(std::to_string(config.rpcPort)), "#");
 
         options.add_options("Peer")(
             "add-exclusive-node",
@@ -185,21 +164,6 @@ namespace DaemonConfig
             if (cli.count("save-config") > 0)
             {
                 config.outputFile = cli["save-config"].as<std::string>();
-            }
-
-            if (cli.count("help") > 0)
-            {
-                config.help = cli["help"].as<bool>();
-            }
-
-            if (cli.count("version") > 0)
-            {
-                config.version = cli["version"].as<bool>();
-            }
-
-            if (cli.count("os-version") > 0)
-            {
-                config.osVersion = cli["os-version"].as<bool>();
             }
 
             if (cli.count("rewind-to-height") > 0)

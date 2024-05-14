@@ -158,11 +158,11 @@ namespace DaemonConfig
 
     DaemonConfiguration initConfiguration(const char *path);
 
-    bool updateConfigFormat(const std::string configFile, DaemonConfiguration &config);
+    bool updateConfigFormat(std::string configFile, DaemonConfiguration &config);
 
     void handleSettings(int argc, char *argv[], DaemonConfiguration &config);
 
-    void handleSettings(const std::string configFile, DaemonConfiguration &config);
+    void handleSettings(std::string configFile, DaemonConfiguration &config);
 
     void asFile(const DaemonConfiguration &config, const std::string &filename);
 

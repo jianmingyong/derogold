@@ -253,8 +253,8 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
     rocksdb::DBOptions dbOptions;
     dbOptions.info_log_level = rocksdb::InfoLogLevel::INFO_LEVEL;
     dbOptions.keep_log_file_num = 1;
-    dbOptions.IncreaseParallelism((int) config.backgroundThreadsCount);
-    dbOptions.max_open_files = (int) config.maxOpenFiles;
+    dbOptions.IncreaseParallelism(static_cast<int>(config.backgroundThreadsCount));
+    dbOptions.max_open_files = static_cast<int>(config.maxOpenFiles);
     // For spinning disk
     dbOptions.skip_stats_update_on_db_open = true;
     dbOptions.compaction_readahead_size  = 2 * 1024 * 1024;
@@ -289,14 +289,14 @@ rocksdb::Options RocksDBWrapper::getDBOptions(const DataBaseConfig &config)
     for (int i = 0; i < fOptions.num_levels; ++i)
     {
         // don't compress l0 & l1
-        fOptions.compression_per_level[i] = (i < 2 ? rocksdb::kNoCompression : compressionLevel);
+        fOptions.compression_per_level[i] = i < 2 ? rocksdb::kNoCompression : compressionLevel;
     }
 
     fOptions.bottommost_compression = compressionLevel;
 
     rocksdb::BlockBasedTableOptions tableOptions;
     tableOptions.block_cache = rocksdb::NewLRUCache(config.readCacheSize);
-    std::shared_ptr<rocksdb::TableFactory> tableFactory(NewBlockBasedTableFactory(tableOptions));
+    const std::shared_ptr<rocksdb::TableFactory> tableFactory(NewBlockBasedTableFactory(tableOptions));
     fOptions.table_factory = tableFactory;
 
     return {dbOptions, fOptions};
@@ -318,10 +318,10 @@ void RocksDBWrapper::recreate()
     init();
 }
 
-void RocksDBWrapper::optimize()
+void RocksDBWrapper::optimize() const
 {
     const std::string dbData = getDataDir(m_config);
-    rocksdb::Options dbOptions = getDBOptions(m_config);
+    const rocksdb::Options dbOptions = getDBOptions(m_config);
     rocksdb::DB *rocksDb;
 
     if (rocksdb::DB::Open(dbOptions, dbData, &rocksDb).ok())
