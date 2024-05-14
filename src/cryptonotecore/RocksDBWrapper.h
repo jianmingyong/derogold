@@ -55,7 +55,7 @@ namespace CryptoNote
 
         static std::string getDataDir(const DataBaseConfig &config);
 
-        void optimize();
+        void optimize() const;
 
         enum State
         {
