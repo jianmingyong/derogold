@@ -286,9 +286,9 @@
                 "default-clang"
             ],
             "environment": {
-                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
+                "PATH": "/opt/homebrew/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++",
+                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx",
@@ -301,9 +301,9 @@
                 "default-clang-publish"
             ],
             "environment": {
-                "PATH": "/usr/local/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/usr/local/opt/llvm/lib/c++ -Wl,-rpath,/usr/local/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/usr/local/opt/llvm/include"
+                "PATH": "/opt/homebrew/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++",
+                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
