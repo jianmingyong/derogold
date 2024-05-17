@@ -272,6 +272,14 @@ jobs:
     if: inputs.draft_release
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_id || github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          submodules: recursive
+
       - name: Create artifact directory
         run: |
           New-Item 'build' -ItemType 'Directory' -Force
@@ -288,7 +296,6 @@ jobs:
           body_path: ${{ github.workspace }}/RELEASE_TEMPLATE.md
           draft: true
           name: v${{ needs.build_derogold.outputs.version }}
-          fail_on_unmatched_files: true
           files: |
             ${{ github.workspace }}/build/*.zip
             ${{ github.workspace }}/build/*.tar.gz
