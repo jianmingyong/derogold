@@ -1,6 +1,6 @@
 {
   "name": "derogold",
-  "version": "0.7.2.1",
+  "version": "0.7.2.2",
   "dependencies": [
     "boost-algorithm",
     "boost-date-time",

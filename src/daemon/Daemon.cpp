@@ -52,7 +52,7 @@ using namespace CryptoNote;
 using namespace Logging;
 using namespace DaemonConfig;
 
-void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
+void print_genesis_tx_hex(const bool blockExplorerMode, const std::shared_ptr<LoggerManager>& logManager)
 {
     CryptoNote::CurrencyBuilder currencyBuilder(logManager);
     currencyBuilder.isBlockexplorer(blockExplorerMode);
@@ -67,8 +67,6 @@ void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerMa
               << "Replace the current GENESIS_COINBASE_TX_HEX line in src/config/CryptoNoteConfig.h with this one:"
               << std::endl
               << "const char GENESIS_COINBASE_TX_HEX[] = \"" << transactionHex << "\";" << std::endl;
-
-    return;
 }
 
 JsonValue buildLoggerConfiguration(Level level, const std::string &logfile)
