@@ -85,7 +85,7 @@ endif ()
 set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/ports")
 set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/triplets")
 
-project(DeroGold VERSION 0.7.2.1 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
+project(DeroGold VERSION 0.7.2.2 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)
