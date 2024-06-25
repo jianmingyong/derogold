@@ -104,6 +104,16 @@ template<typename T> std::string getStringFromJSONString(const T &j)
     return j.GetString();
 }
 
+template<typename T> auto getArrayFromJSON(const T &j)
+{
+    if (!j.IsArray())
+    {
+        throw std::invalid_argument("JSON parameter is wrong type. Expected Array, got " + kTypeNames[j.GetType()]);
+    }
+
+    return j.GetArray();
+}
+
 template<typename T> auto getArrayFromJSON(const T &j, const std::string &key)
 {
     auto &val = getJsonValue(j, key);

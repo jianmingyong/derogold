@@ -14,7 +14,7 @@
 - Changed p2p block downloading to dynamic block rate based on system load.
 
 ## RocksDB
-- Update RocksDB provider to v9.1.0.
+- Update RocksDB provider to v9.2.1.
 - Changed RocksDB default read/write buffer to 2048 MB and 1024 MB respectively.
 - Changed RocksDB logger output and reduced the file history to 1.
 
@@ -24,9 +24,9 @@
 - cxxopts 3.2.1
 - leveldb 1.23
 - miniupnpc 2.2.6
-- openssl 3.3.0
+- openssl 3.3.1
 - rapidjson 2023-07-17
-- rocksdb 9.1.0
+- rocksdb 9.2.1
 
 # Install Notes
 
