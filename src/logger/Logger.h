@@ -32,37 +32,34 @@ namespace Logger
         DATABASE,
     };
 
-    std::string logLevelToString(const LogLevel level);
+    std::string logLevelToString(LogLevel level);
 
     LogLevel stringToLogLevel(std::string level);
 
-    std::string logCategoryToString(const LogCategory category);
+    std::string logCategoryToString(LogCategory category);
 
     class Logger
     {
       public:
-        Logger() {};
+        Logger() = default;
 
-        void log(const std::string message, const LogLevel level, const std::vector<LogCategory> categories) const;
+        void log(std::string message, LogLevel level, std::vector<LogCategory> categories) const;
 
-        void setLogLevel(const LogLevel level);
+        void setLogLevel(LogLevel level);
 
-        void setLogCallback(std::function<void(
-                                const std::string prettyMessage,
-                                const std::string message,
-                                const LogLevel level,
-                                const std::vector<LogCategory> categories)> callback);
+        void setLogCallback(const std::function<void(std::string prettyMessage,
+                                                     std::string message,
+                                                     LogLevel level,
+                                                     std::vector<LogCategory> categories)> &callback);
 
       private:
         /* Logging disabled by default */
         LogLevel m_logLevel = DISABLED;
 
-        std::function<void(
-            const std::string prettyMessage,
-            const std::string message,
-            const LogLevel level,
-            const std::vector<LogCategory> categories)>
-            m_callback;
+        std::function<void(std::string prettyMessage,
+                           std::string message,
+                           LogLevel level,
+                           std::vector<LogCategory> categories)> m_callback;
     };
 
     /* Global logger instance */

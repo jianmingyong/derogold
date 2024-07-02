@@ -31,7 +31,7 @@ namespace Config
     class Config
     {
       public:
-        Config() {};
+        Config() = default;
 
         /* Configuration for wallets */
         WalletConfig wallet;

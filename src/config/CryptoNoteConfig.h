@@ -27,6 +27,21 @@ namespace CryptoNote
         /* Height to change to DIFFICULTY_TARGET_V3 */
         const uint64_t DIFFICULTY_TARGET_V3_HEIGHT = 2325000;
 
+        inline uint64_t getCurrentDifficultyTarget(const uint64_t networkHeight)
+        {
+            if (networkHeight >= DIFFICULTY_TARGET_V3_HEIGHT)
+            {
+                return DIFFICULTY_TARGET_V3;
+            }
+
+            if (networkHeight >= DIFFICULTY_TARGET_V2_HEIGHT)
+            {
+                return DIFFICULTY_TARGET_V2;
+            }
+
+            return DIFFICULTY_TARGET;
+        }
+
         const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER = 500000000;
 
         const size_t CRYPTONOTE_MAX_BLOCK_BLOB_SIZE = 500000000;

@@ -41,12 +41,12 @@ namespace DaemonConfig
             ("version", "Output daemon version information.", cxxopts::value<bool>(config.version))
             ("os-version", "Output Operating System version information.", cxxopts::value<bool>(config.osVersion))
             ("resync", "Forces the daemon to delete the blockchain data and start resyncing.", cxxopts::value<bool>(config.resync))
-            ("rewind-to-height", "Rewinds the local blockchain cache to the specified height.", cxxopts::value<uint32_t>(config.rewindToHeight));
+            ("rewind-to-height", "Rewinds the local blockchain cache to the specified height.", cxxopts::value<uint32_t>(config.rewindToHeight), "<height>");
 
         options.add_options("Import / Export")
             ("import-blockchain", "Import blockchain from dump file.", cxxopts::value<bool>(config.importChain))
             ("export-blockchain", "Export blockchain to a dump file.", cxxopts::value<bool>(config.exportChain))
-            ("max-export-blocks", "Maximum number of blocks for export to dump file.", cxxopts::value<uint32_t>(config.exportNumBlocks))
+            ("max-export-blocks", "Maximum number of blocks for export to dump file.", cxxopts::value<uint32_t>(config.exportNumBlocks), "<blocks>")
             ("export-checkpoints", "Export blockchain checkpoints.", cxxopts::value<bool>(config.exportCheckPoints));
 
         options.add_options("Genesis Block")
@@ -110,7 +110,8 @@ namespace DaemonConfig
             ("db-threads", "Number of background threads used for compaction and flush operations (RocksDB only)", cxxopts::value<int>()->default_value(std::to_string(CryptoNote::ROCKSDB_BACKGROUND_THREADS)))
             ("db-write-buffer-size", "Size of the database write buffer in megabytes (MB) " + writeBuffer, cxxopts::value<int>())
             ("db-max-file-size", "Max file size of database files in megabytes (MB) (LevelDB only)", cxxopts::value<int>()->default_value(std::to_string(CryptoNote::LEVELDB_MAX_FILE_SIZE_MB)))
-            ("db-optimize", "Optimize database and close", cxxopts::value<bool>(config.dbOptimize));
+            ("db-optimize", "Optimize database and close", cxxopts::value<bool>(config.dbOptimize))
+            ("db-purge", "Purge unwanted data in the database and close", cxxopts::value<bool>(config.dbPurge));
 
         options.add_options("Syncing")
             ("transaction-validation-threads", "Number of threads to use to validate a transaction's inputs in parallel.", cxxopts::value<uint32_t>(config.transactionValidationThreads));
@@ -230,22 +231,22 @@ namespace DaemonConfig
                 cfgKey = item[1].str();
                 cfgValue = item[2].str();
 
-                if (cfgKey.compare("data-dir") == 0)
+                if (cfgKey == "data-dir")
                 {
                     config.dataDirectory = cfgValue;
                     updated = true;
                 }
-                else if (cfgKey.compare("load-checkpoints") == 0)
+                else if (cfgKey == "load-checkpoints")
                 {
                     config.checkPoints = cfgValue;
                     updated = true;
                 }
-                else if (cfgKey.compare("log-file") == 0)
+                else if (cfgKey == "log-file")
                 {
                     config.logFile = cfgValue;
                     updated = true;
                 }
-                else if (cfgKey.compare("log-level") == 0)
+                else if (cfgKey == "log-level")
                 {
                     try
                     {
@@ -257,17 +258,17 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("db-enable-compression") == 0)
+                else if (cfgKey == "db-enable-compression")
                 {
                     config.enableDbCompression = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("no-console") == 0)
+                else if (cfgKey == "no-console")
                 {
                     config.noConsole = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("db-max-open-files") == 0)
+                else if (cfgKey == "db-max-open-files")
                 {
                     try
                     {
@@ -279,7 +280,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("db-read-buffer-size") == 0)
+                else if (cfgKey == "db-read-buffer-size")
                 {
                     try
                     {
@@ -291,7 +292,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("db-threads") == 0)
+                else if (cfgKey == "db-threads")
                 {
                     try
                     {
@@ -303,7 +304,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("db-write-buffer-size") == 0)
+                else if (cfgKey == "db-write-buffer-size")
                 {
                     try
                     {
@@ -315,22 +316,22 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("allow-local-ip") == 0)
+                else if (cfgKey == "allow-local-ip")
                 {
                     config.localIp = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("hide-my-port") == 0)
+                else if (cfgKey == "hide-my-port")
                 {
                     config.hideMyPort = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("p2p-bind-ip") == 0)
+                else if (cfgKey == "p2p-bind-ip")
                 {
                     config.p2pInterface = cfgValue;
                     updated = true;
                 }
-                else if (cfgKey.compare("p2p-bind-port") == 0)
+                else if (cfgKey == "p2p-bind-port")
                 {
                     try
                     {
@@ -342,7 +343,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("p2p-external-port") == 0)
+                else if (cfgKey == "p2p-external-port")
                 {
                     try
                     {
@@ -354,7 +355,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("rpc-bind-ip") == 0)
+                else if (cfgKey == "rpc-bind-ip")
                 {
                     config.rpcInterface = cfgValue;
                     updated = true;
@@ -371,67 +372,67 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("p2p-reset-peerstate") == 0)
+                else if (cfgKey == "p2p-reset-peerstate")
                 {
                     config.p2pResetPeerstate = cfgValue.at(0) == '1' ? true : false;
                     updated = true;
                 }
-                else if (cfgKey.compare("add-exclusive-node") == 0)
+                else if (cfgKey == "add-exclusive-node")
                 {
                     exclusiveNodes.push_back(cfgValue);
                     config.exclusiveNodes = exclusiveNodes;
                     updated = true;
                 }
-                else if (cfgKey.compare("add-peer") == 0)
+                else if (cfgKey == "add-peer")
                 {
                     peers.push_back(cfgValue);
                     config.peers = peers;
                     updated = true;
                 }
-                else if (cfgKey.compare("add-priority-node") == 0)
+                else if (cfgKey == "add-priority-node")
                 {
                     priorityNodes.push_back(cfgValue);
                     config.priorityNodes = priorityNodes;
                     updated = true;
                 }
-                else if (cfgKey.compare("seed-node") == 0)
+                else if (cfgKey == "seed-node")
                 {
                     seedNodes.push_back(cfgValue);
                     config.seedNodes = seedNodes;
                     updated = true;
                 }
-                else if (cfgKey.compare("enable-blockexplorer") == 0)
+                else if (cfgKey == "enable-blockexplorer")
                 {
                     config.enableBlockExplorer = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("enable-blockexplorer-detailed") == 0)
+                else if (cfgKey == "enable-blockexplorer-detailed")
                 {
                     config.enableBlockExplorerDetailed = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("enable-mining") == 0)
+                else if (cfgKey == "enable-mining")
                 {
                     config.enableMining = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("enable-trtl-api") == 0)
+                else if (cfgKey == "enable-trtl-api")
                 {
                     config.enableTrtlRpc = cfgValue.at(0) == '1';
                     updated = true;
                 }
-                else if (cfgKey.compare("enable-cors") == 0)
+                else if (cfgKey == "enable-cors")
                 {
                     cors = cfgValue;
                     config.enableCors = cors;
                     updated = true;
                 }
-                else if (cfgKey.compare("fee-address") == 0)
+                else if (cfgKey == "fee-address")
                 {
                     config.feeAddress = cfgValue;
                     updated = true;
                 }
-                else if (cfgKey.compare("fee-amount") == 0)
+                else if (cfgKey == "fee-amount")
                 {
                     try
                     {
@@ -443,7 +444,7 @@ namespace DaemonConfig
                         throw std::runtime_error(std::string(e.what()) + " - Invalid value for " + cfgKey);
                     }
                 }
-                else if (cfgKey.compare("transaction-validation-threads") == 0)
+                else if (cfgKey == "transaction-validation-threads")
                 {
                     try
                     {
@@ -480,7 +481,7 @@ namespace DaemonConfig
             std::ofstream backup(configFile + ".ini.bak", std::ios::binary);
             backup << orig.rdbuf();
         }
-        catch (std::exception &e)
+        catch (std::exception&)
         {
             // pass
         }
@@ -493,14 +494,15 @@ namespace DaemonConfig
 
         if (!data.good())
         {
-            throw std::runtime_error(
-                "The --config-file you specified does not exist, please check the filename and try again.");
+            throw std::runtime_error("The --config-file you specified does not exist, please check the filename and try again.");
         }
 
         IStreamWrapper isw(data);
 
         Document j;
         j.ParseStream(isw);
+
+        // Daemon Options
 
         if (j.HasMember("data-dir"))
         {
@@ -522,58 +524,49 @@ namespace DaemonConfig
             config.logLevel = j["log-level"].GetInt();
         }
 
-        /* Using levelDB, lets set the level DB defaults. Will overwrite with
-         * passed in values later if present. */
-        if (j.HasMember("db-enable-level-db") && j["db-enable-level-db"].GetBool())
-        {
-            config.enableLevelDB = true;
-            config.dbMaxOpenFiles = CryptoNote::LEVELDB_MAX_OPEN_FILES;
-            config.dbReadCacheSizeMB = CryptoNote::LEVELDB_READ_BUFFER_MB;
-            config.dbWriteBufferSizeMB = CryptoNote::LEVELDB_WRITE_BUFFER_MB;
-            config.dbMaxFileSizeMB = CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
-        }
-        else
-        {
-            config.dbMaxOpenFiles = CryptoNote::ROCKSDB_MAX_OPEN_FILES;
-            config.dbReadCacheSizeMB = CryptoNote::ROCKSDB_READ_BUFFER_MB;
-            config.dbWriteBufferSizeMB = CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
-            config.dbThreads = CryptoNote::ROCKSDB_BACKGROUND_THREADS;
-        }
-
-        if (j.HasMember("db-enable-compression"))
-        {
-            config.enableDbCompression = j["db-enable-compression"].GetBool();
-        }
-
         if (j.HasMember("no-console"))
         {
             config.noConsole = j["no-console"].GetBool();
         }
 
-        if (j.HasMember("db-max-open-files"))
+        // RPC Options
+
+        if (j.HasMember("enable-blockexplorer"))
         {
-            config.dbMaxOpenFiles = j["db-max-open-files"].GetInt();
+            config.enableBlockExplorer = j["enable-blockexplorer"].GetBool();
         }
 
-        if (j.HasMember("db-read-buffer-size"))
+        if (j.HasMember("enable-blockexplorer-detailed"))
         {
-            config.dbReadCacheSizeMB = j["db-read-buffer-size"].GetInt();
+            config.enableBlockExplorerDetailed = j["enable-blockexplorer-detailed"].GetBool();
         }
 
-        if (j.HasMember("db-threads"))
+        if (j.HasMember("enable-mining"))
         {
-            config.dbThreads = j["db-threads"].GetInt();
+            config.enableMining = j["enable-mining"].GetBool();
         }
 
-        if (j.HasMember("db-write-buffer-size"))
+        if (j.HasMember("enable-cors"))
         {
-            config.dbWriteBufferSizeMB = j["db-write-buffer-size"].GetInt();
+            config.enableCors = j["enable-cors"].GetString();
         }
 
-        if (j.HasMember("db-max-file-size"))
+        if (j.HasMember("enable-trtl-api"))
         {
-            config.dbMaxFileSizeMB = j["db-max-file-size"].GetInt();
+            config.enableTrtlRpc = j["enable-trtl-api"].GetBool();
         }
+
+        if (j.HasMember("fee-address"))
+        {
+            config.feeAddress = j["fee-address"].GetString();
+        }
+
+        if (j.HasMember("fee-amount"))
+        {
+            config.feeAmount = j["fee-amount"].GetInt();
+        }
+
+        // Network Options
 
         if (j.HasMember("allow-local-ip"))
         {
@@ -615,9 +608,12 @@ namespace DaemonConfig
             config.rpcPort = j["rpc-bind-port"].GetInt();
         }
 
+        // Peer Options
+
         if (j.HasMember("add-exclusive-node"))
         {
             const Value &va = j["add-exclusive-node"];
+
             for (auto &v : va.GetArray())
             {
                 config.exclusiveNodes.emplace_back(v.GetString());
@@ -627,6 +623,7 @@ namespace DaemonConfig
         if (j.HasMember("add-peer"))
         {
             const Value &va = j["add-peer"];
+
             for (auto &v : va.GetArray())
             {
                 config.peers.emplace_back(v.GetString());
@@ -636,6 +633,7 @@ namespace DaemonConfig
         if (j.HasMember("add-priority-node"))
         {
             const Value &va = j["add-priority-node"];
+
             for (auto &v : va.GetArray())
             {
                 config.priorityNodes.emplace_back(v.GetString());
@@ -645,46 +643,64 @@ namespace DaemonConfig
         if (j.HasMember("seed-node"))
         {
             const Value &va = j["seed-node"];
+
             for (auto &v : va.GetArray())
             {
                 config.seedNodes.emplace_back(v.GetString());
             }
         }
 
-        if (j.HasMember("enable-blockexplorer"))
+        // Database Options
+
+        /* Using levelDB, lets set the level DB defaults. Will overwrite with
+         * passed in values later if present. */
+        if (j.HasMember("db-enable-level-db") && j["db-enable-level-db"].GetBool())
         {
-            config.enableBlockExplorer = j["enable-blockexplorer"].GetBool();
+            config.enableLevelDB = true;
+            config.dbMaxOpenFiles = CryptoNote::LEVELDB_MAX_OPEN_FILES;
+            config.dbReadCacheSizeMB = CryptoNote::LEVELDB_READ_BUFFER_MB;
+            config.dbWriteBufferSizeMB = CryptoNote::LEVELDB_WRITE_BUFFER_MB;
+            config.dbMaxFileSizeMB = CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
+        }
+        else
+        {
+            config.dbMaxOpenFiles = CryptoNote::ROCKSDB_MAX_OPEN_FILES;
+            config.dbReadCacheSizeMB = CryptoNote::ROCKSDB_READ_BUFFER_MB;
+            config.dbWriteBufferSizeMB = CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
+            config.dbThreads = CryptoNote::ROCKSDB_BACKGROUND_THREADS;
         }
 
-        if (j.HasMember("enable-blockexplorer-detailed"))
+        if (j.HasMember("db-enable-compression"))
         {
-            config.enableBlockExplorerDetailed = j["enable-blockexplorer-detailed"].GetBool();
+            config.enableDbCompression = j["db-enable-compression"].GetBool();
         }
 
-        if (j.HasMember("enable-mining"))
+        if (j.HasMember("db-max-open-files"))
         {
-            config.enableMining = j["enable-mining"].GetBool();
+            config.dbMaxOpenFiles = j["db-max-open-files"].GetInt();
         }
 
-        if (j.HasMember("enable-trtl-api"))
+        if (j.HasMember("db-read-buffer-size"))
         {
-            config.enableTrtlRpc = j["enable-trtl-api"].GetBool();
+            config.dbReadCacheSizeMB = j["db-read-buffer-size"].GetInt();
         }
 
-        if (j.HasMember("enable-cors"))
+        if (j.HasMember("db-threads"))
         {
-            config.enableCors = j["enable-cors"].GetString();
+            config.dbThreads = j["db-threads"].GetInt();
         }
 
-        if (j.HasMember("fee-address"))
+        if (j.HasMember("db-write-buffer-size"))
         {
-            config.feeAddress = j["fee-address"].GetString();
+            config.dbWriteBufferSizeMB = j["db-write-buffer-size"].GetInt();
         }
 
-        if (j.HasMember("fee-amount"))
+        if (j.HasMember("db-max-file-size"))
         {
-            config.feeAmount = j["fee-amount"].GetInt();
+            config.dbMaxFileSizeMB = j["db-max-file-size"].GetInt();
         }
+
+        // Syncing Options
 
         if (j.HasMember("transaction-validation-threads"))
         {
@@ -698,18 +714,21 @@ namespace DaemonConfig
         Document::AllocatorType &alloc = j.GetAllocator();
 
         j.SetObject();
+
         j.AddMember("data-dir", config.dataDirectory, alloc);
         j.AddMember("load-checkpoints", config.checkPoints, alloc);
         j.AddMember("log-file", config.logFile, alloc);
         j.AddMember("log-level", config.logLevel, alloc);
         j.AddMember("no-console", config.noConsole, alloc);
-        j.AddMember("db-enable-level-db", config.enableLevelDB, alloc);
-        j.AddMember("db-enable-compression", config.enableDbCompression, alloc);
-        j.AddMember("db-max-open-files", config.dbMaxOpenFiles, alloc);
-        j.AddMember("db-read-buffer-size", config.dbReadCacheSizeMB, alloc);
-        j.AddMember("db-threads", config.dbThreads, alloc);
-        j.AddMember("db-write-buffer-size", config.dbWriteBufferSizeMB, alloc);
-        j.AddMember("db-max-file-size", config.dbMaxFileSizeMB, alloc);
+
+        j.AddMember("enable-blockexplorer", config.enableBlockExplorer, alloc);
+        j.AddMember("enable-blockexplorer-detailed", config.enableBlockExplorerDetailed, alloc);
+        j.AddMember("enable-mining", config.enableMining, alloc);
+        j.AddMember("enable-cors", config.enableCors, alloc);
+        j.AddMember("enable-trtl-api", config.enableTrtlRpc, alloc);
+        j.AddMember("fee-address", config.feeAddress, alloc);
+        j.AddMember("fee-amount", config.feeAmount, alloc);
+
         j.AddMember("allow-local-ip", config.localIp, alloc);
         j.AddMember("hide-my-port", config.hideMyPort, alloc);
         j.AddMember("p2p-bind-ip", config.p2pInterface, alloc);
@@ -755,13 +774,14 @@ namespace DaemonConfig
             j.AddMember("seed-node", arr, alloc);
         }
 
-        j.AddMember("enable-cors", config.enableCors, alloc);
-        j.AddMember("enable-blockexplorer", config.enableBlockExplorer, alloc);
-        j.AddMember("enable-blockexplorer-detailed", config.enableBlockExplorerDetailed, alloc);
-        j.AddMember("enable-mining", config.enableMining, alloc);
-        j.AddMember("enable-trtl-api", config.enableTrtlRpc, alloc);
-        j.AddMember("fee-address", config.feeAddress, alloc);
-        j.AddMember("fee-amount", config.feeAmount, alloc);
+        j.AddMember("db-enable-level-db", config.enableLevelDB, alloc);
+        j.AddMember("db-enable-compression", config.enableDbCompression, alloc);
+        j.AddMember("db-max-open-files", config.dbMaxOpenFiles, alloc);
+        j.AddMember("db-read-buffer-size", config.dbReadCacheSizeMB, alloc);
+        j.AddMember("db-threads", config.dbThreads, alloc);
+        j.AddMember("db-write-buffer-size", config.dbWriteBufferSizeMB, alloc);
+        j.AddMember("db-max-file-size", config.dbMaxFileSizeMB, alloc);
+
         j.AddMember("transaction-validation-threads", config.transactionValidationThreads, alloc);
 
         return j;
