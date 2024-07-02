@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -16,19 +16,19 @@ namespace CryptoNote
     class BlockchainWriteBatch : public IWriteBatch
     {
       public:
-        BlockchainWriteBatch();
+        BlockchainWriteBatch() = default;
 
-        ~BlockchainWriteBatch();
+        BlockchainWriteBatch &insertSpentKeyImages(
+            uint32_t blockIndex,
+            const std::unordered_set<Crypto::KeyImage> &spentKeyImages);
 
-        BlockchainWriteBatch &
-            insertSpentKeyImages(uint32_t blockIndex, const std::unordered_set<Crypto::KeyImage> &spentKeyImages);
-
-        BlockchainWriteBatch &
-            insertCachedTransaction(const ExtendedTransactionInfo &transaction, uint64_t totalTxsCount);
+        BlockchainWriteBatch &insertCachedTransaction(
+            const ExtendedTransactionInfo &transaction,
+            uint64_t totalTxsCount);
 
         BlockchainWriteBatch &insertPaymentId(
             const Crypto::Hash &transactionHash,
-            const Crypto::Hash paymentId,
+            Crypto::Hash paymentId,
             uint32_t totalTxsCountForPaymentId);
 
         BlockchainWriteBatch &insertCachedBlock(
@@ -56,12 +56,13 @@ namespace CryptoNote
             IBlockchainCache::GlobalOutputIndex globalIndex,
             const KeyOutputInfo &outputInfo);
 
-        BlockchainWriteBatch &
-            removeSpentKeyImages(uint32_t blockIndex, const std::vector<Crypto::KeyImage> &spentKeyImages);
+        BlockchainWriteBatch &removeSpentKeyImages(
+            uint32_t blockIndex,
+            const std::vector<Crypto::KeyImage> &spentKeyImages);
 
         BlockchainWriteBatch &removeCachedTransaction(const Crypto::Hash &transactionHash, uint64_t totalTxsCount);
 
-        BlockchainWriteBatch &removePaymentId(const Crypto::Hash paymentId, uint32_t totalTxsCountForPaytmentId);
+        BlockchainWriteBatch &removePaymentId(Crypto::Hash paymentId, uint32_t totalTxsCountForPaytmentId);
 
         BlockchainWriteBatch &removeCachedBlock(const Crypto::Hash &blockHash, uint32_t blockIndex);
 
@@ -76,8 +77,9 @@ namespace CryptoNote
 
         BlockchainWriteBatch &removeTimestamp(uint64_t timestamp);
 
-        BlockchainWriteBatch &
-            removeKeyOutputInfo(IBlockchainCache::Amount amount, IBlockchainCache::GlobalOutputIndex globalIndex);
+        BlockchainWriteBatch &removeKeyOutputInfo(
+            IBlockchainCache::Amount amount,
+            IBlockchainCache::GlobalOutputIndex globalIndex);
 
         std::vector<std::pair<std::string, std::string>> extractRawDataToInsert() override;
 
@@ -85,7 +87,6 @@ namespace CryptoNote
 
       private:
         std::vector<std::pair<std::string, std::string>> rawDataToInsert;
-
         std::vector<std::string> rawKeysToRemove;
     };
 

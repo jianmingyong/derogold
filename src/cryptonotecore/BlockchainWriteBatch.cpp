@@ -5,17 +5,12 @@
 // Please see the included LICENSE file for more information.
 
 #include "BlockchainWriteBatch.h"
-
 #include "DBUtils.h"
 
 using namespace CryptoNote;
 
-BlockchainWriteBatch::BlockchainWriteBatch() = default;
-
-BlockchainWriteBatch::~BlockchainWriteBatch() = default;
-
 BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
-    uint32_t blockIndex,
+    const uint32_t blockIndex,
     const std::unordered_set<Crypto::KeyImage> &spentKeyImages)
 {
     rawDataToInsert.reserve(rawDataToInsert.size() + spentKeyImages.size() + 1);
@@ -27,8 +22,9 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
     return *this;
 }
 
-BlockchainWriteBatch &
-    BlockchainWriteBatch::insertCachedTransaction(const ExtendedTransactionInfo &transaction, uint64_t totalTxsCount)
+BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(
+    const ExtendedTransactionInfo &transaction,
+    const uint64_t totalTxsCount)
 {
     rawDataToInsert.emplace_back(
         DB::serialize(DB::TRANSACTION_HASH_TO_TRANSACTION_INFO_PREFIX, transaction.transactionHash, transaction));

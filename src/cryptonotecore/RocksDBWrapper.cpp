@@ -132,7 +132,7 @@ std::error_code RocksDBWrapper::write(IWriteBatch &batch)
     return write(batch, false);
 }
 
-std::error_code RocksDBWrapper::write(IWriteBatch &batch, bool sync)
+std::error_code RocksDBWrapper::write(IWriteBatch &batch, const bool sync)
 {
     rocksdb::WriteOptions writeOptions;
     writeOptions.sync = sync;

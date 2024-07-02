@@ -517,16 +517,14 @@ namespace CryptoNote
         class DatabaseVersionWriteBatch : public IWriteBatch
         {
           public:
-            DatabaseVersionWriteBatch(uint32_t version): schemeVersion(version) {}
+            explicit DatabaseVersionWriteBatch(const uint32_t version): schemeVersion(version) {}
 
-            virtual ~DatabaseVersionWriteBatch() {}
-
-            virtual std::vector<std::pair<std::string, std::string>> extractRawDataToInsert() override
+            std::vector<std::pair<std::string, std::string>> extractRawDataToInsert() override
             {
                 return {make_pair(DB_VERSION_KEY, std::to_string(schemeVersion))};
             }
 
-            virtual std::vector<std::string> extractRawKeysToRemove() override
+            std::vector<std::string> extractRawKeysToRemove() override
             {
                 return {};
             }
@@ -1289,7 +1287,8 @@ namespace CryptoNote
                 roundToMidnight(cachedBlock.getBlock().timestamp), getTopBlockIndex() + 1);
         }
 
-        insertBlockTimestamp(batch, cachedBlock.getBlock().timestamp, cachedBlock.getBlockHash());
+        // We aren't even using this so why add this?
+        // insertBlockTimestamp(batch, cachedBlock.getBlock().timestamp, cachedBlock.getBlockHash());
 
         auto res = database.write(batch);
         if (res)

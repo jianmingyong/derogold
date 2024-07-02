@@ -9,6 +9,8 @@
 - Added `--export-checkpoints` option to export checkpoints.csv for bootstrapping.
 - Added `--enable-trtl-rpc` option to enable turtlecoin rpc api.
 - Changed `--db-enable-compression` to true by default.
+- Changed `status` command behaviour so that it doesn't rely on rpc anymore.
+- Added `--db-purge` option to purge unwanted data in the database.
 
 ## P2P
 - Changed p2p block downloading to dynamic block rate based on system load.

@@ -1212,8 +1212,10 @@ std::tuple<Error, uint16_t> RpcServer::getGlobalIndexesTrtlApi(
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t>
-    RpcServer::infoTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+std::tuple<Error, uint16_t> RpcServer::infoTrtlApi(
+    const httplib::Request &req,
+    httplib::Response &res,
+    const rapidjson::Document &body)
 {
     const uint64_t height = m_core->getTopBlockIndex() + 1;
     const uint64_t networkHeight = std::max(1u, m_syncManager->getBlockchainHeight());
@@ -1241,13 +1243,7 @@ std::tuple<Error, uint16_t>
         writer.Uint64(m_p2p->getPeerlistManager().get_gray_peers_count());
 
         writer.Key("hashrate");
-        writer.Uint64(
-            difficulty
-            / (networkHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT
-                   ? CryptoNote::parameters::DIFFICULTY_TARGET_V3
-               : networkHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
-                   ? CryptoNote::parameters::DIFFICULTY_TARGET_V2
-                   : CryptoNote::parameters::DIFFICULTY_TARGET));
+        writer.Uint64(difficulty / CryptoNote::parameters::getCurrentDifficultyTarget(networkHeight));
 
         writer.Key("height");
         writer.Uint64(height);
@@ -1312,8 +1308,10 @@ std::tuple<Error, uint16_t>
     return {SUCCESS, 200};
 }
 
-std::tuple<Error, uint16_t>
-    RpcServer::peersTrtlApi(const httplib::Request &req, httplib::Response &res, const rapidjson::Document &body)
+std::tuple<Error, uint16_t> RpcServer::peersTrtlApi(
+    const httplib::Request &req,
+    httplib::Response &res,
+    const rapidjson::Document &body)
 {
     rapidjson::StringBuffer sb;
     rapidjson::Writer writer(sb);
@@ -1618,12 +1616,7 @@ std::tuple<Error, uint16_t> RpcServer::info(const httplib::Request &req, httplib
         : CryptoNote::parameters::FORK_HEIGHTS[CryptoNote::parameters::CURRENT_FORK_INDEX]);
 
     writer.Key("hashrate");
-    
-    writer.Uint64(round(difficulty / (networkHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT
- 				      ? CryptoNote::parameters::DIFFICULTY_TARGET_V3
-				      : networkHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT
-			              ? CryptoNote::parameters::DIFFICULTY_TARGET_V2
-      				      : CryptoNote::parameters::DIFFICULTY_TARGET)));
+    writer.Uint64(round(difficulty / CryptoNote::parameters::getCurrentDifficultyTarget(networkHeight)));
 
     writer.Key("synced");
     writer.Bool(height == networkHeight);

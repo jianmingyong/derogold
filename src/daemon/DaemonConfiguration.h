@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "common/PathTools.h"
 #include "common/Util.h"
 
 #include <config/CryptoNoteConfig.h>
@@ -21,6 +20,63 @@ namespace DaemonConfig
 {
     struct DaemonConfiguration
     {
+        bool help;
+        bool version;
+        bool osVersion;
+        bool resync;
+        uint32_t rewindToHeight;
+
+        bool importChain;
+        bool exportChain;
+        uint32_t exportNumBlocks;
+        bool exportCheckPoints;
+
+        bool printGenesisTx;
+        // std::vector<std::string> genesisAwardAddresses;
+
+        std::string configFile;
+        std::string dataDirectory;
+        bool dumpConfig;
+        std::string checkPoints;
+        std::string logFile;
+        int logLevel;
+        bool noConsole;
+        std::string outputFile;
+
+        bool enableBlockExplorer;
+        bool enableBlockExplorerDetailed;
+        bool enableMining;
+        std::string enableCors;
+        bool enableTrtlRpc;
+        std::string feeAddress;
+        int feeAmount;
+
+        bool localIp;
+        bool hideMyPort;
+        std::string p2pInterface;
+        int p2pPort;
+        int p2pExternalPort;
+        bool p2pResetPeerstate;
+        std::string rpcInterface;
+        int rpcPort;
+
+        std::vector<std::string> exclusiveNodes;
+        std::vector<std::string> peers;
+        std::vector<std::string> priorityNodes;
+        std::vector<std::string> seedNodes;
+
+        bool enableLevelDB;
+        bool enableDbCompression;
+        uint64_t dbMaxOpenFiles;
+        uint64_t dbReadCacheSizeMB;
+        uint64_t dbThreads;
+        uint64_t dbWriteBufferSizeMB;
+        uint64_t dbMaxFileSizeMB;
+        bool dbOptimize;
+        bool dbPurge;
+
+        uint32_t transactionValidationThreads;
+
         DaemonConfiguration()
         {
             std::stringstream logfile;
@@ -34,7 +90,7 @@ namespace DaemonConfig
             p2pInterface = "0.0.0.0";
             p2pPort = CryptoNote::P2P_DEFAULT_PORT;
             p2pExternalPort = 0;
-	        transactionValidationThreads = std::thread::hardware_concurrency();
+            transactionValidationThreads = std::thread::hardware_concurrency();
             rpcInterface = "127.0.0.1";
             rpcPort = CryptoNote::RPC_DEFAULT_PORT;
             noConsole = false;
@@ -60,100 +116,6 @@ namespace DaemonConfig
             dbOptimize = false;
             enableTrtlRpc = false;
         }
-
-        std::string dataDirectory;
-
-        std::string logFile;
-
-        std::string feeAddress;
-
-        std::string rpcInterface;
-
-        std::string p2pInterface;
-
-        std::string checkPoints;
-
-        std::vector<std::string> peers;
-
-        std::vector<std::string> priorityNodes;
-
-        std::vector<std::string> exclusiveNodes;
-
-        std::vector<std::string> seedNodes;
-
-        std::string enableCors;
-
-        int logLevel;
-
-        int feeAmount;
-
-        int rpcPort;
-
-        int p2pPort;
-
-        int p2pExternalPort;
-
-        uint32_t transactionValidationThreads;
-
-        uint64_t dbThreads;
-
-        uint64_t dbMaxOpenFiles;
-
-        uint64_t dbWriteBufferSizeMB;
-
-        uint64_t dbReadCacheSizeMB;
-
-        uint64_t dbMaxFileSizeMB;
-
-        uint32_t rewindToHeight;
-
-        bool noConsole;
-
-        bool enableBlockExplorer;
-
-        bool enableBlockExplorerDetailed;
-
-        bool enableMining;
-
-        bool localIp;
-
-        bool hideMyPort;
-
-        bool resync;
-
-        bool p2pResetPeerstate;
-
-        bool enableLevelDB;
-
-        bool importChain;
-
-        bool exportChain;
-
-        uint32_t exportNumBlocks;
-
-        bool exportCheckPoints;
-
-        std::string configFile;
-
-        std::string outputFile;
-
-        std::vector<std::string> genesisAwardAddresses;
-
-        bool help;
-
-        bool version;
-
-        bool osVersion;
-
-        bool printGenesisTx;
-
-        bool dumpConfig;
-
-        bool enableDbCompression;
-
-        bool dbOptimize;
-
-        bool enableTrtlRpc;
     };
 
     DaemonConfiguration initConfiguration(const char *path);

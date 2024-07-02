@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
@@ -18,7 +18,7 @@ namespace CryptoNote
         programHeader
             << std::endl
             << asciiArt << std::endl
-            << " " << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG << std::endl
+            << " " << CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG << std::endl
             << " This software is distributed under the General Public License v3.0" << std::endl
             << std::endl
             << " " << PROJECT_COPYRIGHT << std::endl
@@ -26,7 +26,7 @@ namespace CryptoNote
             << " Additional Copyright(s) may apply, please see the included LICENSE file for more information."
             << std::endl
             << " If you did not receive a copy of the LICENSE, please visit:" << std::endl
-            << " " << CryptoNote::LICENSE_URL << std::endl
+            << " " << LICENSE_URL << std::endl
             << std::endl;
 
         return programHeader.str();

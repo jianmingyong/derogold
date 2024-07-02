@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -29,10 +29,11 @@ class DaemonCommandsHandler
     DaemonCommandsHandler(
         CryptoNote::Core &core,
         CryptoNote::NodeServer &srv,
-        std::shared_ptr<Logging::LoggerManager> log,
-        const std::string ip,
-        const uint32_t port,
-        const DaemonConfig::DaemonConfiguration &config);
+        const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> &syncManager,
+        const std::shared_ptr<Logging::LoggerManager> &log,
+        const std::string &ip,
+        uint32_t port,
+        DaemonConfig::DaemonConfiguration config);
 
     bool start_handling()
     {
@@ -54,6 +55,8 @@ class DaemonCommandsHandler
 
     CryptoNote::NodeServer &m_srv;
 
+    const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> m_syncManager;
+
     httplib::Client m_rpcServer;
 
     Logging::LoggerRef logger;
@@ -62,7 +65,7 @@ class DaemonCommandsHandler
 
     std::shared_ptr<Logging::LoggerManager> m_logManager;
 
-    std::string get_commands_str();
+    std::string get_commands_str() const;
 
     bool print_block_by_height(uint32_t height);
 

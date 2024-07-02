@@ -384,7 +384,9 @@ int main(int argc, char *argv[])
             logManager,
             std::move(checkpoints),
             dispatcher,
-            std::unique_ptr<IBlockchainCacheFactory>(new DatabaseBlockchainCacheFactory(*database, logger.getLogger())),
+            std::unique_ptr<IBlockchainCacheFactory>(
+                std::make_unique<DatabaseBlockchainCacheFactory>(*database, logger.getLogger())
+            ),
             config.transactionValidationThreads
         );
 
@@ -476,6 +478,32 @@ int main(int argc, char *argv[])
             ccore->rewind(config.rewindToHeight);
         }
 
+        if (config.dbPurge)
+        {
+            auto topHeight = ccore->getTopBlockIndex();
+            BlockchainWriteBatch writeBatch;
+
+            for (size_t i = 0; i <= topHeight; i++)
+            {
+                auto blockTemplate = ccore->getBlockByIndex(i);
+                writeBatch.removeTimestamp(blockTemplate.timestamp);
+
+                if (i % 1000 == 0)
+                {
+                    logger(INFO) << "Purging Data (" << std::to_string(i) << "/" << std::to_string(topHeight) << ")";
+                    database->write(writeBatch);
+                    writeBatch = {};
+                }
+            }
+
+            database->write(writeBatch);
+            database->shutdown();
+
+            logger(INFO) << "Purge completed.";
+
+            exit(0);
+        }
+
         const auto cprotocol = std::make_shared<CryptoNote::CryptoNoteProtocolHandler>(
             currency,
             dispatcher,
@@ -539,7 +567,7 @@ int main(int argc, char *argv[])
             ip = "127.0.0.1";
         }
 
-        DaemonCommandsHandler dch(*ccore, *p2psrv, logManager, ip, port, config);
+        DaemonCommandsHandler dch(*ccore, *p2psrv, cprotocol, logManager, ip, port, config);
 
         if (!config.noConsole)
         {

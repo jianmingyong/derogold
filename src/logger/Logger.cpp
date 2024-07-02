@@ -153,11 +153,10 @@ namespace Logger
         m_logLevel = level;
     }
 
-    void Logger::setLogCallback(std::function<void(
-                                    const std::string prettyMessage,
-                                    const std::string message,
-                                    const LogLevel level,
-                                    const std::vector<LogCategory> categories)> callback)
+    void Logger::setLogCallback(
+        const std::function<
+            void(std::string prettyMessage, std::string message, LogLevel level, std::vector<LogCategory> categories)>
+            &callback)
     {
         m_callback = callback;
     }
