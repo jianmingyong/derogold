@@ -17,58 +17,59 @@
 
 namespace CryptoNote
 {
-    class RocksDBWrapper : public IDataBase
+    class RocksDBWrapper final : public IDataBase
     {
-      public:
-        RocksDBWrapper(
-            std::shared_ptr<Logging::ILogger> logger,
-            DataBaseConfig config);
-
-        ~RocksDBWrapper() override;
-
-        RocksDBWrapper(const RocksDBWrapper &) = delete;
-
-        RocksDBWrapper(RocksDBWrapper &&) = delete;
-
-        RocksDBWrapper &operator=(const RocksDBWrapper &) = delete;
-
-        RocksDBWrapper &operator=(RocksDBWrapper &&) = delete;
-
-        void init() override;
-
-        void shutdown() override;
-
-        void destroy() override; // Be careful with this method!
-
-        std::error_code write(IWriteBatch &batch) override;
-
-        std::error_code read(IReadBatch &batch) override;
-
-        std::error_code readThreadSafe(IReadBatch &batch) override;
-        
-        void recreate() override;
-
-      private:
-        std::error_code write(IWriteBatch &batch, bool sync);
-
-        static rocksdb::Options getDBOptions(const DataBaseConfig &config);
-
-        static std::string getDataDir(const DataBaseConfig &config);
-
-        void optimize() const;
-
         enum State
         {
             NOT_INITIALIZED,
             INITIALIZED
         };
 
-        Logging::LoggerRef logger;
+        const Logging::LoggerRef logger;
+        const DataBaseConfig config;
+
+        std::atomic<State> state;
 
         std::unique_ptr<rocksdb::DB> db;
 
-        std::atomic<State> state;
-        
-        const DataBaseConfig m_config;
+    public:
+        inline static const std::string DB_NAME = "DB";
+
+        RocksDBWrapper(const std::shared_ptr<Logging::ILogger> &logger, DataBaseConfig config) :
+            logger(logger, "RocksDBWrapper"),
+            config(std::move(config)),
+            state(NOT_INITIALIZED)
+        {
+        }
+
+        RocksDBWrapper(const RocksDBWrapper &) = delete;
+        RocksDBWrapper(RocksDBWrapper &&) = delete;
+
+        RocksDBWrapper &operator=(const RocksDBWrapper &) = delete;
+        RocksDBWrapper &operator=(RocksDBWrapper &&) = delete;
+
+        void init() override;
+
+        void shutdown() override;
+
+        void destroy() override;
+
+        std::error_code write(IWriteBatch &batch) override;
+
+        std::error_code read(IReadBatch &batch) override;
+
+        std::error_code readThreadSafe(IReadBatch &batch) override;
+
+        void recreate() override;
+
+        void optimize() override;
+
+    private:
+        static rocksdb::Options getDBOptions(const DataBaseConfig &config);
+
+        static std::string getDataDir(const DataBaseConfig &config)
+        {
+            return config.dataDir + '/' + DB_NAME;
+        }
     };
 } // namespace CryptoNote

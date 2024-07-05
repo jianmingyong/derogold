@@ -13,28 +13,27 @@
 #include <cstdint>
 #include <string>
 #include <system_error>
+#include <utility>
 
 namespace CryptoNote
 {
     struct DataBaseConfig
     {
         DataBaseConfig(
-            const std::string dataDirectory,
+            std::string dataDirectory,
             const uint64_t backgroundThreads,
             const uint64_t openFiles,
             const uint64_t writeBufferMB,
             const uint64_t readCacheMB,
             const uint64_t maxFileSizeMB,
-            const bool enableDbCompression,
-            const bool optimize) :
-            dataDir(dataDirectory),
+            const bool enableDbCompression) :
+            dataDir(std::move(dataDirectory)),
             backgroundThreadsCount(backgroundThreads),
             maxOpenFiles(openFiles),
             writeBufferSize(writeBufferMB * 1024 * 1024),
             readCacheSize(readCacheMB * 1024 * 1024),
             maxFileSize(maxFileSizeMB * 1024 * 1024),
-            compressionEnabled(enableDbCompression),
-            optimize(optimize)
+            compressionEnabled(enableDbCompression)
         {
         }
 
@@ -51,14 +50,12 @@ namespace CryptoNote
         uint64_t maxFileSize;
 
         bool compressionEnabled;
-
-        bool optimize;
     };
 
     class IDataBase
     {
       public:
-        virtual ~IDataBase() {}
+        virtual ~IDataBase() = default;
 
         virtual void init() = 0;
 
@@ -73,5 +70,7 @@ namespace CryptoNote
         virtual std::error_code readThreadSafe(IReadBatch &batch) = 0;
 
         virtual void recreate() = 0;
+
+        virtual void optimize() = 0;
     };
 } // namespace CryptoNote
