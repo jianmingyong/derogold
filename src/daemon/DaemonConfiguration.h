@@ -20,107 +20,71 @@ namespace DaemonConfig
 {
     struct DaemonConfiguration
     {
-        bool help;
-        bool version;
-        bool osVersion;
-        bool resync;
-        uint32_t rewindToHeight;
+        bool help = false;
+        bool version = false;
+        bool osVersion = false;
+        bool resync = false;
+        uint32_t rewindToHeight = 0;
 
-        bool importChain;
-        bool exportChain;
-        uint32_t exportNumBlocks;
-        bool exportCheckPoints;
+        bool importChain = false;
+        bool exportChain = false;
+        uint32_t exportNumBlocks = 0;
+        bool exportCheckPoints = false;
 
-        bool printGenesisTx;
-        // std::vector<std::string> genesisAwardAddresses;
+        bool printGenesisTx = false;
 
         std::string configFile;
-        std::string dataDirectory;
-        bool dumpConfig;
-        std::string checkPoints;
+        std::string dataDirectory = Tools::getDefaultDataDirectory();
+        bool dumpConfig = false;
+        std::string checkPoints = "default";
         std::string logFile;
-        int logLevel;
-        bool noConsole;
+        int logLevel = Logging::WARNING;
+        bool noConsole = false;
         std::string outputFile;
 
-        bool enableBlockExplorer;
-        bool enableBlockExplorerDetailed;
-        bool enableMining;
+        bool enableBlockExplorer = false;
+        bool enableBlockExplorerDetailed = false;
+        bool enableMining = false;
         std::string enableCors;
-        bool enableTrtlRpc;
+        bool enableTrtlRpc = false;
         std::string feeAddress;
-        int feeAmount;
+        int feeAmount = 0;
 
-        bool localIp;
-        bool hideMyPort;
-        std::string p2pInterface;
-        int p2pPort;
-        int p2pExternalPort;
-        bool p2pResetPeerstate;
-        std::string rpcInterface;
-        int rpcPort;
+        bool localIp = false;
+        bool hideMyPort = false;
+        std::string p2pInterface = "0.0.0.0";
+        int p2pPort = CryptoNote::P2P_DEFAULT_PORT;
+        int p2pExternalPort = 0;
+        bool p2pResetPeerstate = false;
+        std::string rpcInterface = "127.0.0.1";
+        int rpcPort = CryptoNote::RPC_DEFAULT_PORT;
 
         std::vector<std::string> exclusiveNodes;
         std::vector<std::string> peers;
         std::vector<std::string> priorityNodes;
         std::vector<std::string> seedNodes;
 
-        bool enableLevelDB;
-        bool enableDbCompression;
+        bool enableLevelDB = false;
+        bool enableDbCompression = true;
         uint64_t dbMaxOpenFiles;
         uint64_t dbReadCacheSizeMB;
-        uint64_t dbThreads;
+        int dbThreads = static_cast<int>(std::thread::hardware_concurrency());
         uint64_t dbWriteBufferSizeMB;
         uint64_t dbMaxFileSizeMB;
-        bool dbOptimize;
-        bool dbPurge;
+        bool dbOptimize = false;
+        bool dbPurge = false;
 
-        uint32_t transactionValidationThreads;
+        uint32_t transactionValidationThreads = std::thread::hardware_concurrency();
 
         DaemonConfiguration()
         {
             std::stringstream logfile;
             logfile << CryptoNote::CRYPTONOTE_NAME << "d.log";
-
-            dataDirectory = Tools::getDefaultDataDirectory();
-            checkPoints = "default";
             logFile = logfile.str();
-            logLevel = Logging::WARNING;
-            rewindToHeight = 0;
-            p2pInterface = "0.0.0.0";
-            p2pPort = CryptoNote::P2P_DEFAULT_PORT;
-            p2pExternalPort = 0;
-            transactionValidationThreads = std::thread::hardware_concurrency();
-            rpcInterface = "127.0.0.1";
-            rpcPort = CryptoNote::RPC_DEFAULT_PORT;
-            noConsole = false;
-            enableBlockExplorer = false;
-            enableBlockExplorerDetailed = false;
-            enableMining = false;
-            localIp = false;
-            hideMyPort = false;
-            p2pResetPeerstate = false;
-            help = false;
-            version = false;
-            osVersion = false;
-            printGenesisTx = false;
-            dumpConfig = false;
-            enableDbCompression = true;
-            resync = false;
-            enableLevelDB = false;
-            importChain = false;
-            exportChain = false;
-            exportNumBlocks = 0;
-            exportCheckPoints = false;
-            feeAmount = 0;
-            dbOptimize = false;
-            enableTrtlRpc = false;
         }
     };
 
     DaemonConfiguration initConfiguration(const char *path);
-
-    bool updateConfigFormat(const std::string &configFile, DaemonConfiguration &config);
 
     void handleSettings(int argc, char *argv[], DaemonConfiguration &config);
 

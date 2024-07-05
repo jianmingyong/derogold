@@ -22,7 +22,6 @@ namespace Logging
 
       private:
         std::shared_ptr<ILogger> logger;
-
         std::string category;
     };
 

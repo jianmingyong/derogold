@@ -25,6 +25,7 @@
         "snappy"
       ]
     },
+    "lmdb",
     "miniupnpc",
     "openssl",
     "rapidjson",

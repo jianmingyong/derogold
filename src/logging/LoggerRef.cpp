@@ -10,7 +10,7 @@
 
 namespace Logging
 {
-    LoggerRef::LoggerRef(std::shared_ptr<ILogger> logger, std::string category):
+    LoggerRef::LoggerRef(std::shared_ptr<ILogger> logger, std::string category) :
         logger(std::move(logger)),
         category(std::move(category))
     {
@@ -25,5 +25,4 @@ namespace Logging
     {
         return logger;
     }
-
 } // namespace Logging

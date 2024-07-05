@@ -5,7 +5,7 @@
 - Allow upnp to port forward regardless if it is behind a NAT devices.
 - Fixed daemon rpc method would fail due to missing transactions.
 - Fixed `--db-*` options such that it will no longer get overridden by default values.
-- Added `--db-optimize` option to optimize your RocksDB database for reading.
+- Added `--db-optimize` option to optimize your database for reading.
 - Added `--export-checkpoints` option to export checkpoints.csv for bootstrapping.
 - Added `--enable-trtl-rpc` option to enable turtlecoin rpc api.
 - Changed `--db-enable-compression` to true by default.
@@ -25,6 +25,7 @@
 - cryptopp 8.9.0
 - cxxopts 3.2.1
 - leveldb 1.23
+- lmdb 0.9.31
 - miniupnpc 2.2.6
 - openssl 3.3.1
 - rapidjson 2023-07-17

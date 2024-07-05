@@ -287,6 +287,7 @@ find_package(miniupnpc CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
+find_package(unofficial-lmdb CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 
 # So we can use std::string with rapidjson
