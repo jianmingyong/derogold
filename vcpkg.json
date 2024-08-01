@@ -13,6 +13,7 @@
     "boost-optional",
     "boost-range",
     "boost-scope-exit",
+    "boost-serialization",
     "boost-utility",
     "boost-uuid",
     "boost-variant",
