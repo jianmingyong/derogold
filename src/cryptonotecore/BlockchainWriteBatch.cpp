@@ -5,6 +5,7 @@
 // Please see the included LICENSE file for more information.
 
 #include "BlockchainWriteBatch.h"
+
 #include "DBUtils.h"
 
 using namespace CryptoNote;
@@ -19,12 +20,21 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
     {
         rawDataToInsert.emplace_back(DB::serialize(DB::KEY_IMAGE_TO_BLOCK_INDEX_PREFIX, keyImage, blockIndex));
     }
+
+    rawDataToInsertWithCF[DB::SPENT_KEY_IMAGES_CF].emplace_back(
+        DB::V2::serialize(DB::BLOCK_INDEX_TO_KEY_IMAGE_PREFIX, blockIndex, spentKeyImages));
+
+    for (const Crypto::KeyImage &keyImage : spentKeyImages)
+    {
+        rawDataToInsertWithCF[DB::SPENT_KEY_IMAGES_CF].emplace_back(
+            DB::V2::serialize(DB::KEY_IMAGE_TO_BLOCK_INDEX_PREFIX, keyImage, blockIndex));
+    }
+
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(
-    const ExtendedTransactionInfo &transaction,
-    const uint64_t totalTxsCount)
+BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(const ExtendedTransactionInfo &transaction,
+                                                                    const uint64_t totalTxsCount)
 {
     rawDataToInsert.emplace_back(
         DB::serialize(DB::TRANSACTION_HASH_TO_TRANSACTION_INFO_PREFIX, transaction.transactionHash, transaction));
@@ -33,21 +43,20 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertPaymentId(
-    const Crypto::Hash &transactionHash,
-    const Crypto::Hash paymentId,
-    uint32_t totalTxsCountForPaymentId)
+BlockchainWriteBatch &BlockchainWriteBatch::insertPaymentId(const Crypto::Hash &transactionHash,
+                                                            const Crypto::Hash paymentId,
+                                                            uint32_t totalTxsCountForPaymentId)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::PAYMENT_ID_TO_TX_HASH_PREFIX, paymentId, totalTxsCountForPaymentId));
-    rawDataToInsert.emplace_back(DB::serialize(
-        DB::PAYMENT_ID_TO_TX_HASH_PREFIX, std::make_pair(paymentId, totalTxsCountForPaymentId - 1), transactionHash));
+    rawDataToInsert.emplace_back(DB::serialize(DB::PAYMENT_ID_TO_TX_HASH_PREFIX,
+                                               std::make_pair(paymentId, totalTxsCountForPaymentId - 1),
+                                               transactionHash));
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(
-    const CachedBlockInfo &block,
-    uint32_t blockIndex,
-    const std::vector<Crypto::Hash> &blockTxs)
+BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(const CachedBlockInfo &block,
+                                                              uint32_t blockIndex,
+                                                              const std::vector<Crypto::Hash> &blockTxs)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_BLOCK_INFO_PREFIX, blockIndex, block));
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_TX_HASHES_PREFIX, blockIndex, blockTxs));
@@ -57,10 +66,9 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputGlobalIndexes(
-    IBlockchainCache::Amount amount,
-    const std::vector<PackedOutIndex> &outputs,
-    uint32_t totalOutputsCountForAmount)
+BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputGlobalIndexes(IBlockchainCache::Amount amount,
+                                                                         const std::vector<PackedOutIndex> &outputs,
+                                                                         uint32_t totalOutputsCountForAmount)
 {
     assert(totalOutputsCountForAmount >= outputs.size());
     rawDataToInsert.reserve(rawDataToInsert.size() + outputs.size() + 1);
@@ -76,9 +84,11 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputGlobalIndexes(
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertRawBlock(uint32_t blockIndex, const RawBlock &block)
+BlockchainWriteBatch &BlockchainWriteBatch::insertRawBlock(const uint32_t blockIndex, const RawBlock &block)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_RAW_BLOCK_PREFIX, blockIndex, block));
+    rawDataToInsertWithCF[DB::RAW_BLOCKS_CF].emplace_back(
+        DB::V2::serialize(DB::BLOCK_INDEX_TO_RAW_BLOCK_PREFIX, blockIndex, block));
     return *this;
 }
 
@@ -88,14 +98,14 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertClosestTimestampBlockIndex(uin
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputAmounts(
-    const std::set<IBlockchainCache::Amount> &amounts,
-    uint32_t totalKeyOutputAmountsCount)
+BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputAmounts(const std::set<IBlockchainCache::Amount> &amounts,
+                                                                   uint32_t totalKeyOutputAmountsCount)
 {
     assert(totalKeyOutputAmountsCount >= amounts.size());
     rawDataToInsert.reserve(rawDataToInsert.size() + amounts.size() + 1);
-    rawDataToInsert.emplace_back(DB::serialize(
-        DB::KEY_OUTPUT_AMOUNTS_COUNT_PREFIX, DB::KEY_OUTPUT_AMOUNTS_COUNT_KEY, totalKeyOutputAmountsCount));
+    rawDataToInsert.emplace_back(DB::serialize(DB::KEY_OUTPUT_AMOUNTS_COUNT_PREFIX,
+                                               DB::KEY_OUTPUT_AMOUNTS_COUNT_KEY,
+                                               totalKeyOutputAmountsCount));
     uint32_t currentAmountId = totalKeyOutputAmountsCount - static_cast<uint32_t>(amounts.size());
 
     for (const IBlockchainCache::Amount &amount : amounts)
@@ -106,25 +116,24 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputAmounts(
     return *this;
 }
 
-BlockchainWriteBatch &
-    BlockchainWriteBatch::insertTimestamp(uint64_t timestamp, const std::vector<Crypto::Hash> &blockHashes)
+BlockchainWriteBatch &BlockchainWriteBatch::insertTimestamp(uint64_t timestamp,
+                                                            const std::vector<Crypto::Hash> &blockHashes)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::TIMESTAMP_TO_BLOCKHASHES_PREFIX, timestamp, blockHashes));
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputInfo(
-    IBlockchainCache::Amount amount,
-    IBlockchainCache::GlobalOutputIndex globalIndex,
-    const KeyOutputInfo &outputInfo)
+BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputInfo(IBlockchainCache::Amount amount,
+                                                                IBlockchainCache::GlobalOutputIndex globalIndex,
+                                                                const KeyOutputInfo &outputInfo)
 {
     rawDataToInsert.emplace_back(
         DB::serialize(DB::KEY_OUTPUT_KEY_PREFIX, std::make_pair(amount, globalIndex), outputInfo));
     return *this;
 }
 
-BlockchainWriteBatch &
-    BlockchainWriteBatch::removeSpentKeyImages(uint32_t blockIndex, const std::vector<Crypto::KeyImage> &spentKeyImages)
+BlockchainWriteBatch &BlockchainWriteBatch::removeSpentKeyImages(uint32_t blockIndex,
+                                                                 const std::vector<Crypto::KeyImage> &spentKeyImages)
 {
     rawKeysToRemove.reserve(rawKeysToRemove.size() + spentKeyImages.size() + 1);
     rawKeysToRemove.emplace_back(DB::serializeKey(DB::BLOCK_INDEX_TO_KEY_IMAGE_PREFIX, blockIndex));
@@ -137,8 +146,8 @@ BlockchainWriteBatch &
     return *this;
 }
 
-BlockchainWriteBatch &
-    BlockchainWriteBatch::removeCachedTransaction(const Crypto::Hash &transactionHash, uint64_t totalTxsCount)
+BlockchainWriteBatch &BlockchainWriteBatch::removeCachedTransaction(const Crypto::Hash &transactionHash,
+                                                                    uint64_t totalTxsCount)
 {
     rawKeysToRemove.emplace_back(DB::serializeKey(DB::TRANSACTION_HASH_TO_TRANSACTION_INFO_PREFIX, transactionHash));
     rawDataToInsert.emplace_back(
@@ -146,8 +155,8 @@ BlockchainWriteBatch &
     return *this;
 }
 
-BlockchainWriteBatch &
-    BlockchainWriteBatch::removePaymentId(const Crypto::Hash paymentId, uint32_t totalTxsCountForPaymentId)
+BlockchainWriteBatch &BlockchainWriteBatch::removePaymentId(const Crypto::Hash paymentId,
+                                                            uint32_t totalTxsCountForPaymentId)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::PAYMENT_ID_TO_TX_HASH_PREFIX, paymentId, totalTxsCountForPaymentId));
     rawKeysToRemove.emplace_back(
@@ -165,10 +174,9 @@ BlockchainWriteBatch &BlockchainWriteBatch::removeCachedBlock(const Crypto::Hash
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::removeKeyOutputGlobalIndexes(
-    IBlockchainCache::Amount amount,
-    uint32_t outputsToRemoveCount,
-    uint32_t totalOutputsCountForAmount)
+BlockchainWriteBatch &BlockchainWriteBatch::removeKeyOutputGlobalIndexes(IBlockchainCache::Amount amount,
+                                                                         uint32_t outputsToRemoveCount,
+                                                                         uint32_t totalOutputsCountForAmount)
 {
     rawKeysToRemove.reserve(rawKeysToRemove.size() + outputsToRemoveCount);
     rawDataToInsert.emplace_back(DB::serialize(DB::KEY_OUTPUT_AMOUNT_PREFIX, amount, totalOutputsCountForAmount));
@@ -198,9 +206,8 @@ BlockchainWriteBatch &BlockchainWriteBatch::removeTimestamp(uint64_t timestamp)
     return *this;
 }
 
-BlockchainWriteBatch &BlockchainWriteBatch::removeKeyOutputInfo(
-    IBlockchainCache::Amount amount,
-    IBlockchainCache::GlobalOutputIndex globalIndex)
+BlockchainWriteBatch &BlockchainWriteBatch::removeKeyOutputInfo(IBlockchainCache::Amount amount,
+                                                                IBlockchainCache::GlobalOutputIndex globalIndex)
 {
     rawKeysToRemove.emplace_back(DB::serializeKey(DB::KEY_OUTPUT_KEY_PREFIX, std::make_pair(amount, globalIndex)));
     return *this;
@@ -214,4 +221,15 @@ std::vector<std::pair<std::string, std::string>> BlockchainWriteBatch::extractRa
 std::vector<std::string> BlockchainWriteBatch::extractRawKeysToRemove()
 {
     return std::move(rawKeysToRemove);
+}
+
+std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>> BlockchainWriteBatch::
+    extractRawDataToInsertWithCF()
+{
+    return std::move(rawDataToInsertWithCF);
+}
+
+std::unordered_map<std::string, std::vector<std::string>> BlockchainWriteBatch::extractRawKeysToRemoveWithCF()
+{
+    return std::move(rawKeysToRemoveWithCF);
 }

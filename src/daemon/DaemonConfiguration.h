@@ -8,13 +8,11 @@
 #pragma once
 
 #include "common/Util.h"
+#include "config/CryptoNoteConfig.h"
+#include "logging/ILogger.h"
 
-#include <config/CryptoNoteConfig.h>
-#include <logging/ILogger.h>
 #include <rapidjson/document.h>
 #include <thread>
-
-using namespace rapidjson;
 
 namespace DaemonConfig
 {
@@ -66,13 +64,13 @@ namespace DaemonConfig
 
         bool enableLevelDB = false;
         bool enableDbCompression = true;
-        uint64_t dbMaxOpenFiles;
-        uint64_t dbReadCacheSizeMB;
+        uint64_t dbMaxOpenFiles = CryptoNote::ROCKSDB_MAX_OPEN_FILES;
+        uint64_t dbReadCacheSizeMB = CryptoNote::ROCKSDB_READ_BUFFER_MB;
         int dbThreads = static_cast<int>(std::thread::hardware_concurrency());
-        uint64_t dbWriteBufferSizeMB;
-        uint64_t dbMaxFileSizeMB;
+        uint64_t dbWriteBufferSizeMB = CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
+        uint64_t dbMaxFileSizeMB = CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
         bool dbOptimize = false;
-        bool dbPurge = false;
+        bool dbUseExperimentalSerializer = false;
 
         uint32_t transactionValidationThreads = std::thread::hardware_concurrency();
 
@@ -94,5 +92,5 @@ namespace DaemonConfig
 
     std::string asString(const DaemonConfiguration &config);
 
-    Document asJSON(const DaemonConfiguration &config);
+    rapidjson::Document asJSON(const DaemonConfiguration &config);
 } // namespace DaemonConfig

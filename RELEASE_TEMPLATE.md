@@ -10,7 +10,6 @@
 - Added `--enable-trtl-rpc` option to enable turtlecoin rpc api.
 - Changed `--db-enable-compression` to true by default.
 - Changed `status` command behaviour so that it doesn't rely on rpc anymore.
-- Added `--db-purge` option to purge unwanted data in the database.
 
 ## P2P
 - Changed p2p block downloading to dynamic block rate based on system load.
@@ -22,10 +21,10 @@
 
 ## External Dependencies Version
 - boost 1.85.0
+- cpp-httplib 0.16.0
 - cryptopp 8.9.0
 - cxxopts 3.2.1
 - leveldb 1.23
-- lmdb 0.9.31
 - miniupnpc 2.2.6
 - openssl 3.3.1
 - rapidjson 2023-07-17
@@ -44,5 +43,4 @@
 - Download `DeroGold-X.X.X.X-osx-x64-clang.tar.gz` and use `tar -xf DeroGold-X.X.X.X-osx-x64-clang.tar.gz` to unzip.
 
 # **USAGE WARNING:**
-- Upgrading to this version will update the current rocksDB database. Compatibility between v0.7.1 and v0.7.2.1 is not guaranteed.
 - Pre-released versions are not guaranteed to be stable. Use with caution.

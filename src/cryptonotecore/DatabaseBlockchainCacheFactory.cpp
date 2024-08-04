@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -8,24 +8,23 @@
 
 #include "BlockchainCache.h"
 #include "DatabaseBlockchainCache.h"
-#include "IDataBase.h"
 
 namespace CryptoNote
 {
     DatabaseBlockchainCacheFactory::DatabaseBlockchainCacheFactory(
         IDataBase &database,
-        std::shared_ptr<Logging::ILogger> logger):
+        const std::shared_ptr<Logging::ILogger> &logger) :
         database(database),
         logger(logger)
     {
     }
 
-    DatabaseBlockchainCacheFactory::~DatabaseBlockchainCacheFactory() {}
+    DatabaseBlockchainCacheFactory::~DatabaseBlockchainCacheFactory() = default;
 
     std::unique_ptr<IBlockchainCache>
         DatabaseBlockchainCacheFactory::createRootBlockchainCache(const Currency &currency)
     {
-        return std::unique_ptr<IBlockchainCache>(new DatabaseBlockchainCache(currency, database, *this, logger));
+        return std::make_unique<DatabaseBlockchainCache>(currency, database, *this, logger);
     }
 
     std::unique_ptr<IBlockchainCache> DatabaseBlockchainCacheFactory::createBlockchainCache(
@@ -33,7 +32,7 @@ namespace CryptoNote
         IBlockchainCache *parent,
         uint32_t startIndex)
     {
-        return std::unique_ptr<IBlockchainCache>(new BlockchainCache("", currency, logger, parent, startIndex));
+        return std::make_unique<BlockchainCache>("", currency, logger, parent, startIndex);
     }
 
 } // namespace CryptoNote

@@ -9,31 +9,28 @@
 
 #include "common/ConsoleHandler.h"
 #include "daemon/DaemonConfiguration.h"
+#include "logging/LoggerManager.h"
+#include "logging/LoggerRef.h"
 #include "rpc/CoreRpcServerCommandsDefinitions.h"
 #include "rpc/JsonRpc.h"
 #include "rpc/RpcServer.h"
 
-#include <logging/LoggerManager.h>
-#include <logging/LoggerRef.h>
-
 namespace CryptoNote
 {
     class Core;
-
     class NodeServer;
 } // namespace CryptoNote
 
 class DaemonCommandsHandler
 {
-  public:
-    DaemonCommandsHandler(
-        CryptoNote::Core &core,
-        CryptoNote::NodeServer &srv,
-        const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> &syncManager,
-        const std::shared_ptr<Logging::LoggerManager> &log,
-        const std::string &ip,
-        uint32_t port,
-        DaemonConfig::DaemonConfiguration config);
+public:
+    DaemonCommandsHandler(CryptoNote::Core &core,
+                          CryptoNote::NodeServer &srv,
+                          const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> &syncManager,
+                          const std::shared_ptr<Logging::LoggerManager> &log,
+                          const std::string &ip,
+                          uint32_t port,
+                          DaemonConfig::DaemonConfiguration config);
 
     bool start_handling()
     {
@@ -48,7 +45,7 @@ class DaemonCommandsHandler
 
     bool exit(const std::vector<std::string> &args);
 
-  private:
+private:
     Common::ConsoleHandler m_consoleHandler;
 
     CryptoNote::Core &m_core;

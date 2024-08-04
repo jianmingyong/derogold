@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -7,19 +7,20 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 
 namespace CryptoNote
 {
     class IInputStream
     {
-      public:
+    public:
+        virtual ~IInputStream() = default;
         virtual uint64_t read(char *data, uint64_t size) = 0;
     };
 
     class IOutputStream
     {
-      public:
+    public:
+        virtual ~IOutputStream() = default;
         virtual void write(const char *data, uint64_t size) = 0;
     };
 

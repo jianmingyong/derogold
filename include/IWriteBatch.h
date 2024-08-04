@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -13,12 +14,15 @@ namespace CryptoNote
 {
     class IWriteBatch
     {
-      public:
+    public:
         virtual ~IWriteBatch() = default;
 
         virtual std::vector<std::pair<std::string, std::string>> extractRawDataToInsert() = 0;
-
         virtual std::vector<std::string> extractRawKeysToRemove() = 0;
+
+        virtual std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>>
+        extractRawDataToInsertWithCF() { return {}; }
+        virtual std::unordered_map<std::string, std::vector<std::string>> extractRawKeysToRemoveWithCF() { return {}; }
     };
 
 } // namespace CryptoNote

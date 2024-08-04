@@ -6,13 +6,15 @@
 #pragma once
 
 #include "CryptoTypes.h"
-#include "json.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
+#include "JsonHelper.h"
+#include "common/StringTools.h"
 
-#include <JsonHelper.h>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/variant.hpp>
-#include <common/StringTools.h>
+#include <json.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 #include <vector>
 
 namespace CryptoNote
@@ -115,6 +117,14 @@ namespace CryptoNote
         BinaryArray block; // BlockTemplate
         std::vector<BinaryArray> transactions;
 
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(block);
+            ar & BOOST_NVP(transactions);
+            // clang-format on
+        }
+
         void toJSON(rapidjson::Writer<rapidjson::StringBuffer> &writer) const
         {
             writer.StartObject();
@@ -159,6 +169,7 @@ namespace CryptoNote
     inline void to_json(nlohmann::json &j, const CryptoNote::RawBlock &block)
     {
         std::vector<std::string> transactions;
+        transactions.reserve(block.transactions.size());
 
         for (const auto &transaction : block.transactions)
         {
@@ -172,11 +183,11 @@ namespace CryptoNote
     {
         block.transactions.clear();
 
-        std::string blockString = j.at("block").get<std::string>();
+        const auto blockString = j.at("block").get<std::string>();
 
         block.block = Common::fromHex(blockString);
 
-        std::vector<std::string> transactions = j.at("transactions").get<std::vector<std::string>>();
+        const auto transactions = j.at("transactions").get<std::vector<std::string>>();
 
         for (const auto &transaction : transactions)
         {

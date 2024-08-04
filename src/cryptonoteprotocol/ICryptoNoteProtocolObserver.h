@@ -14,6 +14,8 @@ namespace CryptoNote
     class ICryptoNoteProtocolObserver
     {
       public:
+        virtual ~ICryptoNoteProtocolObserver() = default;
+
         virtual void peerCountUpdated(size_t count) {}
 
         virtual void lastKnownBlockHeightUpdated(uint32_t height) {}

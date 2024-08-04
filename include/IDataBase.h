@@ -26,14 +26,16 @@ namespace CryptoNote
             const uint64_t writeBufferMB,
             const uint64_t readCacheMB,
             const uint64_t maxFileSizeMB,
-            const bool enableDbCompression) :
+            const bool enableDbCompression,
+            const bool useExperimentalSerializer) :
             dataDir(std::move(dataDirectory)),
             backgroundThreadsCount(backgroundThreads),
             maxOpenFiles(openFiles),
             writeBufferSize(writeBufferMB * 1024 * 1024),
             readCacheSize(readCacheMB * 1024 * 1024),
             maxFileSize(maxFileSizeMB * 1024 * 1024),
-            compressionEnabled(enableDbCompression)
+            compressionEnabled(enableDbCompression),
+            useExperimentalSerializer(useExperimentalSerializer)
         {
         }
 
@@ -50,6 +52,10 @@ namespace CryptoNote
         uint64_t maxFileSize;
 
         bool compressionEnabled;
+
+        bool syncTrimmed;
+
+        bool useExperimentalSerializer;
     };
 
     class IDataBase
@@ -72,5 +78,7 @@ namespace CryptoNote
         virtual void recreate() = 0;
 
         virtual void optimize() = 0;
+
+        [[nodiscard]] virtual const DataBaseConfig &getConfig() const = 0;
     };
 } // namespace CryptoNote
