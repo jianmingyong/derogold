@@ -19,13 +19,14 @@ namespace CryptoNote
     /************************************************************************/
     struct ICryptoNoteProtocol
     {
+        virtual ~ICryptoNoteProtocol() = default;
+
         virtual void relayBlock(NOTIFY_NEW_BLOCK_request &arg) = 0;
 
         virtual void relayTransactions(const std::vector<BinaryArray> &transactions) = 0;
     };
 
-    struct ICryptoNoteProtocolHandler : ICryptoNoteProtocol, public ICryptoNoteProtocolQuery
+    struct ICryptoNoteProtocolHandler : ICryptoNoteProtocol, ICryptoNoteProtocolQuery
     {
-        virtual ~ICryptoNoteProtocolHandler() = default;
     };
 } // namespace CryptoNote

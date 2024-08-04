@@ -146,7 +146,7 @@ namespace CryptoNote
             CryptoNote::CryptoNoteProtocolHandler &payload_handler,
             std::shared_ptr<Logging::ILogger> log);
 
-        ~NodeServer() {};
+        ~NodeServer() override = default;
 
         bool run();
 
@@ -156,7 +156,7 @@ namespace CryptoNote
 
         bool sendStopSignal();
 
-        uint32_t get_this_peer_port()
+        uint32_t get_this_peer_port() const
         {
             return m_listeningPort;
         }
@@ -170,7 +170,7 @@ namespace CryptoNote
 
         bool log_connections();
 
-        virtual uint64_t get_connections_count() override;
+        uint64_t get_connections_count() override;
 
         size_t get_outgoing_connections_count();
 

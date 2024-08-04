@@ -59,6 +59,8 @@ namespace CryptoNote
 
         void optimize() override;
 
+        const DataBaseConfig &getConfig() const override { return m_config; }
+
     private:
         std::error_code write(IWriteBatch &batch, bool sync);
 

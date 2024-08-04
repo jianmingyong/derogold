@@ -3018,12 +3018,11 @@ namespace CryptoNote
 
     std::vector<Crypto::Hash> Core::doBuildSparseChain(const Crypto::Hash &blockHash) const
     {
-        IBlockchainCache *chain = findSegmentContainingBlock(blockHash);
+        const IBlockchainCache *chain = findSegmentContainingBlock(blockHash);
+        const uint32_t blockIndex = chain->getBlockIndex(blockHash);
 
-        uint32_t blockIndex = chain->getBlockIndex(blockHash);
-
-        // TODO reserve ceil(log(blockIndex))
         std::vector<Crypto::Hash> sparseChain;
+        sparseChain.reserve(static_cast<size_t>(ceil(log2(blockIndex))) + 2);
         sparseChain.push_back(blockHash);
 
         for (uint32_t i = 1; i < blockIndex; i *= 2)
@@ -3031,8 +3030,7 @@ namespace CryptoNote
             sparseChain.push_back(chain->getBlockHash(blockIndex - i));
         }
 
-        auto genesisBlockHash = chain->getBlockHash(0);
-        if (sparseChain[0] != genesisBlockHash)
+        if (const auto genesisBlockHash = chain->getBlockHash(0); sparseChain[0] != genesisBlockHash)
         {
             sparseChain.push_back(genesisBlockHash);
         }

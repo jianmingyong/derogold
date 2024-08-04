@@ -9,10 +9,9 @@
 
 #include "common/PathTools.h"
 #include "common/Util.h"
-#include "rapidjson/stringbuffer.h"
+#include "config/CliHeader.h"
+#include "config/CryptoNoteConfig.h"
 
-#include <config/CliHeader.h>
-#include <config/CryptoNoteConfig.h>
 #include <cxxopts.hpp>
 #include <fstream>
 #include <logging/ILogger.h>
@@ -20,6 +19,7 @@
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/ostreamwrapper.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 using namespace rapidjson;
 
@@ -36,6 +36,7 @@ namespace DaemonConfig
     {
         cxxopts::Options options(argv[0], CryptoNote::getProjectCLIHeader());
 
+        // clang-format off
         options.add_options("Core")
             ("help", "Display this help message.", cxxopts::value<bool>(config.help))
             ("version", "Output daemon version information.", cxxopts::value<bool>(config.version))
@@ -87,18 +88,18 @@ namespace DaemonConfig
             ("add-priority-node", "Manually add a peer to the local peer list and attempt to maintain a connection to it [ip:port]", cxxopts::value<std::vector<std::string>>(config.priorityNodes), "<ip:port>")
             ("seed-node", "Connect to a node to retrieve the peer list and then disconnect", cxxopts::value<std::vector<std::string>>(config.seedNodes), "<ip:port>");
 
-        const std::string maxOpenFiles = 
-            "(default: " + std::to_string(CryptoNote::ROCKSDB_MAX_OPEN_FILES) 
+        const std::string maxOpenFiles =
+            "(default: " + std::to_string(CryptoNote::ROCKSDB_MAX_OPEN_FILES)
             + " (ROCKSDB), " + std::to_string(CryptoNote::LEVELDB_MAX_OPEN_FILES)
             + " (LEVELDB))";
 
-        const std::string readCache = 
-            "(default: " + std::to_string(CryptoNote::ROCKSDB_READ_BUFFER_MB) 
+        const std::string readCache =
+            "(default: " + std::to_string(CryptoNote::ROCKSDB_READ_BUFFER_MB)
             + " (ROCKSDB), " + std::to_string(CryptoNote::LEVELDB_READ_BUFFER_MB)
             + " (LEVELDB))";
 
-        const std::string writeBuffer = 
-            "(default: " + std::to_string(CryptoNote::ROCKSDB_WRITE_BUFFER_MB) 
+        const std::string writeBuffer =
+            "(default: " + std::to_string(CryptoNote::ROCKSDB_WRITE_BUFFER_MB)
             + " (ROCKSDB), " + std::to_string(CryptoNote::LEVELDB_WRITE_BUFFER_MB)
             + " (LEVELDB))";
 
@@ -111,10 +112,12 @@ namespace DaemonConfig
             ("db-write-buffer-size", "Size of the database write buffer in megabytes (MB) " + writeBuffer, cxxopts::value<int>())
             ("db-max-file-size", "Max file size of database files in megabytes (MB) (LevelDB only)", cxxopts::value<int>()->default_value(std::to_string(CryptoNote::LEVELDB_MAX_FILE_SIZE_MB)))
             ("db-optimize", "Optimize database and close", cxxopts::value<bool>(config.dbOptimize))
-            ("db-purge", "Purge unwanted data in the database and close", cxxopts::value<bool>(config.dbPurge));
+            ("db-use-experimental-serializer", "Use experimental serializer to store the blockchain data.", cxxopts::value<bool>(config.dbUseExperimentalSerializer));
 
         options.add_options("Syncing")
             ("transaction-validation-threads", "Number of threads to use to validate a transaction's inputs in parallel.", cxxopts::value<uint32_t>(config.transactionValidationThreads));
+
+        // clang-format on
 
         try
         {
@@ -131,9 +134,7 @@ namespace DaemonConfig
 
             if (cli.count("max-export-blocks") > 0 && config.exportNumBlocks == 0)
             {
-                std::cout << CryptoNote::getProjectCLIHeader()
-                          << "`--max-export-blocks` can not be 0."
-                          << std::endl;
+                std::cout << CryptoNote::getProjectCLIHeader() << "`--max-export-blocks` can not be 0." << std::endl;
                 exit(1);
             }
 
@@ -141,16 +142,25 @@ namespace DaemonConfig
              * passed in values later if present. */
             if (cli.count("db-enable-level-db") > 0 && config.enableLevelDB)
             {
-                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>() : CryptoNote::LEVELDB_MAX_OPEN_FILES;
-                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>() : CryptoNote::LEVELDB_READ_BUFFER_MB;
-                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0 ? cli["db-write-buffer-size"].as<int>() : CryptoNote::LEVELDB_WRITE_BUFFER_MB;
-                config.dbMaxFileSizeMB = cli.count("db-max-file-size") > 0 ? cli["db-max-file-size"].as<int>() : CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
+                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>()
+                                                                           : CryptoNote::LEVELDB_MAX_OPEN_FILES;
+                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>()
+                                                                                : CryptoNote::LEVELDB_READ_BUFFER_MB;
+                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0
+                                               ? cli["db-write-buffer-size"].as<int>()
+                                               : CryptoNote::LEVELDB_WRITE_BUFFER_MB;
+                config.dbMaxFileSizeMB = cli.count("db-max-file-size") > 0 ? cli["db-max-file-size"].as<int>()
+                                                                           : CryptoNote::LEVELDB_MAX_FILE_SIZE_MB;
             }
             else
             {
-                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>() : CryptoNote::ROCKSDB_MAX_OPEN_FILES;
-                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>() : CryptoNote::ROCKSDB_READ_BUFFER_MB;
-                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0 ? cli["db-write-buffer-size"].as<int>() : CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
+                config.dbMaxOpenFiles = cli.count("db-max-open-files") > 0 ? cli["db-max-open-files"].as<int>()
+                                                                           : CryptoNote::ROCKSDB_MAX_OPEN_FILES;
+                config.dbReadCacheSizeMB = cli.count("db-read-buffer-size") > 0 ? cli["db-read-buffer-size"].as<int>()
+                                                                                : CryptoNote::ROCKSDB_READ_BUFFER_MB;
+                config.dbWriteBufferSizeMB = cli.count("db-write-buffer-size") > 0
+                                               ? cli["db-write-buffer-size"].as<int>()
+                                               : CryptoNote::ROCKSDB_WRITE_BUFFER_MB;
             }
 
             if (cli.count("db-max-file-size") > 0)
@@ -180,19 +190,19 @@ namespace DaemonConfig
         {
             std::cout << "Error: Unable to parse command line argument options: " << e.what() << std::endl
                       << std::endl
-                      << options.help()
-                      << std::endl;
+                      << options.help() << std::endl;
             exit(1);
         }
     }
 
-    void handleSettings(const std::string& configFile, DaemonConfiguration &config)
+    void handleSettings(const std::string &configFile, DaemonConfiguration &config)
     {
         std::ifstream data(configFile);
 
         if (!data.good())
         {
-            throw std::runtime_error("The --config-file you specified does not exist, please check the filename and try again.");
+            throw std::runtime_error(
+                "The --config-file you specified does not exist, please check the filename and try again.");
         }
 
         IStreamWrapper isw(data);
@@ -398,6 +408,11 @@ namespace DaemonConfig
             config.dbMaxFileSizeMB = j["db-max-file-size"].GetInt();
         }
 
+        if (j.HasMember("db-use-experimental-serializer"))
+        {
+            config.dbUseExperimentalSerializer = j["db-use-experimental-serializer"].GetBool();
+        }
+
         // Syncing Options
 
         if (j.HasMember("transaction-validation-threads"))
@@ -437,8 +452,8 @@ namespace DaemonConfig
         j.AddMember("rpc-bind-port", config.rpcPort, alloc);
 
         {
-            Value arr(rapidjson::kArrayType);
-            for (const auto& v : config.exclusiveNodes)
+            Value arr(kArrayType);
+            for (const auto &v : config.exclusiveNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -446,8 +461,8 @@ namespace DaemonConfig
         }
 
         {
-            Value arr(rapidjson::kArrayType);
-            for (const auto& v : config.peers)
+            Value arr(kArrayType);
+            for (const auto &v : config.peers)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -455,8 +470,8 @@ namespace DaemonConfig
         }
 
         {
-            Value arr(rapidjson::kArrayType);
-            for (const auto& v : config.priorityNodes)
+            Value arr(kArrayType);
+            for (const auto &v : config.priorityNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -464,8 +479,8 @@ namespace DaemonConfig
         }
 
         {
-            Value arr(rapidjson::kArrayType);
-            for (const auto& v : config.seedNodes)
+            Value arr(kArrayType);
+            for (const auto &v : config.seedNodes)
             {
                 arr.PushBack(Value().SetString(StringRef(v.c_str())), alloc);
             }
@@ -479,6 +494,7 @@ namespace DaemonConfig
         j.AddMember("db-threads", config.dbThreads, alloc);
         j.AddMember("db-write-buffer-size", config.dbWriteBufferSizeMB, alloc);
         j.AddMember("db-max-file-size", config.dbMaxFileSizeMB, alloc);
+        j.AddMember("db-use-experimental-serializer", config.dbUseExperimentalSerializer, alloc);
 
         j.AddMember("transaction-validation-threads", config.transactionValidationThreads, alloc);
 

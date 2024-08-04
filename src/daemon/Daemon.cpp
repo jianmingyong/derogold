@@ -16,28 +16,25 @@
 #include "common/SignalHandler.h"
 #include "common/StdOutputStream.h"
 #include "common/Util.h"
+#include "config/CliHeader.h"
+#include "config/CryptoNoteCheckpoints.h"
 #include "cryptonotecore/Core.h"
 #include "cryptonotecore/Currency.h"
+#include "cryptonotecore/DBUtils.h"
 #include "cryptonotecore/DatabaseBlockchainCache.h"
 #include "cryptonotecore/DatabaseBlockchainCacheFactory.h"
-#include "cryptonotecore/LMDBWrapper.h"
 #include "cryptonotecore/LevelDBWrapper.h"
 #include "cryptonotecore/RocksDBWrapper.h"
 #include "cryptonoteprotocol/CryptoNoteProtocolHandler.h"
+#include "logger/Logger.h"
+#include "logging/LoggerManager.h"
 #include "p2p/NetNode.h"
 #include "p2p/NetNodeConfig.h"
 #include "rpc/RpcServer.h"
 
-#include <config/CliHeader.h>
-#include <config/CryptoNoteCheckpoints.h>
-#include <logger/Logger.h>
-#include <logging/LoggerManager.h>
-
 #if defined(WIN32)
-
     #undef ERROR
     #include <crtdbg.h>
-
 #else
     #include <unistd.h>
 #endif
@@ -216,12 +213,10 @@ int main(int argc, char *argv[])
 
         /* New logger, for now just passing through messages to old logger */
         Logger::logger.setLogCallback(
-            [&logger](
-                const std::string prettyMessage,
-                const std::string message,
-                const Logger::LogLevel level,
-                const std::vector<Logger::LogCategory> categories
-            )
+            [&logger](const std::string prettyMessage,
+                      const std::string message,
+                      const Logger::LogLevel level,
+                      const std::vector<Logger::LogCategory> categories)
             {
                 Logging::Level oldLogLevel;
                 std::string logColour;
@@ -253,8 +248,7 @@ int main(int argc, char *argv[])
                 }
 
                 logger(oldLogLevel, logColour) << message;
-            }
-        );
+            });
 
         logger(INFO, BRIGHT_GREEN) << getProjectCLIHeader() << std::endl;
 
@@ -301,29 +295,26 @@ int main(int argc, char *argv[])
         }
 
         NetNodeConfig netNodeConfig;
-        netNodeConfig.init(
-            config.p2pInterface,
-            config.p2pPort,
-            config.p2pExternalPort,
-            config.localIp,
-            config.hideMyPort,
-            config.dataDirectory,
-            config.peers,
-            config.exclusiveNodes,
-            config.priorityNodes,
-            config.seedNodes,
-            config.p2pResetPeerstate
-        );
+        netNodeConfig.init(config.p2pInterface,
+                           config.p2pPort,
+                           config.p2pExternalPort,
+                           config.localIp,
+                           config.hideMyPort,
+                           config.dataDirectory,
+                           config.peers,
+                           config.exclusiveNodes,
+                           config.priorityNodes,
+                           config.seedNodes,
+                           config.p2pResetPeerstate);
 
-        DataBaseConfig dbConfig(
-            config.dataDirectory,
-            config.dbThreads,
-            config.dbMaxOpenFiles,
-            config.dbWriteBufferSizeMB,
-            config.dbReadCacheSizeMB,
-            config.dbMaxFileSizeMB,
-            config.enableDbCompression
-        );
+        DataBaseConfig dbConfig(config.dataDirectory,
+                                config.dbThreads,
+                                config.dbMaxOpenFiles,
+                                config.dbWriteBufferSizeMB,
+                                config.dbReadCacheSizeMB,
+                                config.dbMaxFileSizeMB,
+                                config.enableDbCompression,
+                                config.dbUseExperimentalSerializer);
 
         if (!Tools::create_directories_if_necessary(dbConfig.dataDir))
         {
@@ -370,10 +361,8 @@ int main(int argc, char *argv[])
             std::move(checkpoints),
             dispatcher,
             std::unique_ptr<IBlockchainCacheFactory>(
-                std::make_unique<DatabaseBlockchainCacheFactory>(*database, logger.getLogger())
-            ),
-            config.transactionValidationThreads
-        );
+                std::make_unique<DatabaseBlockchainCacheFactory>(*database, logger.getLogger())),
+            config.transactionValidationThreads);
 
         ccore->load();
 
@@ -434,11 +423,10 @@ int main(int argc, char *argv[])
 
             auto topHeight = ccore->getTopBlockIndex();
 
-            for (size_t i = 0; i <= topHeight; i++)
+            for (uint32_t i = 0; i <= topHeight; i++)
             {
                 auto hash = ccore->getBlockHashByIndex(i);
                 out << std::to_string(i) << "," << Common::podToHex(hash) << std::endl;
-                out.flush();
 
                 if (i % 1000 == 0)
                 {
@@ -463,32 +451,6 @@ int main(int argc, char *argv[])
             ccore->rewind(config.rewindToHeight);
         }
 
-        if (config.dbPurge)
-        {
-            auto topHeight = ccore->getTopBlockIndex();
-            BlockchainWriteBatch writeBatch;
-
-            for (size_t i = 0; i <= topHeight; i++)
-            {
-                auto blockTemplate = ccore->getBlockByIndex(i);
-                writeBatch.removeTimestamp(blockTemplate.timestamp);
-
-                if (i % 1000 == 0)
-                {
-                    logger(INFO) << "Purging Data (" << std::to_string(i) << "/" << std::to_string(topHeight) << ")";
-                    database->write(writeBatch);
-                    writeBatch = {};
-                }
-            }
-
-            database->write(writeBatch);
-            database->shutdown();
-
-            logger(INFO) << "Purge completed.";
-
-            exit(0);
-        }
-
         const auto cprotocol =
             std::make_shared<CryptoNote::CryptoNoteProtocolHandler>(currency, dispatcher, *ccore, nullptr, logManager);
 
@@ -505,20 +467,18 @@ int main(int argc, char *argv[])
             rpcMode = RpcMode::BlockExplorerEnabled;
         }
 
-        RpcServer rpcServer(
-            config.rpcPort,
-            config.rpcInterface,
-            config.enableCors,
-            config.feeAddress,
-            config.feeAmount,
-            rpcMode,
-            ccore,
-            p2psrv,
-            cprotocol,
-            config.enableTrtlRpc
-        );
+        RpcServer rpcServer(config.rpcPort,
+                            config.rpcInterface,
+                            config.enableCors,
+                            config.feeAddress,
+                            config.feeAmount,
+                            rpcMode,
+                            ccore,
+                            p2psrv,
+                            cprotocol,
+                            config.enableTrtlRpc);
 
-        cprotocol->set_p2p_endpoint(&(*p2psrv));
+        cprotocol->set_p2p_endpoint(&*p2psrv);
         logger(INFO) << "Initializing p2p server...";
         if (!p2psrv->init(netNodeConfig))
         {
@@ -556,8 +516,7 @@ int main(int argc, char *argv[])
             {
                 dch.exit({});
                 dch.stop_handling();
-            }
-        );
+            });
 
         logger(INFO) << "Starting p2p net loop...";
         p2psrv->run();

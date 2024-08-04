@@ -5,15 +5,16 @@
 
 #pragma once
 
+#include "common/StringTools.h"
 #include "json.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 
 #include <algorithm>
-#include <common/StringTools.h>
+#include <boost/serialization/binary_object.hpp>
+#include <boost/serialization/nvp.hpp>
 #include <cstdint>
 #include <iterator>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace Crypto
 {
@@ -232,6 +233,13 @@ namespace Crypto
             {
                 throw std::invalid_argument("Error parsing JSON keyimage, wrong length or not hex");
             }
+        }
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & make_nvp(BOOST_STRINGIZE(data), boost::serialization::make_binary_object(&data, 32));
+            // clang-format on
         }
 
         uint8_t data[32];
