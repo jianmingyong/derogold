@@ -10,7 +10,7 @@ namespace Mnemonics
 {
     namespace WordList
     {
-        const static std::vector<const char *> English = {
+        const static std::vector English = {
             "abbey",     "abducts",   "ability",   "ablaze",     "abnormal",     "abort",      "abrasive",  "absorb",
             "abyss",     "academy",   "aces",      "aching",     "acidic",       "acoustic",   "acquire",   "across",
             "actress",   "acumen",    "adapt",     "addicted",   "adept",        "adhesive",   "adjust",    "adopt",

@@ -282,7 +282,8 @@ int main(int argc, char *argv[])
                 {
                     checkpoints.addCheckpoint(cp.index, cp.blockId);
                 }
-                logger(INFO) << "Loaded " << CryptoNote::CHECKPOINTS.size() << " default checkpoints";
+
+                logger(INFO) << "Loaded " << std::size(CryptoNote::CHECKPOINTS) << " default checkpoints";
             }
             else
             {
