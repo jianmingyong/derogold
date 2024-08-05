@@ -11,11 +11,10 @@
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/variant.hpp>
+#include <boost/serialization/variant.hpp>
 #include <json.hpp>
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
-#include <vector>
 
 namespace CryptoNote
 {
@@ -34,6 +33,13 @@ namespace CryptoNote
     struct KeyOutput
     {
         Crypto::PublicKey key;
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(key);
+            // clang-format on
+        }
     };
 
     typedef boost::variant<BaseInput, KeyInput> TransactionInput;
@@ -44,6 +50,14 @@ namespace CryptoNote
     {
         uint64_t amount;
         TransactionOutputTarget target;
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(amount);
+            ar & BOOST_NVP(target);
+            // clang-format on
+        }
     };
 
     struct TransactionPrefix
@@ -117,14 +131,6 @@ namespace CryptoNote
         BinaryArray block; // BlockTemplate
         std::vector<BinaryArray> transactions;
 
-        template<class Archive> void serialize(Archive &ar, const unsigned int version)
-        {
-            // clang-format off
-            ar & BOOST_NVP(block);
-            ar & BOOST_NVP(transactions);
-            // clang-format on
-        }
-
         void toJSON(rapidjson::Writer<rapidjson::StringBuffer> &writer) const
         {
             writer.StartObject();
@@ -148,6 +154,14 @@ namespace CryptoNote
             {
                 transactions.push_back(Common::fromHex(tx.GetString()));
             }
+        }
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(block);
+            ar & BOOST_NVP(transactions);
+            // clang-format on
         }
     };
 

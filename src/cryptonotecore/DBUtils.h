@@ -17,15 +17,11 @@
 #include <boost/archive/basic_archive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-#include <boost/serialization/unordered_set.hpp>
 #include <sstream>
 #include <string>
 
 namespace CryptoNote::DB
 {
-    const std::string RAW_BLOCKS_CF = "RawBlocks";
-    const std::string SPENT_KEY_IMAGES_CF = "SpentKeyImages";
-
     const std::string BLOCK_INDEX_TO_KEY_IMAGE_PREFIX = "0";
     const std::string BLOCK_INDEX_TO_TX_HASHES_PREFIX = "1";
     const std::string BLOCK_INDEX_TO_TRANSACTION_INFO_PREFIX = "2";
@@ -128,8 +124,21 @@ namespace CryptoNote::DB
 
     namespace V2
     {
+        const std::string RAW_BLOCKS_CF = "RawBlocks";
+        const std::string SPENT_KEY_IMAGES_CF = "SpentKeyImages";
+        const std::string PAYMENT_ID_TXS_CF = "PaymentIdTxs";
+        const std::string TRANSACTIONS_CF = "Transactions";
+        const std::string BLOCKS_CF = "Blocks";
+
         constexpr uint32_t SERIALIZATION_FLAGS =
             boost::archive::archive_flags::no_header | boost::archive::archive_flags::no_tracking;
+
+        template<class Key> std::string serializeKey(const Key &key)
+        {
+            std::stringstream ss;
+            ss << key;
+            return ss.str();
+        }
 
         template<class Key> std::string serializeKey(const std::string &keyPrefix, const Key &key)
         {
@@ -155,16 +164,20 @@ namespace CryptoNote::DB
             std::stringstream ss;
             ss << data;
 
-            {
-                boost::archive::binary_iarchive i {ss, SERIALIZATION_FLAGS};
-                i >> value;
-            }
+            boost::archive::binary_iarchive i {ss, SERIALIZATION_FLAGS};
+            i >> value;
+        }
+
+        template<class Key, class Value>
+        std::pair<std::string, std::string> serialize(const Key &key, const Value &value)
+        {
+            return std::make_pair(V2::serializeKey(key), V2::serializeValue(value));
         }
 
         template<class Key, class Value>
         std::pair<std::string, std::string> serialize(const std::string &keyPrefix, const Key &key, const Value &value)
         {
-            return std::make_pair(serializeKey(keyPrefix, key), serializeValue(value));
+            return std::make_pair(V2::serializeKey(keyPrefix, key), V2::serializeValue(value));
         }
 
         template<class Key, class Value>
@@ -174,25 +187,41 @@ namespace CryptoNote::DB
         {
             for (const std::pair<Key, Value> &kv : map)
             {
-                rawKeys.emplace_back(serializeKey(keyPrefix, kv.first));
+                rawKeys.emplace_back(V2::serializeKey(keyPrefix, kv.first));
             }
         }
 
         template<class Key, class Value, class Iterator>
-        void deserializeValues(std::unordered_map<Key, Value> &map,
-                               Iterator &serializedValuesIter)
+        void deserializeValues(std::unordered_map<Key, Value> &map, Iterator &serializedValuesIter)
         {
             for (auto iter = map.begin(); iter != map.end(); ++serializedValuesIter)
             {
                 if (boost::get<1>(*serializedValuesIter))
                 {
-                    deserializeValue(boost::get<0>(*serializedValuesIter), iter->second);
+                    V2::deserializeValue(boost::get<0>(*serializedValuesIter), iter->second);
                     ++iter;
                 }
                 else
                 {
                     iter = map.erase(iter);
                 }
+            }
+        }
+
+        template<class Value, class Iterator>
+        void deserializeValue(std::pair<Value, bool> &pair, Iterator &serializedValuesIter)
+        {
+            if (pair.second)
+            {
+                if (boost::get<1>(*serializedValuesIter))
+                {
+                    V2::deserializeValue(boost::get<0>(*serializedValuesIter), pair.first);
+                }
+                else
+                {
+                    pair = {Value {}, false};
+                }
+                ++serializedValuesIter;
             }
         }
     } // namespace V2

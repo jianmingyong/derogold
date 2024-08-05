@@ -15,6 +15,7 @@
 #include <rocksdb/table.h>
 #include <rocksdb/utilities/options_util.h>
 #include <utility>
+#include <thread>
 
 namespace CryptoNote
 {
@@ -350,7 +351,7 @@ namespace CryptoNote
         cfOptions.memtable_prefix_bloom_size_ratio = 0.02;
         cfOptions.memtable_whole_key_filtering = true;
 
-        columnFamilies.emplace_back(DB::RAW_BLOCKS_CF, cfOptions);
+        columnFamilies.emplace_back(DB::V2::RAW_BLOCKS_CF, cfOptions);
         columnFamilies.emplace_back("SpentKeyImages", cfOptions);
         columnFamilies.emplace_back("CachedTransactions", cfOptions);
         columnFamilies.emplace_back("PaymentIds", cfOptions);
