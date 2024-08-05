@@ -23,7 +23,7 @@ namespace CryptoNote
                                                       uint64_t totalTxsCount);
 
         BlockchainWriteBatch &insertPaymentId(const Crypto::Hash &transactionHash,
-                                              Crypto::Hash paymentId,
+                                              const Crypto::Hash &paymentId,
                                               uint32_t totalTxsCountForPaymentId);
 
         BlockchainWriteBatch &insertCachedBlock(const CachedBlockInfo &block,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -52,6 +52,18 @@ namespace CryptoNote
         std::vector<uint32_t> globalIndexes;
 
         void serialize(ISerializer &s);
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(blockIndex);
+            ar & BOOST_NVP(transactionIndex);
+            ar & BOOST_NVP(transactionHash);
+            ar & BOOST_NVP(unlockTime);
+            ar & BOOST_NVP(outputs);
+            ar & BOOST_NVP(globalIndexes);
+            // clang-format on
+        }
     };
 
 

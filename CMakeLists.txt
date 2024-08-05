@@ -201,6 +201,7 @@ if (MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/msc)
 elseif (MINGW)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _WIN32_WINNT=0x0A00 WIN32_LEAN_AND_MEAN)
     add_link_options(-static)
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)

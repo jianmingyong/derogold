@@ -8,6 +8,8 @@
 
 #include "DBUtils.h"
 
+#include <boost/serialization/unordered_set.hpp>
+
 using namespace CryptoNote;
 
 BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
@@ -16,18 +18,17 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertSpentKeyImages(
 {
     rawDataToInsert.reserve(rawDataToInsert.size() + spentKeyImages.size() + 1);
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_KEY_IMAGE_PREFIX, blockIndex, spentKeyImages));
+
     for (const Crypto::KeyImage &keyImage : spentKeyImages)
     {
         rawDataToInsert.emplace_back(DB::serialize(DB::KEY_IMAGE_TO_BLOCK_INDEX_PREFIX, keyImage, blockIndex));
     }
 
-    rawDataToInsertWithCF[DB::SPENT_KEY_IMAGES_CF].emplace_back(
-        DB::V2::serialize(DB::BLOCK_INDEX_TO_KEY_IMAGE_PREFIX, blockIndex, spentKeyImages));
+    rawDataToInsertWithCF[DB::V2::SPENT_KEY_IMAGES_CF].emplace_back(DB::V2::serialize(blockIndex, spentKeyImages));
 
     for (const Crypto::KeyImage &keyImage : spentKeyImages)
     {
-        rawDataToInsertWithCF[DB::SPENT_KEY_IMAGES_CF].emplace_back(
-            DB::V2::serialize(DB::KEY_IMAGE_TO_BLOCK_INDEX_PREFIX, keyImage, blockIndex));
+        rawDataToInsertWithCF[DB::V2::SPENT_KEY_IMAGES_CF].emplace_back(DB::V2::serialize(keyImage, blockIndex));
     }
 
     return *this;
@@ -40,22 +41,32 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(const Extend
         DB::serialize(DB::TRANSACTION_HASH_TO_TRANSACTION_INFO_PREFIX, transaction.transactionHash, transaction));
     rawDataToInsert.emplace_back(
         DB::serialize(DB::TRANSACTION_HASH_TO_TRANSACTION_INFO_PREFIX, DB::TRANSACTIONS_COUNT_KEY, totalTxsCount));
+
+    rawDataToInsertWithCF[DB::V2::TRANSACTIONS_CF].emplace_back(
+        DB::V2::serialize(transaction.transactionHash, transaction));
+    rawDataToInsertWithCF[DB::V2::TRANSACTIONS_CF].emplace_back(
+        DB::V2::serialize(DB::TRANSACTIONS_COUNT_KEY, totalTxsCount));
     return *this;
 }
 
 BlockchainWriteBatch &BlockchainWriteBatch::insertPaymentId(const Crypto::Hash &transactionHash,
-                                                            const Crypto::Hash paymentId,
-                                                            uint32_t totalTxsCountForPaymentId)
+                                                            const Crypto::Hash &paymentId,
+                                                            const uint32_t totalTxsCountForPaymentId)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::PAYMENT_ID_TO_TX_HASH_PREFIX, paymentId, totalTxsCountForPaymentId));
     rawDataToInsert.emplace_back(DB::serialize(DB::PAYMENT_ID_TO_TX_HASH_PREFIX,
                                                std::make_pair(paymentId, totalTxsCountForPaymentId - 1),
                                                transactionHash));
+
+    rawDataToInsertWithCF[DB::V2::PAYMENT_ID_TXS_CF].emplace_back(
+        DB::V2::serialize(paymentId, totalTxsCountForPaymentId));
+    rawDataToInsertWithCF[DB::V2::PAYMENT_ID_TXS_CF].emplace_back(
+        DB::V2::serialize(Common::podToHex(paymentId), totalTxsCountForPaymentId - 1, transactionHash));
     return *this;
 }
 
 BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(const CachedBlockInfo &block,
-                                                              uint32_t blockIndex,
+                                                              const uint32_t blockIndex,
                                                               const std::vector<Crypto::Hash> &blockTxs)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_BLOCK_INFO_PREFIX, blockIndex, block));
@@ -63,6 +74,15 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(const CachedBlockI
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_HASH_TO_BLOCK_INDEX_PREFIX, block.blockHash, blockIndex));
     rawDataToInsert.emplace_back(
         DB::serialize(DB::BLOCK_INDEX_TO_BLOCK_HASH_PREFIX, DB::LAST_BLOCK_INDEX_KEY, blockIndex));
+
+    rawDataToInsertWithCF[DB::V2::BLOCKS_CF].emplace_back(
+        DB::V2::serialize(DB::BLOCK_INDEX_TO_BLOCK_INFO_PREFIX, blockIndex, block));
+    rawDataToInsertWithCF[DB::V2::BLOCKS_CF].emplace_back(
+        DB::V2::serialize(DB::BLOCK_INDEX_TO_TX_HASHES_PREFIX, blockIndex, blockTxs));
+    rawDataToInsertWithCF[DB::V2::BLOCKS_CF].emplace_back(
+        DB::V2::serialize(block.blockHash, blockIndex));
+    rawDataToInsertWithCF[DB::V2::BLOCKS_CF].emplace_back(
+        DB::V2::serialize(DB::LAST_BLOCK_INDEX_KEY, blockIndex));
     return *this;
 }
 
@@ -87,8 +107,7 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputGlobalIndexes(IBlockc
 BlockchainWriteBatch &BlockchainWriteBatch::insertRawBlock(const uint32_t blockIndex, const RawBlock &block)
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_RAW_BLOCK_PREFIX, blockIndex, block));
-    rawDataToInsertWithCF[DB::RAW_BLOCKS_CF].emplace_back(
-        DB::V2::serialize(DB::BLOCK_INDEX_TO_RAW_BLOCK_PREFIX, blockIndex, block));
+    rawDataToInsertWithCF[DB::V2::RAW_BLOCKS_CF].emplace_back(DB::V2::serialize(blockIndex, block));
     return *this;
 }
 
