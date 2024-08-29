@@ -3022,7 +3022,6 @@ namespace CryptoNote
         const uint32_t blockIndex = chain->getBlockIndex(blockHash);
 
         std::vector<Crypto::Hash> sparseChain;
-        sparseChain.reserve(static_cast<size_t>(ceil(log2(blockIndex))) + 2);
         sparseChain.push_back(blockHash);
 
         for (uint32_t i = 1; i < blockIndex; i *= 2)

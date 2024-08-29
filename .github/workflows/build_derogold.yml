@@ -247,7 +247,6 @@ jobs:
           ref: ${{ github.event.inputs.commit_id || github.ref }}
           fetch-depth: 0
           fetch-tags: true
-          submodules: recursive
 
       - name: Create artifact directory
         run: |
