@@ -46,6 +46,7 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedTransaction(const Extend
         DB::V2::serialize(transaction.transactionHash, transaction));
     rawDataToInsertWithCF[DB::V2::TRANSACTIONS_CF].emplace_back(
         DB::V2::serialize(DB::TRANSACTIONS_COUNT_KEY, totalTxsCount));
+
     return *this;
 }
 
@@ -62,6 +63,7 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertPaymentId(const Crypto::Hash &
         DB::V2::serialize(paymentId, totalTxsCountForPaymentId));
     rawDataToInsertWithCF[DB::V2::PAYMENT_ID_TXS_CF].emplace_back(
         DB::V2::serialize(Common::podToHex(paymentId), totalTxsCountForPaymentId - 1, transactionHash));
+
     return *this;
 }
 
@@ -83,12 +85,13 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertCachedBlock(const CachedBlockI
         DB::V2::serialize(block.blockHash, blockIndex));
     rawDataToInsertWithCF[DB::V2::BLOCKS_CF].emplace_back(
         DB::V2::serialize(DB::LAST_BLOCK_INDEX_KEY, blockIndex));
+
     return *this;
 }
 
 BlockchainWriteBatch &BlockchainWriteBatch::insertKeyOutputGlobalIndexes(IBlockchainCache::Amount amount,
                                                                          const std::vector<PackedOutIndex> &outputs,
-                                                                         uint32_t totalOutputsCountForAmount)
+                                                                         const uint32_t totalOutputsCountForAmount)
 {
     assert(totalOutputsCountForAmount >= outputs.size());
     rawDataToInsert.reserve(rawDataToInsert.size() + outputs.size() + 1);
@@ -108,6 +111,7 @@ BlockchainWriteBatch &BlockchainWriteBatch::insertRawBlock(const uint32_t blockI
 {
     rawDataToInsert.emplace_back(DB::serialize(DB::BLOCK_INDEX_TO_RAW_BLOCK_PREFIX, blockIndex, block));
     rawDataToInsertWithCF[DB::V2::RAW_BLOCKS_CF].emplace_back(DB::V2::serialize(blockIndex, block));
+
     return *this;
 }
 

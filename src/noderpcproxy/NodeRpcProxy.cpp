@@ -16,8 +16,8 @@
 #include "rpc/JsonRpc.h"
 
 #include <atomic>
+#include <boost/utility/value_init.hpp>
 #include <cryptonotecore/TransactionApi.h>
-#include <ctime>
 #include <http/HttpRequest.h>
 #include <http/HttpResponse.h>
 #include <logging/DummyLogger.h>

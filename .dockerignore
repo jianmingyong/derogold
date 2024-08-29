@@ -1,11 +1,16 @@
-.github/
+.idea/
 build/
 scripts/
-*.bak
-*.md
 
-.clang-format
-LICENSE
+vcpkg/buildtrees/
+vcpkg/build*/
+vcpkg/downloads/
+vcpkg/installed*/
+vcpkg/vcpkg_installed*/
+vcpkg/packages/
+vcpkg/scripts/buildsystems/tmp/
+vcpkg/*.exe
+vcpkg/*.zip
 
 # Created by https://www.toptal.com/developers/gitignore/api/cmake,c++,visualstudio,visualstudiocode,clion+all,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=cmake,c++,visualstudio,visualstudiocode,clion+all,macos
