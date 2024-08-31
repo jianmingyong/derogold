@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13]
+        os: [windows-latest, ubuntu-20.04, macos-13]
         arch: [x64, arm64]
         compiler: [msvc, gcc, clang]
 
@@ -40,9 +40,9 @@ jobs:
             arch: arm64
           - os: macos-13
             arch: arm64
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             compiler: msvc
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             arch: arm64
             compiler: clang
           - os: macos-13
@@ -82,7 +82,7 @@ jobs:
             configure_preset: windows-x64-mingw-clang-publish
             build_preset: windows-x64-mingw-clang-publish
 
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             arch: x64
             compiler: gcc
             install: >-
@@ -97,7 +97,7 @@ jobs:
             configure_preset: linux-x64-gcc-publish
             build_preset: linux-x64-gcc-publish
 
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             arch: x64
             compiler: clang
             install: >-
@@ -112,7 +112,7 @@ jobs:
             configure_preset: linux-x64-clang-publish
             build_preset: linux-x64-clang-publish
 
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             arch: arm64
             compiler: gcc
             install: >-
