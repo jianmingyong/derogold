@@ -243,6 +243,12 @@ if (NOT MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=inconsistent-missing-override")
     endif ()
 
+    check_cxx_compiler_flag(-ftrivial-auto-var-init HAS_TRIVIAL_AUTO_VAR_INIT)
+
+    if (HAS_TRIVIAL_AUTO_VAR_INIT)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftrivial-auto-var-init=zero")
+    endif ()
+
     if (APPLE)
         if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
             # Need to build against libc++ instead of libstc++ on apple

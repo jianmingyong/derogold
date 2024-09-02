@@ -144,8 +144,8 @@ Building:
 #### GCC
 
 Prerequisites:
-- For Ubuntu: `sudo apt install git cmake ninja-build build-essential curl zip unzip tar pkg-config`
-- (Optional) `sudo apt install crossbuild-essential-arm64` for cross building aarch64 target
+- For Ubuntu: `sudo apt-get install git cmake ninja-build build-essential curl zip unzip tar pkg-config`
+- (Optional) `sudo apt-get install crossbuild-essential-arm64` for cross building aarch64 target
 
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
@@ -162,7 +162,7 @@ You can use `--preset linux-arm64-gcc-cross-publish` to cross compile for arm64/
 #### CLANG
 
 Prerequisites:
-- For Ubuntu: `sudo apt install git cmake ninja-build clang curl zip unzip tar pkg-config`
+- For Ubuntu: `sudo apt-get install git cmake ninja-build clang curl zip unzip tar pkg-config`
 
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`

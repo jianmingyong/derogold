@@ -21,11 +21,11 @@
 
 ## External Dependencies Version
 - boost 1.85.0
-- cpp-httplib 0.16.0
+- cpp-httplib 0.16.2
 - cryptopp 8.9.0
 - cxxopts 3.2.1
 - leveldb 1.23
-- miniupnpc 2.2.6
+- miniupnpc 2.3.7
 - openssl 3.3.1
 - rapidjson 2023-07-17
 - rocksdb 9.2.1
@@ -33,14 +33,14 @@
 # Install Notes
 
 ## For Windows user: (x64)
-- Download `DeroGold-X.X.X.X-windows-x64-msvc.zip` and unzip.
+- Download `DeroGold-0.7.2.2-windows-x64-msvc.zip` and unzip.
 
 ## For Linux user: (x64 or arm64)
-- (**Debian package installer**) Download `DeroGold-X.X.X.X-linux-x64-gcc.deb` to install via `sudo apt install ./DeroGold-X.X.X.X-linux-x64-gcc.deb`.
-- Download `DeroGold-X.X.X.X-linux-x64-gcc.tar.gz` and use `tar -xf DeroGold-X.X.X.X-linux-x64-gcc.tar.gz` to unzip.
+- (**Debian package installer**) Download `DeroGold-0.7.2.2-linux-x64-gcc.deb` to install via `sudo apt install ./DeroGold-0.7.2.2-linux-x64-gcc.deb`.
+- Download `DeroGold-0.7.2.2-linux-x64-gcc.tar.gz` and use `tar -xf DeroGold-0.7.2.2-linux-x64-gcc.tar.gz` to unzip.
 
 ## For MacOS user: (x64)
-- Download `DeroGold-X.X.X.X-osx-x64-clang.tar.gz` and use `tar -xf DeroGold-X.X.X.X-osx-x64-clang.tar.gz` to unzip.
+- Download `DeroGold-0.7.2.2-osx-x64-clang.tar.gz` and use `tar -xf DeroGold-0.7.2.2-osx-x64-clang.tar.gz` to unzip.
 
 # **USAGE WARNING:**
 - Pre-released versions are not guaranteed to be stable. Use with caution.

@@ -82,7 +82,8 @@ namespace
             UPNPUrls urls;
             IGDdatas igdData;
             char lanAddress[64];
-            result = UPNP_GetValidIGD(currentDevice, &urls, &igdData, lanAddress, sizeof lanAddress);
+			char wanAddress[64];
+            result = UPNP_GetValidIGD(currentDevice, &urls, &igdData, lanAddress, sizeof lanAddress, wanAddress, sizeof wanAddress);
 
             if (result != 0)
             {

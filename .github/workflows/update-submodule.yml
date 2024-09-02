@@ -1,0 +1,26 @@
+name: Update Submodule
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  update_submodule:
+    name: Update Submodule
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update
+        run: |
+          git submodule update --init --remote
+          git add .
+          git commit -m "Update Submodule"
+          git push

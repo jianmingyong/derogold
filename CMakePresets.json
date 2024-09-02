@@ -181,6 +181,18 @@
                 "ARCH": "default"
             }
         },
+		{
+            "name": "linux-amd64-gcc",
+            "inherits": [
+                "linux-x64-gcc"
+            ]
+        },
+		{
+            "name": "linux-amd64-gcc-publish",
+            "inherits": [
+                "linux-x64-gcc-publish"
+            ]
+        },
         {
             "name": "linux-x64-clang",
             "inherits": [
@@ -201,6 +213,18 @@
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang",
                 "ARCH": "default"
             }
+        },
+		{
+            "name": "linux-amd64-clang",
+            "inherits": [
+                "linux-x64-clang"
+            ]
+        },
+		{
+            "name": "linux-amd64-clang-publish",
+            "inherits": [
+                "linux-x64-clang-publish"
+            ]
         },
         {
             "name": "linux-arm64-gcc",
@@ -382,6 +406,23 @@
                 "install"
             ]
         },
+		{
+            "name": "linux-amd64-gcc-debug",
+            "configurePreset": "linux-amd64-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-amd64-gcc-release",
+            "configurePreset": "linux-amd64-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-amd64-gcc-publish",
+            "configurePreset": "linux-amd64-gcc-publish",
+            "targets": [
+                "install"
+            ]
+        },
         {
             "name": "linux-x64-clang-debug",
             "configurePreset": "linux-x64-clang",
@@ -395,6 +436,23 @@
         {
             "name": "linux-x64-clang-publish",
             "configurePreset": "linux-x64-clang-publish",
+            "targets": [
+                "install"
+            ]
+        },
+		{
+            "name": "linux-amd64-clang-debug",
+            "configurePreset": "linux-amd64-clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-amd64-clang-release",
+            "configurePreset": "linux-amd64-clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-amd64-clang-publish",
+            "configurePreset": "linux-amd64-clang-publish",
             "targets": [
                 "install"
             ]

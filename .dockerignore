@@ -1,6 +1,6 @@
+.github
 .idea/
 build/
-scripts/
 
 vcpkg/buildtrees/
 vcpkg/build*/
