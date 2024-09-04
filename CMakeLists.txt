@@ -28,10 +28,9 @@ else ()
 
     if (Git_FOUND)
         if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
-            execute_process(COMMAND "${GIT_EXECUTABLE}" submodule init WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_SUBMODULE_INIT_RESULT)
-            execute_process(COMMAND "${GIT_EXECUTABLE}" submodule update WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_SUBMODULE_UPDATE_RESULT)
+            execute_process(COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_SUBMODULE_INIT_RESULT)
 
-            if (GIT_SUBMODULE_INIT_RESULT OR GIT_SUBMODULE_UPDATE_RESULT)
+            if (GIT_SUBMODULE_INIT_RESULT)
                 message(CHECK_FAIL "not found")
                 message(FATAL_ERROR "Unable to initialize vcpkg submodule.")
             endif ()
@@ -85,7 +84,7 @@ endif ()
 set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/ports")
 set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/triplets")
 
-project(DeroGold VERSION 0.7.2.2 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
+project(DeroGold VERSION 0.7.2.3 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)
@@ -241,12 +240,6 @@ if (NOT MSVC)
 
     if (HAS_INCONSISTENT_MISSING_OVERRIDE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=inconsistent-missing-override")
-    endif ()
-
-    check_cxx_compiler_flag(-ftrivial-auto-var-init HAS_TRIVIAL_AUTO_VAR_INIT)
-
-    if (HAS_TRIVIAL_AUTO_VAR_INIT)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftrivial-auto-var-init=zero")
     endif ()
 
     if (APPLE)

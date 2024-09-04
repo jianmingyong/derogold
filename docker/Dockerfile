@@ -6,23 +6,21 @@ ARG UBUNTU_VERSION=latest
 # Create Dev Environment
 ##################################################
 
-FROM ubuntu:$UBUNTU_VERSION AS dev_env_gcc
+FROM ubuntu:${UBUNTU_VERSION} AS dev_env_default
 ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get -y update && apt-get install -y git cmake ninja-build build-essential curl zip unzip tar pkg-config \
-    && rm -rf /var/lib/apt/lists/*
 
 ADD . /usr/local/src/DeroGold
 WORKDIR /usr/local/src/DeroGold
 
-FROM ubuntu:$UBUNTU_VERSION AS dev_env_clang
-ARG DEBIAN_FRONTEND=noninteractive
+FROM dev_env_default AS dev_env_gcc
 
-RUN apt-get -y update && apt-get install -y git cmake ninja-build clang curl zip unzip tar pkg-config \
+RUN apt-get update && apt-get install -y git cmake ninja-build build-essential curl zip unzip tar pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-ADD . /usr/local/src/DeroGold
-WORKDIR /usr/local/src/DeroGold
+FROM dev_env_default AS dev_env_clang
+
+RUN apt-get update && apt-get install -y git cmake ninja-build clang curl zip unzip tar pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
 ##################################################
 # Build Step
