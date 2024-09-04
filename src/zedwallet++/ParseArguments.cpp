@@ -35,12 +35,9 @@ ZedConfig parseArguments(int argc, char **argv)
 
     std::string logFilePath;
 
-    options.add_options("Core")(
-        "h,help", "Display this help message", cxxopts::value<bool>(help)->implicit_value("true"))
-
-        ("v,version",
-         "Output software version information",
-         cxxopts::value<bool>(version)->default_value("false")->implicit_value("true"));
+    options.add_options("Core")
+		("h,help", "Display this help message", cxxopts::value<bool>(help)->default_value("false"))
+        ("v,version", "Output software version information", cxxopts::value<bool>(version)->default_value("false"));
 
     options.add_options("Daemon")(
         "r,remote-daemon",
