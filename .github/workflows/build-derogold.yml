@@ -43,8 +43,8 @@ jobs:
             arch: x64
             compiler: msvc
             install: ""
-            configure_preset: windows-x64-msvc-publish
-            build_preset: windows-x64-msvc-publish
+            configure_preset: windows-x64-msvc-package
+            build_preset: windows-x64-msvc-package
 
           - os: windows-latest
             arch: x64
@@ -55,8 +55,8 @@ jobs:
               mingw-w64-x86_64-toolchain
               mingw-w64-x86_64-cmake
               mingw-w64-x86_64-ninja
-            configure_preset: windows-x64-mingw-gcc-publish
-            build_preset: windows-x64-mingw-gcc-publish
+            configure_preset: windows-x64-mingw-gcc-package
+            build_preset: windows-x64-mingw-gcc-package
 
           - os: windows-latest
             arch: x64
@@ -67,8 +67,8 @@ jobs:
               mingw-w64-clang-x86_64-toolchain
               mingw-w64-clang-x86_64-cmake
               mingw-w64-clang-x86_64-ninja
-            configure_preset: windows-x64-mingw-clang-publish
-            build_preset: windows-x64-mingw-clang-publish
+            configure_preset: windows-x64-mingw-clang-package
+            build_preset: windows-x64-mingw-clang-package
 
           - os: ubuntu-20.04
             arch: x64
@@ -82,8 +82,8 @@ jobs:
               unzip
               tar
               pkg-config
-            configure_preset: linux-x64-gcc-publish
-            build_preset: linux-x64-gcc-publish
+            configure_preset: linux-x64-gcc-package
+            build_preset: linux-x64-gcc-package
 
           - os: ubuntu-20.04
             arch: x64
@@ -97,8 +97,8 @@ jobs:
               unzip
               tar
               pkg-config
-            configure_preset: linux-x64-clang-publish
-            build_preset: linux-x64-clang-publish
+            configure_preset: linux-x64-clang-package
+            build_preset: linux-x64-clang-package
 
           - os: ubuntu-20.04
             arch: arm64
@@ -112,8 +112,8 @@ jobs:
               unzip
               tar
               pkg-config
-            configure_preset: linux-arm64-gcc-cross-publish
-            build_preset: linux-arm64-gcc-cross-publish
+            configure_preset: linux-arm64-gcc-cross-package
+            build_preset: linux-arm64-gcc-cross-package
 
           - os: macos-12
             arch: x64
@@ -123,8 +123,8 @@ jobs:
               ninja
               llvm
               pkg-config
-            configure_preset: osx-x64-clang-publish
-            build_preset: osx-x64-clang-publish
+            configure_preset: osx-x64-clang-package
+            build_preset: osx-x64-clang-package
 
     steps:
       - name: Checkout
@@ -177,7 +177,7 @@ jobs:
         shell: cmd
         run: |
           cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }} --target package
+          cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -185,14 +185,14 @@ jobs:
         shell: msys2 {0}
         run: |
           cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }} --target package
+          cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Build DeroGold (GCC/CLANG)
         if: runner.os != 'Windows'
         working-directory: ${{ github.workspace }}
         run: |
           cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }} --target package
+          cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Collect Logs
         uses: actions/upload-artifact@v4

@@ -1,5 +1,3 @@
-.github
-.idea/
 build/
 
 vcpkg/buildtrees/
@@ -11,6 +9,8 @@ vcpkg/packages/
 vcpkg/scripts/buildsystems/tmp/
 vcpkg/*.exe
 vcpkg/*.zip
+
+Dockerfile
 
 # Created by https://www.toptal.com/developers/gitignore/api/cmake,c++,visualstudio,visualstudiocode,clion+all,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=cmake,c++,visualstudio,visualstudiocode,clion+all,macos

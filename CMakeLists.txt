@@ -64,6 +64,7 @@ set(SUPPORTED_VCPKG_TARGET_TRIPLET
         "x64-linux-release"
         "arm64-linux"
         "arm64-linux-release"
+        "arm64-linux-clang-cross-release"
         "x64-osx"
         "x64-osx-release")
 

@@ -9,6 +9,7 @@
   <li><a href="#development-resources">Development Resources</a></li>
   <li><a href="#introduction">Introduction</a></li>
   <li><a href="#installing">Installing</a></li>
+  <li><a href="#docker-images">Docker Images</a></li>
   <li><a href="#build-instructions">Build Instructions</a></li>
   <ol>
     <li><a href="#windows-x64-only">Windows (x64 only)</a></li>
@@ -53,9 +54,21 @@ However, we are much more than that. We run our own privacy digital asset that a
 
 ## Installing
 
-We offer binary images of the latest releases here: https://github.com/derogold/derogold/releases
+We offer binary images of the latest releases here: https://github.com/jianmingyong/derogold/releases
 
 If you would like to compile yourself, read on.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Docker Images
+
+We offer docker images of the latest releases here: https://hub.docker.com/r/jianmingyong/derogold/tags
+
+By default, the images use Ubuntu 20.04 LTS as a base image when build.
+
+Supported tags:
+- latest, latest-gcc, 0.7.2.3-gcc, 0.7.2.3
+- latest-clang, 0.7.2.3-clang
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -65,7 +78,7 @@ The CMake build system will, by default, create optimized *native* builds for yo
 
 However, if you wish to create *portable* binaries that can be shared between systems, specify `-DARCH=default` in your CMake arguments during the build process. Note that *portable* binaries will have a noticeable difference in performance than *native* binaries. For this reason, it is always best to build for your particular system if possible.
 
-Note that the instructions below create a *portable* binaries due to the preset setting `-DARCH=default` for compatibility reasons.
+Note that the instructions below create *native* binaries.
 
 ### Windows (x64 only)
 
@@ -97,11 +110,16 @@ Building:
 - From the start menu, open 'x64 Native Tools Command Prompt for VS 2022'
 - If you need to change the default drive C: to D: for example, just type `D:` and hit enter
 - Use `cd` to change to your desired directory to store DeroGold code
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
-- `cmake --preset windows-x64-msvc-publish`
-- `cmake --build --preset windows-x64-msvc-publish`
+- `cmake --preset windows-x64-msvc-install`
+- `cmake --build --preset windows-x64-msvc-install`
 - Enjoy your build at `build/bin`
+
+Alternatively:
+- `cd derogold`
+- `cmake -D VCPKG_TARGET_TRIPLET=x64-windows-static-release -D CMAKE_INSTALL_PREFIX=build -G Visual Studio 17 2022 -T host=x64 -A x64 -S . -B build`
+- `cmake --build build -t INSTALL --config Release`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -116,9 +134,14 @@ Prerequisites:
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
-- `cmake --preset windows-x64-mingw-gcc-publish`
-- `cmake --build --preset windows-x64-mingw-gcc-publish`
+- `cmake --preset windows-x64-mingw-gcc-install`
+- `cmake --build --preset windows-x64-mingw-gcc-install`
 - Enjoy your build at `build/bin`
+
+Alternatively:
+- `cd derogold`
+- `CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-mingw-static-release -D CMAKE_INSTALL_PREFIX=build -G Ninja -S . -B build`
+- `cmake --build build -t install`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -133,9 +156,14 @@ Prerequisites:
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
-- `cmake --preset windows-x64-mingw-clang-publish`
-- `cmake --build --preset windows-x64-mingw-clang-publish`
+- `cmake --preset windows-x64-mingw-clang-install`
+- `cmake --build --preset windows-x64-mingw-clang-install`
 - Enjoy your build at `build/bin`
+
+Alternatively:
+- `cd derogold`
+- `CC=clang CXX=clang++ cmake -D VCPKG_TARGET_TRIPLET=x64-mingw-static-release -D CMAKE_INSTALL_PREFIX=build -G Ninja -S . -B build`
+- `cmake --build build -t install`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -150,12 +178,17 @@ Prerequisites:
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
-- `cmake --preset linux-x64-gcc-publish`
-- `sudo cmake --build --preset linux-x64-gcc-publish`
+- `cmake --preset linux-x64-gcc-install`
+- `sudo cmake --build --preset linux-x64-gcc-install`
 - use `sudo cmake --install build` if install permission failed
 - Enjoy your build at `/usr/local/bin`
 
-You can use `--preset linux-arm64-gcc-cross-publish` to cross compile for arm64/aarch64 raspberry pi. Output binaries would be stored at `build/bin`.
+Alternatively:
+- `cd derogold`
+- `CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja -S . -B build`
+- `sudo cmake --build build -t install`
+
+You can use `--preset linux-arm64-gcc-cross-package` to cross compile for arm64/aarch64 raspberry pi. Output binaries would be stored at `build/Packaging`.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -167,10 +200,15 @@ Prerequisites:
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
-- `cmake --preset linux-x64-clang-publish`
-- `sudo cmake --build --preset linux-x64-clang-publish`
+- `cmake --preset linux-x64-clang-install`
+- `sudo cmake --build --preset linux-x64-clang-install`
 - use `sudo cmake --install build` if install permission failed
 - Enjoy your build at `/usr/local/bin`
+
+Alternatively:
+- `cd derogold`
+- `CC=clang CXX=clang++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja -S . -B build`
+- `sudo cmake --build build -t install`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -186,10 +224,16 @@ Prerequisites:
 Building:
 - `git clone --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
-- `cmake --preset osx-x64-clang-publish`
-- `sudo cmake --build --preset osx-x64-clang-publish`
+- `cmake --preset osx-x64-clang-install`
+- `sudo cmake --build --preset osx-x64-clang-install`
 - use `sudo cmake --install build` if install permission failed
 - Enjoy your build at `/usr/local/bin`
+
+Alternatively:
+- `cd derogold`
+- `PATH=/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$PATH`
+- `CC=clang CXX=clang++ LDFLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -L/usr/local/opt/llvm/lib -lunwind" CPPFLAGS="-I/opt/homebrew/opt/llvm/include -I/usr/local/opt/llvm/include" cmake -D VCPKG_TARGET_TRIPLET=x64-osx-release -G Ninja -S . -B build`
+- `sudo cmake --build build -t install`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
