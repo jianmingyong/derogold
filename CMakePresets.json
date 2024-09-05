@@ -47,7 +47,7 @@
             }
         },
         {
-            "name": "default-msvc-publish",
+            "name": "default-msvc-release",
             "hidden": true,
             "inherits": [
                 "default-msvc"
@@ -55,7 +55,7 @@
             "generator": "Visual Studio 17 2022"
         },
         {
-            "name": "default-gcc-publish",
+            "name": "default-gcc-release",
             "hidden": true,
             "inherits": [
                 "default-gcc"
@@ -63,7 +63,7 @@
             "generator": "Ninja"
         },
         {
-            "name": "default-clang-publish",
+            "name": "default-clang-release",
             "hidden": true,
             "inherits": [
                 "default-clang"
@@ -96,14 +96,33 @@
             }
         },
         {
-            "name": "windows-x64-msvc-publish",
+            "name": "windows-x64-msvc-install",
             "inherits": [
-                "default-msvc-publish"
+                "default-msvc-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-release"
+            },
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            },
+            "toolset": {
+                "strategy": "set",
+                "value": "host=x64"
+            }
+        },
+        {
+            "name": "windows-x64-msvc-package",
+            "inherits": [
+                "default-msvc-release"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static-release",
-                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-msvc"
+                "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-msvc",
+                "SET_COMMIT_ID_IN_VERSION": "OFF"
             },
             "architecture": {
                 "strategy": "set",
@@ -126,14 +145,26 @@
             }
         },
         {
-            "name": "windows-x64-mingw-gcc-publish",
+            "name": "windows-x64-mingw-gcc-install",
             "inherits": [
-                "default-gcc-publish"
+                "default-gcc-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-gcc-package",
+            "inherits": [
+                "default-gcc-release"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-gcc",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -149,14 +180,26 @@
             }
         },
         {
-            "name": "windows-x64-mingw-clang-publish",
+            "name": "windows-x64-mingw-clang-install",
             "inherits": [
-                "default-clang-publish"
+                "default-clang-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "windows-x64-mingw-clang-package",
+            "inherits": [
+                "default-clang-release"
             ],
             "installDir": "${sourceDir}/build",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "windows-x64-mingw-clang",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -171,13 +214,24 @@
             }
         },
         {
-            "name": "linux-x64-gcc-publish",
+            "name": "linux-x64-gcc-install",
             "inherits": [
-                "default-gcc-publish"
+                "default-gcc-release"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "linux-x64-gcc-package",
+            "inherits": [
+                "default-gcc-release"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-gcc",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -188,9 +242,15 @@
             ]
         },
 		{
-            "name": "linux-amd64-gcc-publish",
+            "name": "linux-amd64-gcc-install",
             "inherits": [
-                "linux-x64-gcc-publish"
+                "linux-x64-gcc-install"
+            ]
+        },
+        {
+            "name": "linux-amd64-gcc-package",
+            "inherits": [
+                "linux-x64-gcc-package"
             ]
         },
         {
@@ -204,13 +264,24 @@
             }
         },
         {
-            "name": "linux-x64-clang-publish",
+            "name": "linux-x64-clang-install",
             "inherits": [
-                "default-clang-publish"
+                "default-clang-release"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "linux-x64-clang-package",
+            "inherits": [
+                "default-clang-release"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-linux-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -220,10 +291,16 @@
                 "linux-x64-clang"
             ]
         },
-		{
-            "name": "linux-amd64-clang-publish",
+        {
+            "name": "linux-amd64-clang-install",
             "inherits": [
-                "linux-x64-clang-publish"
+                "linux-x64-clang-install"
+            ]
+        },
+		{
+            "name": "linux-amd64-clang-package",
+            "inherits": [
+                "linux-x64-clang-package"
             ]
         },
         {
@@ -233,18 +310,28 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
-                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
-                "ARCH": "default"
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc"
             }
         },
         {
-            "name": "linux-arm64-gcc-publish",
+            "name": "linux-arm64-gcc-install",
             "inherits": [
-                "default-gcc-publish"
+                "default-gcc-release"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "linux-arm64-gcc-package",
+            "inherits": [
+                "default-gcc-release"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -255,18 +342,28 @@
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
-                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
-                "ARCH": "default"
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang"
             }
         },
         {
-            "name": "linux-arm64-clang-publish",
+            "name": "linux-arm64-clang-install",
             "inherits": [
-                "default-clang-publish"
+                "default-clang-release"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "linux-arm64-clang-package",
+            "inherits": [
+                "default-clang-release"
             ],
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -282,15 +379,14 @@
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
-                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64.cmake",
                 "ARCH": "default"
             }
         },
         {
-            "name": "linux-arm64-gcc-cross-publish",
+            "name": "linux-arm64-gcc-cross-install",
             "inherits": [
-                "default-gcc-publish"
+                "default-gcc-release"
             ],
             "installDir": "${sourceDir}/build",
             "environment": {
@@ -299,8 +395,63 @@
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/raspberrypi-arm64.cmake",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64.cmake",
+                "ARCH": "default"
+            }
+        },
+        {
+            "name": "linux-arm64-gcc-cross-package",
+            "inherits": [
+                "default-gcc-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "environment": {
+                "CC": "aarch64-linux-gnu-gcc",
+                "CXX": "aarch64-linux-gnu-g++"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64.cmake",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-gcc",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
+                "ARCH": "default"
+            }
+        },
+        {
+            "name": "linux-arm64-clang-cross",
+            "inherits": [
+                "default-clang"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64-clang.cmake",
+                "ARCH": "default"
+            }
+        },
+        {
+            "name": "linux-arm64-clang-cross-install",
+            "inherits": [
+                "default-clang-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-cross-release",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64-clang.cmake",
+                "ARCH": "default"
+            }
+        },
+        {
+            "name": "linux-arm64-clang-cross-package",
+            "inherits": [
+                "default-clang-release"
+            ],
+            "installDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-cross-release",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/raspberrypi-arm64-clang.cmake",
+                "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         },
@@ -310,9 +461,9 @@
                 "default-clang"
             ],
             "environment": {
-                "PATH": "/opt/homebrew/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include"
+                "PATH": "/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -L/usr/local/opt/llvm/lib -lunwind",
+                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include -I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx",
@@ -320,18 +471,34 @@
             }
         },
         {
-            "name": "osx-x64-clang-publish",
+            "name": "osx-x64-clang-install",
             "inherits": [
-                "default-clang-publish"
+                "default-clang-release"
             ],
             "environment": {
-                "PATH": "/opt/homebrew/opt/llvm/bin:$penv{PATH}",
-                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++",
-                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include"
+                "PATH": "/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -L/usr/local/opt/llvm/lib -lunwind",
+                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include -I/usr/local/opt/llvm/include"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx-release",
+                "ARCH": "native"
+            }
+        },
+        {
+            "name": "osx-x64-clang-package",
+            "inherits": [
+                "default-clang-release"
+            ],
+            "environment": {
+                "PATH": "/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$penv{PATH}",
+                "LDFLAGS": "-L/opt/homebrew/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -L/usr/local/opt/llvm/lib -lunwind",
+                "CPPFLAGS": "-I/opt/homebrew/opt/llvm/include -I/usr/local/opt/llvm/include"
             },
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-osx-release",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "osx-x64-clang",
+                "SET_COMMIT_ID_IN_VERSION": "OFF",
                 "ARCH": "default"
             }
         }
@@ -348,11 +515,19 @@
             "configuration": "Release"
         },
         {
-            "name": "windows-x64-msvc-publish",
-            "configurePreset": "windows-x64-msvc-publish",
+            "name": "windows-x64-msvc-install",
+            "configurePreset": "windows-x64-msvc-install",
             "configuration": "Release",
             "targets": [
                 "INSTALL"
+            ]
+        },
+        {
+            "name": "windows-x64-msvc-package",
+            "configurePreset": "windows-x64-msvc-package",
+            "configuration": "Release",
+            "targets": [
+                "PACKAGE"
             ]
         },
         {
@@ -366,10 +541,17 @@
             "configuration": "Release"
         },
         {
-            "name": "windows-x64-mingw-gcc-publish",
-            "configurePreset": "windows-x64-mingw-gcc-publish",
+            "name": "windows-x64-mingw-gcc-install",
+            "configurePreset": "windows-x64-mingw-gcc-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "windows-x64-mingw-gcc-package",
+            "configurePreset": "windows-x64-mingw-gcc-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -383,10 +565,17 @@
             "configuration": "Release"
         },
         {
-            "name": "windows-x64-mingw-clang-publish",
-            "configurePreset": "windows-x64-mingw-clang-publish",
+            "name": "windows-x64-mingw-clang-install",
+            "configurePreset": "windows-x64-mingw-clang-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "windows-x64-mingw-clang-package",
+            "configurePreset": "windows-x64-mingw-clang-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -400,10 +589,17 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-x64-gcc-publish",
-            "configurePreset": "linux-x64-gcc-publish",
+            "name": "linux-x64-gcc-install",
+            "configurePreset": "linux-x64-gcc-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-x64-gcc-package",
+            "configurePreset": "linux-x64-gcc-package",
+            "targets": [
+                "package"
             ]
         },
 		{
@@ -417,10 +613,17 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-amd64-gcc-publish",
-            "configurePreset": "linux-amd64-gcc-publish",
+            "name": "linux-amd64-gcc-install",
+            "configurePreset": "linux-amd64-gcc-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-amd64-gcc-package",
+            "configurePreset": "linux-amd64-gcc-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -434,10 +637,17 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-x64-clang-publish",
-            "configurePreset": "linux-x64-clang-publish",
+            "name": "linux-x64-clang-install",
+            "configurePreset": "linux-x64-clang-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-x64-clang-package",
+            "configurePreset": "linux-x64-clang-package",
+            "targets": [
+                "package"
             ]
         },
 		{
@@ -451,10 +661,17 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-amd64-clang-publish",
-            "configurePreset": "linux-amd64-clang-publish",
+            "name": "linux-amd64-clang-install",
+            "configurePreset": "linux-amd64-clang-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-amd64-clang-package",
+            "configurePreset": "linux-amd64-clang-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -468,10 +685,17 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-arm64-gcc-publish",
-            "configurePreset": "linux-arm64-gcc-publish",
+            "name": "linux-arm64-gcc-install",
+            "configurePreset": "linux-arm64-gcc-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-gcc-package",
+            "configurePreset": "linux-arm64-gcc-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -485,10 +709,41 @@
             "configuration": "Release"
         },
         {
-            "name": "linux-arm64-gcc-cross-publish",
-            "configurePreset": "linux-arm64-gcc-cross-publish",
+            "name": "linux-arm64-gcc-cross-install",
+            "configurePreset": "linux-arm64-gcc-cross-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-gcc-cross-package",
+            "configurePreset": "linux-arm64-gcc-cross-package",
+            "targets": [
+                "package"
+            ]
+        },
+        {
+            "name": "linux-arm64-clang-cross-debug",
+            "configurePreset": "linux-arm64-clang-cross",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-arm64-clang-cross-release",
+            "configurePreset": "linux-arm64-clang-cross",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-arm64-clang-cross-install",
+            "configurePreset": "linux-arm64-clang-cross-install",
+            "targets": [
+                "install"
+            ]
+        },
+        {
+            "name": "linux-arm64-clang-cross-package",
+            "configurePreset": "linux-arm64-clang-cross-package",
+            "targets": [
+                "package"
             ]
         },
         {
@@ -502,10 +757,17 @@
             "configuration": "Release"
         },
         {
-            "name": "osx-x64-clang-publish",
-            "configurePreset": "osx-x64-clang-publish",
+            "name": "osx-x64-clang-install",
+            "configurePreset": "osx-x64-clang-install",
             "targets": [
                 "install"
+            ]
+        },
+        {
+            "name": "osx-x64-clang-package",
+            "configurePreset": "osx-x64-clang-package",
+            "targets": [
+                "package"
             ]
         }
     ]
