@@ -61,10 +61,13 @@ set(SUPPORTED_VCPKG_TARGET_TRIPLET
         "x64-mingw-static"
         "x64-mingw-static-release"
         "x64-linux"
+        "x64-linux-clang"
         "x64-linux-release"
+        "x64-linux-release-clang"
         "arm64-linux"
+        "arm64-linux-clang"
         "arm64-linux-release"
-        "arm64-linux-clang-cross-release"
+        "arm64-linux-release-clang"
         "x64-osx"
         "x64-osx-release")
 
