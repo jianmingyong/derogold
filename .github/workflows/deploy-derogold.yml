@@ -332,5 +332,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: release_${{ matrix.compiler }}
           tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           push: true
           
