@@ -12,6 +12,11 @@ on:
         default: false
         required: false
         type: boolean
+      docker_push:
+        description: 'Push results to docker'
+        default: true
+        required: false
+        type: boolean
 
 defaults:
   run:
@@ -303,7 +308,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - id: tags
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - id: env
         run: |
           $output = @()
           $output += "${{ env.DOCKER_HUB_REPOSITORY }}:${{ needs.env.outputs.version }}-${{ matrix.compiler }}"
@@ -324,6 +335,7 @@ jobs:
           }
 
           echo tags=$([string]::Join(",", $output)) >> "$env:GITHUB_OUTPUT"
+          echo ACTIONS_CACHE_URL=$env:ACTIONS_CACHE_URL >> "$env:GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -331,8 +343,12 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
           target: release_${{ matrix.compiler }}
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: ${{ steps.env.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          push: true
-          
+          build-args: |
+            VCPKG_BINARY_SOURCES=clear;x-gha,readwrite
+            ACTIONS_CACHE_URL=${{ steps.env.outputs.ACTIONS_CACHE_URL }}
+          secret-envs: |
+            ACTIONS_RUNTIME_TOKEN=ACTIONS_RUNTIME_TOKEN
+          push: ${{ github.event.inputs.docker_push }}
