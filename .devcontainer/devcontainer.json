@@ -4,11 +4,7 @@
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
-		"target": "dev_env_gcc",
-		"args": {
-			"UBUNTU_VERSION": "20.04",
-			"CMAKE_VERSION": "3.30.3"
-		}
+		"target": "build_cmake"
 	},
 	"customizations": {
 		"vscode": {
@@ -25,10 +21,18 @@
 			"type": "volume"
 		},
 		{
+			"source": "ccache",
+			"target": "/root/.ccache",
+			"type": "volume"
+		},
+		{
 			"source": "project",
 			"target": "${containerWorkspaceFolder}",
 			"type": "volume"
 		}
 	],
-	"workspaceFolder": "/usr/local/src"
+	"workspaceFolder": "/usr/local/src/DeroGold",
+	"remoteEnv": {
+		"CCACHE_MAXSIZE": "1G"
+	}
 }
