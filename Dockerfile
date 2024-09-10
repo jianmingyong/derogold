@@ -53,13 +53,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && nvm install ${NODE_VERSION} \
     && mkdir /usr/local/sysroot \
     && if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        tar -xzvf /usr/local/src/docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        tar -xzvf /usr/local/src/docker/sysroot/ubuntu-20.04-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-20.04-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
 FROM env_install AS restore_ccache
-RUN --mount=type=cache,target=/root/.ccache \
+RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
     --mount=type=bind,target=/usr/local/src/docker,source=docker \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
@@ -100,7 +100,7 @@ RUN --mount=type=cache,target=/root/.ccache \
     fi
 
 FROM build_gcc_clang AS save_ccache
-RUN --mount=type=cache,target=/root/.ccache \
+RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
     --mount=type=bind,target=/usr/local/src/docker,source=docker \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
