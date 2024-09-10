@@ -51,7 +51,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
     && [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && nvm install ${NODE_VERSION} \
-    && cd /usr/local && mkdir sysroot && cd /usr/local/sysroot \
+    && mkdir /usr/local/sysroot \
     && if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
         tar -xzvf /usr/local/src/docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
@@ -59,7 +59,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     fi
 
 FROM env_install AS restore_ccache
-RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
+RUN --mount=type=cache,target=/root/.ccache \
+    --mount=type=bind,target=/usr/local/src/docker,source=docker \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
@@ -100,9 +101,11 @@ RUN --mount=type=cache,target=/root/.ccache \
 
 FROM build_gcc_clang AS save_ccache
 RUN --mount=type=cache,target=/root/.ccache \
+    --mount=type=bind,target=/usr/local/src/docker,source=docker \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
-    if [ -e /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) INPUT_ACTION=save node docker/javascript-actions/cache/dist/index.js; \
+    [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
+    && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) INPUT_ACTION=save node /usr/local/src/docker/javascript-actions/cache/dist/index.js; \
     fi
 
 ##################################################
