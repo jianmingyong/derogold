@@ -44,9 +44,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=bind,target=/usr/local/src/docker,source=docker \
     if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential ccache clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip; \
+        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential ccache clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential ccache clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip; \
+        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential ccache clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
     fi \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
     && [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
