@@ -60,11 +60,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 FROM env_install AS restore_ccache
 RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker \
+    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
+        npm install && \
         ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache -i "key=ccache_\${{ /root/.ccache/**/* }}" -i restore-keys=ccache_; \
     fi
 
@@ -102,11 +103,12 @@ RUN --mount=type=cache,target=/root/.ccache \
 
 FROM build_gcc_clang AS save_ccache
 RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker \
+    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
+        npm install && \
         ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_\${{ /root/.ccache/** }}"; \
     fi
 
