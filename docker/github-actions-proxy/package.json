@@ -1,0 +1,20 @@
+{
+  "name": "github-actions-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "jianmingyong",
+  "license": "MIT",
+  "description": "GitHub Actions Proxy when running inside a docker.",
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
+}
