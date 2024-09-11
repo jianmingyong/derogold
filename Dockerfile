@@ -60,7 +60,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 FROM env_install AS restore_ccache
 RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw
+    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
@@ -103,7 +103,7 @@ RUN --mount=type=cache,target=/root/.ccache \
 
 FROM build_gcc_clang AS save_ccache
 RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw
+    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
