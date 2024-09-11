@@ -64,7 +64,8 @@ RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) INPUT_ACTION=restore node /usr/local/src/docker/javascript-actions/cache/dist/index.js; \
+        cd /usr/local/src/docker/github-actions-proxy && \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache -i "key=ccache_\${{ /root/.ccache/**/* }}" -i restore-keys=ccache_; \
     fi
 
 FROM restore_ccache AS build_cmake
@@ -105,7 +106,8 @@ RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
     [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) INPUT_ACTION=save node /usr/local/src/docker/javascript-actions/cache/dist/index.js; \
+        cd /usr/local/src/docker/github-actions-proxy && \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_\${{ /root/.ccache/** }}"; \
     fi
 
 ##################################################
