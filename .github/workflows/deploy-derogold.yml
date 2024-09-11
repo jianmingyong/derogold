@@ -344,8 +344,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: release_default
           tags: ${{ steps.env.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
           no-cache-filters: |
             restore_ccache
             save_ccache
