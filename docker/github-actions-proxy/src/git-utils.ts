@@ -6,11 +6,11 @@ export function cloneRepository(repoUrl: string, destinationPath: string): Promi
             stdio: 'inherit', // Inherit the parent process's stdio streams
         });
 
-        process.on('error', (error) => {
+        process.on('error', error => {
             reject(error);
         });
 
-        process.on('exit', (code) => {
+        process.on('exit', code => {
             if (code === 0) {
                 resolve();
             } else {
@@ -27,11 +27,11 @@ export function checkoutRepository(ref: string, repoDirectory: string): Promise<
             cwd: repoDirectory
         });
 
-        process.on('error', (error) => {
+        process.on('error', error => {
             reject(error);
         });
 
-        process.on('exit', (code) => {
+        process.on('exit', code => {
             if (code === 0) {
                 resolve();
             } else {

@@ -9,7 +9,7 @@ interface ParsedCommand {
 
 function parseGitHubCommand(commandString: string): ParsedCommand | null {
     // Regular expression to match the command format
-    const regex = /^::(\w+)(?:\s+([^:]*))?::(.*)$/;
+    const regex = /^::(\w+)(?:\s+([^:]*))?::(.*)$/g;
 
     // Execute the regex
     const match = commandString.match(regex);
@@ -57,20 +57,21 @@ function maskValue(value: string): string {
 
 export function runActions(path: string, env: Record<string, string>): Promise<void> {
     const outputBuffer = function (data: Buffer) {
-        const result = data.toString();
-        const command = parseGitHubCommand(result);
+        data.toString('utf8').split('\n').forEach((value) => {
+            const command = parseGitHubCommand(value);
 
-        if (command) {
-            if (command.command === 'debug') {
-                console.info(`[Debug] ${command.value}`);
-            } else if (command.command === 'add-mask') {
-                console.info(maskValue(command.value))
+            if (command !== null) {
+                if (command.command === 'debug') {
+                    console.log(`[Debug] ${command.value}`);
+                } else if (command.command === 'add-mask') {
+                    console.log(maskValue(command.value))
+                } else {
+                    console.log(value);
+                }
             } else {
-                console.info(result);
+                console.log(value);
             }
-        } else {
-            console.info(result);
-        }
+        });
     };
 
     return new Promise((resolve, reject) => {

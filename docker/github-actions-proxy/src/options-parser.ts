@@ -51,7 +51,7 @@ export async function parseActionInput(input: string): Promise<ParsedActionInput
         const replaceResult: string[] = [];
 
         for (const match of expressionMatches) {
-            const hashFilesGlob = parseHashFilesCall(match[1]);
+            const hashFilesGlob = parseHashFilesFunction(match[1]);
 
             if (hashFilesGlob.length > 0) {
                 replaceResult.push(await hashFiles(hashFilesGlob));
@@ -62,8 +62,8 @@ export async function parseActionInput(input: string): Promise<ParsedActionInput
 
         // Replace GitHub Actions expressions with a placeholder or dynamic value
         value = replaceExpressions(value, _expression => {
-            for (let index = 0; index < replaceResult.length; index++) {
-                return replaceResult[index];
+            for (let i = 0; i < replaceResult.length; i++) {
+                return replaceResult[i];
             }
             return '';
         });
@@ -94,7 +94,7 @@ function replaceExpressions(input: string, replaceFn: (expression: string) => st
  * @param input - The input string containing `hashFiles(path[, path2, ...])`.
  * @returns An array of extracted file patterns, or an empty array if parsing fails.
  */
-function parseHashFilesCall(input: string): string[] {
+function parseHashFilesFunction(input: string): string[] {
     // Regular expression to match `hashFiles(path1[, path2, ...])`
     const regex = /^hashFiles\(([^)]+)\)$/;
 
@@ -120,9 +120,9 @@ function parseHashFilesCall(input: string): string[] {
  * @param patterns - A single path pattern or multiple patterns separated by commas.
  * @returns A SHA-256 hash for the set of files, or an empty string if no files are matched.
  */
-async function hashFiles(patterns: string[]): Promise<string> {
+async function hashFiles(patterns: string | string[]): Promise<string> {
     const files = await glob.glob(patterns, { nodir: true });
-
+    
     if (files.length === 0) {
         return '';
     }
