@@ -11,7 +11,9 @@ ARG NVM_DIR=/root/.nvm
 ARG VCPKG_BINARY_SOURCES=clear;default,readwrite
 ARG ACTIONS_CACHE_URL
 
-ARG CCACHE_MAXSIZE=1G
+ARG CCACHE_MAXSIZE=250M
+
+ARG GITHUB_REF
 
 ##################################################
 # Default Build Environment
@@ -35,6 +37,8 @@ ARG ACTIONS_CACHE_URL
 
 ARG CCACHE_MAXSIZE
 
+ARG GITHUB_REF
+
 ##################################################
 # Build Environment
 ##################################################
@@ -42,27 +46,29 @@ ARG CCACHE_MAXSIZE
 FROM dev_env_default AS env_install
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker \
     if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
         apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential ccache clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
         apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential ccache clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
-    fi \
-    && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
-    && [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
-    && nvm install ${NODE_VERSION} \
-    && mkdir /usr/local/sysroot \
+    fi
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
+    && [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
+    && nvm install ${NODE_VERSION}
+
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
+    mkdir /usr/local/sysroot \
     && if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        tar -xzf /usr/local/src/docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        tar -xzf /usr/local/src/docker/sysroot/ubuntu-20.04-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
 FROM env_install AS restore_ccache
-RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
+RUN --mount=type=cache,target=/root/.ccache \
     --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
-    [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
+    [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
@@ -102,10 +108,10 @@ RUN --mount=type=cache,target=/root/.ccache \
     fi
 
 FROM build_gcc_clang AS save_ccache
-RUN --mount=type=cache,target=/root/.ccache,sharing=locked \
+RUN --mount=type=cache,target=/root/.ccache \
     --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
-    [ -s "${NVM_DIR}/nvm.sh" ] && \. "${NVM_DIR}/nvm.sh" \
+    [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
