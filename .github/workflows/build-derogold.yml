@@ -15,6 +15,10 @@ jobs:
   build_derogold:
     name: ${{ matrix.build_preset }}
     runs-on: ${{ matrix.os }}
+    
+    env:
+      CCACHE_DIR: '${{ github.workspace }}/.ccache'
+      CCACHE_MAXSIZE: '250M'
 
     strategy:
       fail-fast: false
@@ -30,9 +34,6 @@ jobs:
             arch: arm64
           - os: ubuntu-20.04
             compiler: msvc
-          - os: ubuntu-20.04
-            arch: arm64
-            compiler: clang
           - os: macos-12
             compiler: msvc
           - os: macos-12
@@ -52,9 +53,9 @@ jobs:
             install: ""
             msys2_environment: MINGW64
             msys2_install: >-
-              mingw-w64-x86_64-toolchain
               mingw-w64-x86_64-cmake
               mingw-w64-x86_64-ninja
+              mingw-w64-x86_64-toolchain
             configure_preset: windows-x64-mingw-gcc-package
             build_preset: windows-x64-mingw-gcc-package
 
@@ -64,9 +65,9 @@ jobs:
             install: ""
             msys2_environment: CLANG64
             msys2_install: >-
-              mingw-w64-clang-x86_64-toolchain
               mingw-w64-clang-x86_64-cmake
               mingw-w64-clang-x86_64-ninja
+              mingw-w64-clang-x86_64-toolchain
             configure_preset: windows-x64-mingw-clang-package
             build_preset: windows-x64-mingw-clang-package
 
@@ -74,14 +75,16 @@ jobs:
             arch: x64
             compiler: gcc
             install: >-
-              cmake
-              ninja-build
               build-essential
+              ccache
+              cmake
               curl
-              zip
-              unzip
-              tar
+              git
+              ninja-build
               pkg-config
+              tar
+              unzip
+              zip
             configure_preset: linux-x64-gcc-package
             build_preset: linux-x64-gcc-package
 
@@ -89,14 +92,16 @@ jobs:
             arch: x64
             compiler: clang
             install: >-
-              cmake
-              ninja-build
+              ccache
               clang
+              cmake
               curl
-              zip
-              unzip
-              tar
+              git
+              ninja-build
               pkg-config
+              tar
+              unzip
+              zip
             configure_preset: linux-x64-clang-package
             build_preset: linux-x64-clang-package
 
@@ -104,16 +109,36 @@ jobs:
             arch: arm64
             compiler: gcc
             install: >-
+              ccache
               cmake
-              ninja-build
               crossbuild-essential-arm64
               curl
-              zip
-              unzip
-              tar
+              git
+              ninja-build
               pkg-config
+              tar
+              unzip
+              zip
             configure_preset: linux-arm64-gcc-cross-package
             build_preset: linux-arm64-gcc-cross-package
+
+          - os: ubuntu-20.04
+            arch: arm64
+            compiler: clang
+            install: >-
+              binutils-aarch64-linux-gnu
+              ccache
+              clang
+              cmake
+              curl
+              git
+              ninja-build
+              pkg-config
+              tar
+              unzip
+              zip
+            configure_preset: linux-arm64-clang-cross-package
+            build_preset: linux-arm64-clang-cross-package
 
           - os: macos-12
             arch: x64
@@ -167,6 +192,14 @@ jobs:
           update: true
           install: ${{ matrix.msys2_install }}
           msystem: ${{ matrix.msys2_environment }}
+
+      - name: Setup ccache
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4.0.2
+        with:
+          path: ${{ env.CCACHE_DIR }}/**
+          key: ccache_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
+          restore-keys: ccache_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
