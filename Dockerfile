@@ -6,7 +6,6 @@ ARG CMAKE_VERSION=3.30.3
 ARG COMPILER_TYPE=gcc
 
 ARG NODE_VERSION=20
-ARG NVM_DIR=/root/.nvm
 
 ARG VCPKG_BINARY_SOURCES=clear;default,readwrite
 ARG ACTIONS_CACHE_URL
@@ -33,7 +32,7 @@ ARG CMAKE_VERSION
 ARG COMPILER_TYPE
 
 ARG NODE_VERSION
-ARG NVM_DIR
+ARG NVM_DIR=/root/.nvm
 
 ARG VCPKG_BINARY_SOURCES
 ARG ACTIONS_CACHE_URL
@@ -60,34 +59,34 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | b
     && nvm install ${NODE_VERSION}
 
 RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
-    mkdir /usr/local/sysroot \
-    && if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
+    mkdir /usr/local/sysroot && \
+    if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
 FROM env_install AS restore_ccache
-RUN --mount=type=cache,target=/root/.ccache \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
-    [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
-    && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+    if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
+        [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_\${{ hashFiles('/root/.ccache/**') }}" -i restore-keys=ccache_${TARGETOS}_${TARGETARCH}_; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**') }}" -i "restore-keys=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_"; \
     fi
 
 FROM restore_ccache AS build_cmake
-ADD https://github.com/Kitware/CMake.git#v${CMAKE_VERSION} /usr/local/src/CMake
-WORKDIR /usr/local/src/CMake
-
-RUN --mount=type=cache,target=/root/.ccache \
+RUN --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
+    cd /usr/local/src/CMake && \
     if [ "${COMPILER_TYPE}" = "gcc" ]; then \
         CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
     elif [ "${COMPILER_TYPE}" = "clang" ]; then \
         CC=clang CXX=clang++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
-    fi
+    fi && \
+    rm -r /usr/local/src/CMake
 
 ##################################################
 # Build Step
@@ -95,30 +94,29 @@ RUN --mount=type=cache,target=/root/.ccache \
 
 FROM build_cmake AS build_gcc_clang
 
-ADD . /usr/local/src/DeroGold
-WORKDIR /usr/local/src/DeroGold
-
-RUN --mount=type=cache,target=/root/.ccache \
-    --mount=type=cache,target=/root/.cache/vcpkg/archives \
+RUN --mount=type=bind,target=/usr/local/src/DeroGold,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    --mount=type=cache,id=vcpkg_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.cache/vcpkg/archives \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
+    cd /usr/local/src/DeroGold && \
     if [ -e /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN); \
-    fi \
-    && if [ "${BUILDPLATFORM}" != "${TARGETPLATFORM}" ]; then \
+    fi && \
+    if [ "${BUILDPLATFORM}" != "${TARGETPLATFORM}" ]; then \
         cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -j $(nproc); \
     else \
         cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -j $(nproc); \
     fi
 
 FROM build_gcc_clang AS save_ccache
-RUN --mount=type=cache,target=/root/.ccache \
-    --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
-    [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
-    && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+    if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
+        [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_\${{ hashFiles('/root/.ccache/**') }}"; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**') }}"; \
     fi
 
 ##################################################
