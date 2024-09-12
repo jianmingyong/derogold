@@ -24,6 +24,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
+ARG TARGETOS
 ARG TARGETARCH
 
 ARG UBUNTU_VERSION
@@ -74,7 +75,7 @@ RUN --mount=type=cache,target=/root/.ccache \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETPLATFORM}_\${{ hashFiles('/root/.ccache/**') }}" -i restore-keys=ccache_${TARGETPLATFORM}_; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_\${{ hashFiles('/root/.ccache/**') }}" -i restore-keys=ccache_${TARGETOS}_${TARGETARCH}_; \
     fi
 
 FROM restore_ccache AS build_cmake
@@ -117,7 +118,7 @@ RUN --mount=type=cache,target=/root/.ccache \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETPLATFORM}_\${{ hashFiles('/root/.ccache/**') }}"; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_\${{ hashFiles('/root/.ccache/**') }}"; \
     fi
 
 ##################################################

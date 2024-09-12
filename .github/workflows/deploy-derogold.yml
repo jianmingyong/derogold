@@ -348,7 +348,6 @@ jobs:
           cache-to: type=gha,mode=max
           no-cache-filters: |
             restore_ccache
-            build_cmake
             build_gcc_clang
             save_ccache
           build-args: |
