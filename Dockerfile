@@ -42,6 +42,13 @@ ARG CCACHE_MAXSIZE
 ARG GITHUB_REF
 
 ##################################################
+# ccache
+##################################################
+FROM dev_env_default AS ccache_output
+RUN --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    cp -r /root/.ccache /opt/.ccache
+
+##################################################
 # Build Environment
 ##################################################
 
