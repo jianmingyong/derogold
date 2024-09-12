@@ -26,6 +26,8 @@ ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETARCH
 
+ARG UBUNTU_VERSION
+
 ARG CMAKE_VERSION
 ARG COMPILER_TYPE
 
@@ -72,7 +74,7 @@ RUN --mount=type=cache,target=/root/.ccache \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache -i "key=ccache_\${{ /root/.ccache/**/* }}" -i restore-keys=ccache_; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETPLATFORM}_\${{ hashFiles('/root/.ccache/**') }}" -i restore-keys=ccache_${TARGETPLATFORM}_; \
     fi
 
 FROM restore_ccache AS build_cmake
@@ -115,7 +117,7 @@ RUN --mount=type=cache,target=/root/.ccache \
     && if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
         cd /usr/local/src/docker/github-actions-proxy && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_\${{ /root/.ccache/** }}"; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETPLATFORM}_\${{ hashFiles('/root/.ccache/**') }}"; \
     fi
 
 ##################################################
