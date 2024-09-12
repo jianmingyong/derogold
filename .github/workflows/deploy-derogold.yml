@@ -344,15 +344,18 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: release_default
           tags: ${{ steps.env.outputs.tags }}
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           no-cache-filters: |
             restore_ccache
+            build_cmake
+            build_gcc_clang
             save_ccache
           build-args: |
             VCPKG_BINARY_SOURCES=clear;x-gha,readwrite
             ACTIONS_CACHE_URL=${{ steps.env.outputs.ACTIONS_CACHE_URL }}
             COMPILER_TYPE=${{ matrix.compiler }}
+            GITHUB_REF=${{ github.ref }}
           secret-envs: |
             ACTIONS_RUNTIME_TOKEN=ACTIONS_RUNTIME_TOKEN
           push: ${{ github.event.inputs.docker_push }}
