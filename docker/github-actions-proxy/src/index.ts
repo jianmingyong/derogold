@@ -32,7 +32,7 @@ async function parseAction(options: ParsedProgramResult) {
         throw new Error('This program requires ACTIONS_CACHE_URL and ACTIONS_RUNTIME_TOKEN environment variable to be available.');
     }
 
-    console.info('Executing GitHub Actions\n');
+    console.log('Executing GitHub Actions\n');
 
     // Parse Action Source
     const actionSource = parseActionSource(options.action);
@@ -41,13 +41,13 @@ async function parseAction(options: ParsedProgramResult) {
         throw new Error('Invalid Action Source');
     }
 
-    console.info(`uses: ${options.action}`);
+    console.log(`uses: ${options.action}`);
 
     // Parse Action Inputs
     const actionInputs: ParsedActionInputResult[] = [];
 
     if (options.input != null) {
-        console.info('with:');
+        console.log('with:');
 
         for (let index = 0; index < options.input.length; index++) {
             const actionInput = await parseActionInput(options.input[index]);
@@ -59,7 +59,7 @@ async function parseAction(options: ParsedProgramResult) {
         }
     }
 
-    console.info();
+    console.log();
 
     // First make a directory where we can clone the GitHub Actions.
     if (!await directoryExists(options.actionDownloadDir)) {
@@ -74,7 +74,7 @@ async function parseAction(options: ParsedProgramResult) {
 
     await checkoutRepository(actionSource.ref, repoDir);
 
-    console.info();
+    console.log();
 
     // Parse action.yml in the target directory.
     let targetDir = repoDir;
@@ -118,6 +118,7 @@ async function parseAction(options: ParsedProgramResult) {
     const environmentVariable = parseGitHubActionInputs(actionInputs, actionMetadata);
     environmentVariable['ACTIONS_CACHE_URL'] = process.env['ACTIONS_CACHE_URL'] ?? '';
     environmentVariable['ACTIONS_RUNTIME_TOKEN'] = process.env['ACTIONS_RUNTIME_TOKEN'] ?? '';
+    environmentVariable['GITHUB_REF'] = process.env['GITHUB_REF'] ?? '';
 
     if (actionMetadata.runs.using !== 'node20') {
         throw new Error(`Selected action is using an unsupported running mode.`);
