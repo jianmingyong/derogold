@@ -222,8 +222,9 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
           path: |
-            .ccache/**/*
+            ${{ github.workspace }}/.ccache/**
           if-no-files-found: error
+          include-hidden-files: true
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
