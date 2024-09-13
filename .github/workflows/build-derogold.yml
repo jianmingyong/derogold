@@ -19,6 +19,7 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 150M
+      CCACHE_DEBUG: true
       VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
 
     strategy:
@@ -254,4 +255,12 @@ jobs:
             ${{ github.workspace }}/build/Packaging/*.zip
             ${{ github.workspace }}/build/Packaging/*.tar.gz
             ${{ github.workspace }}/build/Packaging/*.deb
+          if-no-files-found: ignore
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
+          path: |
+            ${{ github.workspace }}/.ccache
           if-no-files-found: ignore
