@@ -114,7 +114,7 @@ if(USE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
 
     if(CCACHE_PROGRAM)
-        message("found ccache and has been automatically set to use it. Use `-D USE_CCACHE=OFF` if you prefer not to use ccache.")
+        message(STATUS "Found ccache: ${CCACHE_PROGRAM}")
 
         if(MSVC)
             file(COPY_FILE ${CCACHE_PROGRAM} ${CMAKE_BINARY_DIR}/cl.exe ONLY_IF_DIFFERENT)
