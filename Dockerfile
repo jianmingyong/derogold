@@ -127,4 +127,8 @@ LABEL org.opencontainers.image.source="https://github.com/jianmingyong/derogold"
 LABEL org.opencontainers.image.description="DeroGold is a digital assets project focused on preserving our life environment here on Earth."
 LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
+FROM release_default AS release_derogoldd
 COPY --from=save_ccache /usr/local/bin/DeroGoldd /usr/local/bin/
+EXPOSE 42069/tcp
+EXPOSE 6969/tcp
+ENTRYPOINT [ "DeroGoldd" ]

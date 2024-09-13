@@ -17,8 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     env:
-      CCACHE_DIR: '${{ github.workspace }}/.ccache'
-      CCACHE_MAXSIZE: '250M'
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 150M
+      VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
 
     strategy:
       fail-fast: false
@@ -53,6 +54,7 @@ jobs:
             install: ""
             msys2_environment: MINGW64
             msys2_install: >-
+              mingw-w64-x86_64-ccache
               mingw-w64-x86_64-cmake
               mingw-w64-x86_64-ninja
               mingw-w64-x86_64-toolchain
@@ -65,6 +67,7 @@ jobs:
             install: ""
             msys2_environment: CLANG64
             msys2_install: >-
+              mingw-w64-clang-x86_64-ccache
               mingw-w64-clang-x86_64-cmake
               mingw-w64-clang-x86_64-ninja
               mingw-w64-clang-x86_64-toolchain
@@ -155,8 +158,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          fetch-tags: true
           submodules: recursive
 
       - name: Install Program / Dependencies
@@ -172,7 +173,7 @@ jobs:
           {
             if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
             {
-              sudo apt-get update -y
+              sudo apt-get update
               sudo apt-get install ${{ matrix.install }} -y
             }
           }
@@ -193,24 +194,19 @@ jobs:
           install: ${{ matrix.msys2_install }}
           msystem: ${{ matrix.msys2_environment }}
 
-      - name: Setup ccache
-        if: runner.os == 'Linux'
-        uses: actions/cache@v4.0.2
-        with:
-          path: ${{ env.CCACHE_DIR }}/**
-          key: ccache_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
-          restore-keys: ccache_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
-
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-
-      - name: Build DeroGold (MSVC)
-        if: runner.os == 'Windows' && matrix.compiler == 'msvc'
-        working-directory: ${{ github.workspace }}
-        shell: cmd
+      - name: Setup sysroot
+        if: runner.os == 'Linux' && matrix.arch == 'arm64' && matrix.compiler == 'clang'
         run: |
-          cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }}
+          mkdir /usr/local/sysroot
+          tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
+
+      - name: Restore ccache
+        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        uses: actions/cache/restore@v4.0.2
+        with:
+          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
+          restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
+          path: .ccache/**
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -220,12 +216,19 @@ jobs:
           cmake --preset ${{ matrix.configure_preset }}
           cmake --build --preset ${{ matrix.build_preset }}
 
-      - name: Build DeroGold (GCC/CLANG)
-        if: runner.os != 'Windows'
+      - name: Build DeroGold (MSVC/GCC/CLANG)
+        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler == 'msvc')
         working-directory: ${{ github.workspace }}
         run: |
           cmake --preset ${{ matrix.configure_preset }}
           cmake --build --preset ${{ matrix.build_preset }}
+
+      - name: Save ccache
+        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        uses: actions/cache/save@v4.0.2
+        with:
+          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
+          path: .ccache/**
 
       - name: Collect Logs
         uses: actions/upload-artifact@v4
