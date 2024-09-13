@@ -79,7 +79,6 @@ jobs:
             compiler: gcc
             install: >-
               build-essential
-              ccache
               cmake
               curl
               git
@@ -95,7 +94,6 @@ jobs:
             arch: x64
             compiler: clang
             install: >-
-              ccache
               clang
               cmake
               curl
@@ -112,7 +110,6 @@ jobs:
             arch: arm64
             compiler: gcc
             install: >-
-              ccache
               cmake
               crossbuild-essential-arm64
               curl
@@ -130,7 +127,6 @@ jobs:
             compiler: clang
             install: >-
               binutils-aarch64-linux-gnu
-              ccache
               clang
               cmake
               curl
@@ -206,6 +202,22 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Checkout ccache
+        uses: actions/checkout@v4
+        if: runner.os == 'Linux'
+        with:
+          repository: ccache/ccache
+          ref: v4.10.2
+          path: ccache
+          submodules: recursive
+
+      - name: install ccache
+        if: runner.os == 'Linux'
+        working-directory: ${{ github.workspace }}/ccache
+        run: |
+          cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -G Ninja -S . -B build
+          sudo cmake --build build -t install
 
       - name: Restore ccache
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
