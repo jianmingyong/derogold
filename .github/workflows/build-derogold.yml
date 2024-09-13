@@ -223,7 +223,7 @@ jobs:
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/restore@v4.0.2
         with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
+          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
           restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
           path: .ccache/**
 
@@ -246,7 +246,7 @@ jobs:
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/save@v4.0.2
         with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
+          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
           path: .ccache/**
 
       - name: Collect Logs
