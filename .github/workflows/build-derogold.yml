@@ -197,8 +197,8 @@ jobs:
       - name: Setup sysroot
         if: runner.os == 'Linux' && matrix.arch == 'arm64' && matrix.compiler == 'clang'
         run: |
-          mkdir /usr/local/sysroot
-          tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
+          sudo mkdir /usr/local/sysroot
+          sudo tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
 
       - name: Restore ccache
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
