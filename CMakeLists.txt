@@ -114,7 +114,7 @@ if(USE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
 
     if(CCACHE_PROGRAM)
-        message("found ccache and has been automatically set to use it. Use `-D USE_CCACHE=OFF` if you prefer not to use ccache.")
+        message(STATUS "Found ccache: ${CCACHE_PROGRAM}")
 
         if(MSVC)
             file(COPY_FILE ${CCACHE_PROGRAM} ${CMAKE_BINARY_DIR}/cl.exe ONLY_IF_DIFFERENT)
@@ -141,9 +141,6 @@ set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are
 
 # Set target architecture for optimizations
 set(ARCH native CACHE STRING "Set target architecture, options are: native, default")
-
-if(CMAKE_CROSSCOMPILING)
-endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(NOT ARCH STREQUAL "default")
@@ -212,7 +209,7 @@ endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
 add_custom_target(version ALL)
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/version" external src)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/version" "external" "include" "src")
 
 # Platform specific code base information is applied here
 if(MSVC)
@@ -303,7 +300,7 @@ if(NOT MSVC)
     endif()
 endif()
 
-find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Boost CONFIG REQUIRED COMPONENTS serialization)
 find_package(httplib CONFIG REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
