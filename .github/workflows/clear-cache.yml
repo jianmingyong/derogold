@@ -39,6 +39,10 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    concurrency: 
+      group: github_actions_clean_up
+      cancel-in-progress: false
+
     steps:
       - name: Cleanup
         run: |
