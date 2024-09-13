@@ -19,8 +19,6 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 150M
-      CCACHE_DEBUG: "true"
-      CCACHE_DEBUGDIR: ${{ github.workspace }}/.ccache_debug
       VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
 
     strategy:
@@ -208,6 +206,22 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Checkout ccache
+        uses: actions/checkout@v4
+        if: runner.os == 'Linux'
+        with:
+          repository: ccache/ccache
+          ref: v4.10.2
+          path: ccache
+          submodules: recursive
+
+      - name: install ccache
+        if: runner.os == 'Linux'
+        working-directory: ${{ github.workspace }}/ccache
+        run: |
+          cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -G Ninja -S . -B build
+          sudo cmake --build build -t install
 
       - name: Restore ccache
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
