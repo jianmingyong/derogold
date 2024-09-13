@@ -69,7 +69,7 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
     fi
 
 FROM env_install AS build_ccache
-    git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/ccache && \
+RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/ccache && \
     cd /usr/local/src/ccache && \
     if [ "${COMPILER_TYPE}" = "gcc" ]; then \
         CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
