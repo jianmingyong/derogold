@@ -303,7 +303,7 @@ if(NOT MSVC)
     endif()
 endif()
 
-find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Boost CONFIG REQUIRED COMPONENTS serialization)
 find_package(httplib CONFIG REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
