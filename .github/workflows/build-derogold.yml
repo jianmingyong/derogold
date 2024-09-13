@@ -19,7 +19,8 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 150M
-      CCACHE_DEBUG: true
+      CCACHE_DEBUG: "true"
+      CCACHE_DEBUGDIR: ${{ github.workspace }}/.ccache_debug
       VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
 
     strategy:
@@ -216,16 +217,6 @@ jobs:
           restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
           path: .ccache/**
 
-      - name: Upload Package
-        uses: actions/upload-artifact@v4
-        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
-        with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
-          path: |
-            ${{ github.workspace }}/.ccache/**
-          if-no-files-found: error
-          include-hidden-files: true
-
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
         working-directory: ${{ github.workspace }}
@@ -266,3 +257,14 @@ jobs:
             ${{ github.workspace }}/build/Packaging/*.tar.gz
             ${{ github.workspace }}/build/Packaging/*.deb
           if-no-files-found: ignore
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
+          path: |
+            ${{ env.CCACHE_DIR }}/**
+            ${{ env.CCACHE_DEBUGDIR }}/**
+          if-no-files-found: ignore
+          include-hidden-files: true
