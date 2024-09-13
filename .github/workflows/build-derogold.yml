@@ -216,6 +216,15 @@ jobs:
           restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
           path: .ccache/**
 
+      - name: Upload Package
+        uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
+          path: |
+            .ccache/**/*
+          if-no-files-found: error
+
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
         working-directory: ${{ github.workspace }}
@@ -230,14 +239,6 @@ jobs:
         run: |
           cmake --preset ${{ matrix.configure_preset }}
           cmake --build --preset ${{ matrix.build_preset }}
-
-      - name: Upload Package
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
-          path: |
-            ${{ github.workspace }}/.ccache/**
-          if-no-files-found: ignore
 
       - name: Save ccache
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
