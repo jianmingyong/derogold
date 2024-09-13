@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
+cmake_policy(SET CMP0167 NEW)
 
 message(CHECK_START "Finding CMAKE_SOURCE_DIR")
 file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMAL)
@@ -113,8 +114,11 @@ if (USE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
 
     if (CCACHE_PROGRAM)
+        message("found ccache and has been automatically set to use it. Use `-D USE_CCACHE=OFF` if you prefer not to use ccache.")
+
         set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
         set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+        
     endif ()
 endif ()
 
