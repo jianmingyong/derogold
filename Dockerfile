@@ -10,6 +10,7 @@ ARG NODE_VERSION=20
 ARG VCPKG_BINARY_SOURCES=clear;default,readwrite
 ARG ACTIONS_CACHE_URL
 
+ARG CCACHE_VERSION=4.10.2
 ARG CCACHE_MAXSIZE=250M
 
 ARG GITHUB_REF
@@ -37,6 +38,7 @@ ARG NVM_DIR=/root/.nvm
 ARG VCPKG_BINARY_SOURCES
 ARG ACTIONS_CACHE_URL
 
+ARG CCACHE_VERSION
 ARG CCACHE_MAXSIZE
 
 ARG GITHUB_REF
@@ -49,9 +51,9 @@ FROM dev_env_default AS env_install
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential ccache clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
+        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential ccache clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
+        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
     fi
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
@@ -66,7 +68,17 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
-FROM env_install AS restore_ccache
+FROM env_install AS build_ccache
+    git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/ccache && \
+    cd /usr/local/src/ccache && \
+    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
+        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
+        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    fi && \
+    rm -r /usr/local/src/ccache
+
+FROM build_ccache AS restore_ccache
 RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
