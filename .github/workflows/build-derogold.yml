@@ -205,7 +205,7 @@ jobs:
 
       - name: Checkout ccache
         uses: actions/checkout@v4
-        if: runner.os == 'Linux'
+        if: runner.os != 'Windows'
         with:
           repository: ccache/ccache
           ref: v4.10.2
@@ -213,18 +213,18 @@ jobs:
           submodules: recursive
 
       - name: install ccache
-        if: runner.os == 'Linux'
+        if: runner.os != 'Windows'
         working-directory: ${{ github.workspace }}/ccache
         run: |
           cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -G Ninja -S . -B build
           sudo cmake --build build -t install
 
       - name: Restore ccache
-        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/restore@v4.0.2
         with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
-          restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
+          key: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
+          restore-keys: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
           path: .ccache/**
 
       - name: Build DeroGold (MSYS2)
@@ -243,10 +243,10 @@ jobs:
           cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Save ccache
-        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/save@v4.0.2
         with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
+          key: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
           path: .ccache/**
 
       - name: Collect Logs
