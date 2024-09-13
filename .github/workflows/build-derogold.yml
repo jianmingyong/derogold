@@ -231,6 +231,14 @@ jobs:
           cmake --preset ${{ matrix.configure_preset }}
           cmake --build --preset ${{ matrix.build_preset }}
 
+      - name: Upload Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
+          path: |
+            ${{ github.workspace }}/.ccache/**
+          if-no-files-found: ignore
+
       - name: Save ccache
         if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/save@v4.0.2
@@ -255,12 +263,4 @@ jobs:
             ${{ github.workspace }}/build/Packaging/*.zip
             ${{ github.workspace }}/build/Packaging/*.tar.gz
             ${{ github.workspace }}/build/Packaging/*.deb
-          if-no-files-found: ignore
-
-      - name: Upload Package
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
-          path: |
-            ${{ github.workspace }}/.ccache/**
           if-no-files-found: ignore
