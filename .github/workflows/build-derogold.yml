@@ -262,5 +262,5 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.compiler }}-ccache
           path: |
-            ${{ github.workspace }}/.ccache
+            ${{ github.workspace }}/.ccache/**
           if-no-files-found: ignore
