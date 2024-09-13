@@ -9,7 +9,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-vscode.cpptools-extension-pack"
+				"ms-vscode.cpptools-extension-pack",
+				"KylinIDETeam.cmake-intellisence"
 			]
 		}
 	},
@@ -32,6 +33,6 @@
 	],
 	"workspaceFolder": "/usr/local/src/DeroGold",
 	"remoteEnv": {
-		"CCACHE_MAXSIZE": "1G"
+		"CCACHE_MAXSIZE": "250M"
 	}
 }
