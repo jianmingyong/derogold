@@ -68,8 +68,7 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
-FROM env_install AS build_ccache
-RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/ccache && \
+RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/ccache/ccache.git /usr/local/src/ccache && \
     cd /usr/local/src/ccache && \
     if [ "${COMPILER_TYPE}" = "gcc" ]; then \
         CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
@@ -78,7 +77,7 @@ RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.c
     fi && \
     rm -r /usr/local/src/ccache
 
-FROM build_ccache AS restore_ccache
+FROM env_install AS restore_ccache
 RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
     --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
     --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
@@ -86,7 +85,7 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
         cd /usr/local/src/docker/github-actions-proxy && \
         [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**') }}" -i "restore-keys=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_"; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**', '!/root/.ccache/**/stats') }}" -i "restore-keys=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_"; \
     fi
 
 FROM restore_ccache AS build_cmake
@@ -128,7 +127,7 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
         cd /usr/local/src/docker/github-actions-proxy && \
         [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
         npm install && npm run build && \
-        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**') }}"; \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**', '!/root/.ccache/**/stats') }}"; \
     fi
 
 ##################################################
