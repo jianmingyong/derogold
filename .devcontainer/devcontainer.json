@@ -1,11 +1,14 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+
 	"name": "Ubuntu 20.04 gcc",
+
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
 		"target": "build_cmake"
 	},
+
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -16,6 +19,7 @@
 			]
 		}
 	},
+
 	"mounts": [
 		{
 			"source": "vcpkg-cache",
@@ -33,7 +37,9 @@
 			"type": "volume"
 		}
 	],
+
 	"workspaceFolder": "/usr/local/src/DeroGold",
+
 	"remoteEnv": {
 		"CCACHE_MAXSIZE": "250M"
 	}
