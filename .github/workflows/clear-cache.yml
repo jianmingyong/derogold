@@ -33,9 +33,6 @@ jobs:
     name: Clean Up Cache
     runs-on: ubuntu-latest
 
-    permissions: 
-      actions: write
-
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
