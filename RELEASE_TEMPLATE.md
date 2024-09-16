@@ -33,14 +33,14 @@
 # Install Notes
 
 ## For Windows user: (x64)
-- Download `DeroGold-0.7.2.3-windows-x64-msvc.zip` and unzip.
+- Download `DeroGold-windows-x64-msvc.zip` and unzip.
 
 ## For Linux user: (x64)
-- (**Debian package installer**) Download `DeroGold-0.7.2.3-linux-x64-gcc.deb` to install via `sudo apt install ./DeroGold-0.7.2.3-linux-x64-gcc.deb`.
-- Download `DeroGold-0.7.2.3-linux-x64-gcc.tar.gz` and use `tar -xf DeroGold-0.7.2.3-linux-x64-gcc.tar.gz` to unzip.
+- (**Debian package installer**) Download `DeroGold-linux-x64-gcc.deb` to install via `sudo apt install ./DeroGold-linux-x64-gcc.deb`.
+- Download `DeroGold-linux-x64-gcc.tar.gz` and use `tar -xf DeroGold-linux-x64-gcc.tar.gz` to unzip.
 
 ## For MacOS user: (x64)
-- Download `DeroGold-0.7.2.3-osx-x64-clang.tar.gz` and use `tar -xf DeroGold-0.7.2.3-osx-x64-clang.tar.gz` to unzip.
+- Download `DeroGold-osx-x64-clang.tar.gz` and use `tar -xf DeroGold-osx-x64-clang.tar.gz` to unzip.
 
 # **USAGE WARNING:**
 - Pre-released versions are not guaranteed to be stable. Use with caution.

@@ -76,7 +76,7 @@ message(CHECK_START "Finding VCPKG_TARGET_TRIPLET")
 
 if(NOT DEFINED VCPKG_TARGET_TRIPLET AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     message(CHECK_FAIL "not found")
-    message(FATAL_ERROR "Please include -DVCPKG_TARGET_TRIPLET=x64-windows-static-release (MSVC) or -DVCPKG_TARGET_TRIPLET=x64-mingw-static-release (MINGW64/CLANG64) in your CMake command to continue.")
+    message(FATAL_ERROR "Please include -D VCPKG_TARGET_TRIPLET=x64-windows-static-release (MSVC) or -D VCPKG_TARGET_TRIPLET=x64-mingw-static-release (MINGW64/CLANG64) in your CMake command to continue.")
 elseif(DEFINED VCPKG_TARGET_TRIPLET AND NOT VCPKG_TARGET_TRIPLET IN_LIST SUPPORTED_VCPKG_TARGET_TRIPLET)
     message(CHECK_FAIL "${VCPKG_TARGET_TRIPLET}")
     list(JOIN SUPPORTED_VCPKG_TARGET_TRIPLET "\n" SUPPORTED_VCPKG_TARGET_TRIPLET_STRING)
@@ -88,6 +88,7 @@ endif()
 # Set vcpkg toolchain options
 set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/ports")
 set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/triplets")
+set(VCPKG_INSTALL_OPTIONS "--clean-after-build")
 
 project(DeroGold VERSION 0.7.2.3 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
@@ -190,18 +191,16 @@ file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/version")
 if(NOT SET_COMMIT_ID_IN_VERSION)
     unset(BUILD_COMMIT_ID)
 elseif(NOT DEFINED BUILD_COMMIT_ID)
-    find_package(Git QUIET)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+        find_package(Git QUIET)
 
-    if(Git_FOUND)
-        execute_process(
-            COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            RESULT_VARIABLE BUILD_COMMIT_ID_RESULT
-            OUTPUT_VARIABLE BUILD_COMMIT_ID
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-        if(BUILD_COMMIT_ID_RESULT)
-            message(WARNING "Cannot determine current revision. Make sure that you are building from a Git working tree.")
+        if(Git_FOUND)
+            execute_process(
+                COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                RESULT_VARIABLE BUILD_COMMIT_ID_RESULT
+                OUTPUT_VARIABLE BUILD_COMMIT_ID
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
         endif()
     endif()
 endif()

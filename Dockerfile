@@ -114,9 +114,9 @@ RUN --mount=type=bind,target=/usr/local/src/DeroGold,rw \
         export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN); \
     fi && \
     if [ "${BUILDPLATFORM}" != "${TARGETPLATFORM}" ]; then \
-        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -j $(nproc); \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -j $(nproc); \
     else \
-        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -j $(nproc); \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -j $(nproc); \
     fi
 
 FROM build_gcc_clang AS save_ccache
