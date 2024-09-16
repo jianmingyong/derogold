@@ -196,21 +196,21 @@ jobs:
           sudo mkdir /usr/local/sysroot
           sudo tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
 
-      - name: Setup Environment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
       - name: Checkout ccache
         uses: actions/checkout@v4
-        if: runner.os != 'Windows'
         with:
           repository: ccache/ccache
           ref: v4.10.2
           path: ccache
           submodules: recursive
+
+      - name: install ccache
+        if: runner.os == 'Windows' && matrix.compiler == 'msvc'
+        working-directory: ${{ github.workspace }}/ccache
+        run: |
+          cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build
+          cmake --build build -t install
+          echo "${{ github.workspace }}/ccache/bin" >> $env:GITHUB_PATH
 
       - name: install ccache
         if: runner.os != 'Windows'
@@ -220,12 +220,19 @@ jobs:
           sudo cmake --build build -t install
 
       - name: Restore ccache
-        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
+        id: restore_ccache
         uses: actions/cache/restore@v4.0.2
         with:
           key: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
           restore-keys: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
           path: .ccache/**
+
+      - name: Setup Environment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -242,9 +249,29 @@ jobs:
           cmake --preset ${{ matrix.configure_preset }}
           cmake --build --preset ${{ matrix.build_preset }}
 
+      - name: Delete old ccache
+        env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        if: ${{ steps.restore_ccache.outputs.cache-matched-key }} != ${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
+        run: |
+          gh extension install actions/gh-actions-cache
+
+          echo "Fetching list of cache key"
+          cacheKeysForPR=$(gh actions-cache list -R ${{ github.repository }} -B ${{ github.ref_name }} -L 100 --key 'ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}' | cut -f 1 )
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeysForPR
+          do
+              gh actions-cache delete $cacheKey -R ${{ github.repository }} -B ${{ github.ref }} --confirm
+          done
+          echo "Done"
+
       - name: Save ccache
-        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
         uses: actions/cache/save@v4.0.2
+        if: ${{ steps.restore_ccache.outputs.cache-matched-key }} != ${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
         with:
           key: ccache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**', '!.ccache/**/stats') }}
           path: .ccache/**
