@@ -209,8 +209,8 @@ jobs:
         working-directory: ${{ github.workspace }}/ccache
         run: |
           cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build
-          cmake --build build -t install
-          echo "${{ github.workspace }}/ccache/bin" >> $env:GITHUB_PATH
+          cmake --build build -t install --config Release
+          echo "${{ github.workspace }}/ccache/build/bin" >> $env:GITHUB_PATH
 
       - name: install ccache
         if: runner.os != 'Windows'
