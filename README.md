@@ -35,7 +35,7 @@
 ## Development Resources
 
 * Web: https://derogold.com/
-* GitHub: https://github.com/derogold/derogold
+* GitHub: https://github.com/jianmingyong/derogold
 * Discord: https://discordapp.com/invite/j2aSNFn
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -132,7 +132,7 @@ Prerequisites:
   - Run `pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache git`
 
 Building:
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
 - `cmake --preset windows-x64-mingw-gcc-install`
 - `cmake --build --preset windows-x64-mingw-gcc-install`
@@ -154,7 +154,7 @@ Prerequisites:
   - Run `pacman -S mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-ccache git`
 
 Building:
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
 - `cmake --preset windows-x64-mingw-clang-install`
 - `cmake --build --preset windows-x64-mingw-clang-install`
@@ -176,7 +176,7 @@ Prerequisites:
 - (Optional) `sudo apt-get install crossbuild-essential-arm64` for cross building aarch64 target
 
 Building:
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
 - `cmake --preset linux-x64-gcc-install`
 - `sudo cmake --build --preset linux-x64-gcc-install`
@@ -198,7 +198,7 @@ Prerequisites:
 - For Ubuntu: `sudo apt-get install git cmake ninja-build clang curl zip unzip tar pkg-config`
 
 Building:
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
 - `cmake --preset linux-x64-clang-install`
 - `sudo cmake --build --preset linux-x64-clang-install`
@@ -222,7 +222,7 @@ Prerequisites:
   - `brew install git cmake ninja llvm pkg-config`
 
 Building:
-- `git clone --recursive https://github.com/derogold/derogold.git`
+- `git clone --recursive https://github.com/jianmingyong/derogold.git`
 - `cd derogold`
 - `cmake --preset osx-x64-clang-install`
 - `sudo cmake --build --preset osx-x64-clang-install`
