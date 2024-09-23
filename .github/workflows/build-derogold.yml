@@ -22,7 +22,7 @@ jobs:
       VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
 
     concurrency: 
-      group: build_derogold_${{ github.ref }}
+      group: build_derogold_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
 
     strategy:
       fail-fast: false
