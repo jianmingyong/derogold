@@ -52,7 +52,10 @@
             "inherits": [
                 "default-msvc"
             ],
-            "generator": "Visual Studio 17 2022"
+            "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         },
         {
             "name": "default-gcc-release",
@@ -60,7 +63,10 @@
             "inherits": [
                 "default-gcc"
             ],
-            "generator": "Ninja"
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         },
         {
             "name": "default-clang-release",
@@ -68,7 +74,10 @@
             "inherits": [
                 "default-clang"
             ],
-            "generator": "Ninja"
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         },
         {
             "name": "windows-x64-msvc",
