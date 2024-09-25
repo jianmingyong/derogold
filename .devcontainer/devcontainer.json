@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
 
-	"name": "Ubuntu 20.04 gcc",
+	"name": "Ubuntu 20.04",
 
 	"build": {
 		"context": "..",
@@ -42,6 +42,7 @@
 	"workspaceFolder": "/usr/local/src/DeroGold",
 
 	"remoteEnv": {
-		"CCACHE_MAXSIZE": "250M"
+		"CCACHE_MAXSIZE": "250M",
+		"CCACHE_SLOPPINESS": "time_macros"
 	}
 }
