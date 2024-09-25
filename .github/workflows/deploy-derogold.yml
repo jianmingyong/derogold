@@ -1,22 +1,20 @@
 name: Deploy DeroGold
 
 on:
-  push:
-    tags:
-      - "*"
-
   workflow_dispatch:
     inputs:
       draft_release:
         description: 'Create a draft release'
         default: false
-        required: false
         type: boolean
       docker_push:
         description: 'Push results to docker'
         default: true
-        required: false
         type: boolean
+
+permissions:
+  contents: write
+  actions: write
 
 defaults:
   run:
@@ -50,30 +48,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: env
 
-    env:
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_MAXSIZE: 150M
-      VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
-
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-20.04, macos-12]
-        arch: [x64, arm64]
-        compiler: [msvc, gcc, clang]
-
-        exclude:
-          - os: windows-latest
-            arch: arm64
-          - os: macos-12
-            arch: arm64
-          - os: ubuntu-20.04
-            compiler: msvc
-          - os: macos-12
-            compiler: msvc
-          - os: macos-12
-            compiler: gcc
-
         include:
           - os: windows-latest
             arch: x64
@@ -192,7 +169,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-tags: true
           submodules: recursive
 
       - name: Install Program / Dependencies
@@ -221,6 +197,9 @@ jobs:
             }
           }
 
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -235,20 +214,14 @@ jobs:
           sudo mkdir /usr/local/sysroot
           sudo tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
 
-      - name: Setup Environment
-        uses: actions/github-script@v7
+      - name: Setup ccache
+        uses: jianmingyong/ccache-action@v1.0.0
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          ccache-key-prefix: ccache_cache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
+          max-size: 150M
 
-      - name: Restore ccache
-        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
-        uses: actions/cache/restore@v4.0.2
-        with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
-          restore-keys: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}
-          path: .ccache/**
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11.5
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -259,18 +232,11 @@ jobs:
           cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Build DeroGold (MSVC/GCC/CLANG)
+        uses: lukka/run-cmake@v10.8
         if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler == 'msvc')
-        working-directory: ${{ github.workspace }}
-        run: |
-          cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }}
-
-      - name: Save ccache
-        if: runner.os == 'Linux' || (runner.os == 'Windows' && matrix.compiler != 'msvc')
-        uses: actions/cache/save@v4.0.2
         with:
-          key: ccache_${{ runner.os }}_${{ runner.arch }}_${{ matrix.compiler }}_${{ hashFiles('.ccache/**') }}
-          path: .ccache/**
+          configurePreset: '${{ matrix.configure_preset }}'
+          buildPreset: '${{ matrix.build_preset }}'
 
       - name: Collect Logs
         uses: actions/upload-artifact@v4
@@ -299,8 +265,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-tags: true
 
       - name: Create artifact directory
         run: |

@@ -7,6 +7,10 @@ on:
       - "development"
   pull_request:
 
+permissions:
+  contents: read
+  actions: write
+
 defaults:
   run:
     shell: pwsh
@@ -16,9 +20,6 @@ jobs:
     name: ${{ matrix.build_preset }}
     runs-on: ${{ matrix.os }}
     
-    env:
-      VCPKG_BINARY_SOURCES: clear;x-gha,readwrite
-
     concurrency: 
       group: build_derogold_${{ github.ref }}_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
 
@@ -167,6 +168,9 @@ jobs:
             }
           }
 
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -182,17 +186,13 @@ jobs:
           sudo tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
 
       - name: Setup ccache
-        uses: jianmingyong/ccache-action@main
+        uses: jianmingyong/ccache-action@v1.0.0
         with:
           ccache-key-prefix: ccache_cache_${{ runner.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
           max-size: 150M
 
-      - name: Setup Environment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11.5
 
       - name: Build DeroGold (MSYS2)
         if: runner.os == 'Windows' && matrix.compiler != 'msvc'
@@ -203,11 +203,11 @@ jobs:
           cmake --build --preset ${{ matrix.build_preset }}
 
       - name: Build DeroGold (MSVC/GCC/CLANG)
+        uses: lukka/run-cmake@v10.8
         if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler == 'msvc')
-        working-directory: ${{ github.workspace }}
-        run: |
-          cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }}
+        with:
+          configurePreset: '${{ matrix.configure_preset }}'
+          buildPreset: '${{ matrix.build_preset }}'
 
       - name: Collect Logs
         uses: actions/upload-artifact@v4
