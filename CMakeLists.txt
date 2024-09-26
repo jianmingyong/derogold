@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0091 NEW)
-cmake_policy(SET CMP0167 NEW)
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+    cmake_policy(SET CMP0167 NEW)
+endif()
 
 message(CHECK_START "Finding CMAKE_SOURCE_DIR")
 file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMAL)
@@ -23,7 +26,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 elseif(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
     set(VCPKG_ROOT "$ENV{VCPKG_ROOT}")
 else()
-    message("vcpkg installation is missing from your source. Did you forget to clone with --recursive flag?")
+    message(WARNING "vcpkg installation is missing from your source. Did you forget to clone with --recursive flag?")
 
     find_package(Git QUIET)
 
@@ -36,8 +39,12 @@ else()
                 message(FATAL_ERROR "Unable to initialize vcpkg submodule.")
             endif()
         else()
-            message(CHECK_FAIL "not found")
-            message(FATAL_ERROR "Unable to initialize vcpkg submodule. Please ensure that you have clone the repository instead of downloading the source.")
+            execute_process(COMMAND "${GIT_EXECUTABLE" clone https://github.com/microsoft/vcpkg WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_CLONE_RESULT)
+
+            if(GIT_CLONE_RESULT)
+                message(CHECK_FAIL "not found")
+                message(FATAL_ERROR "Unable to initialize vcpkg submodule.")
+            endif()
         endif()
     else()
         message(CHECK_FAIL "not found")
@@ -100,7 +107,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
@@ -122,8 +128,10 @@ if(USE_CCACHE)
 
             # By default Visual Studio generators will use /Zi which is not compatible
             # with ccache, so tell Visual Studio to use /Z7 instead.
-            message(STATUS "Setting MSVC debug information format to 'Embedded'")
-            set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+            if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.25")
+                message(STATUS "Setting MSVC debug information format to 'Embedded'")
+                set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+            endif()
 
             set(CMAKE_VS_GLOBALS
                 "CLToolExe=cl.exe"
