@@ -125,17 +125,6 @@ jobs:
             configure_preset: linux-arm64-clang-cross-package
             build_preset: linux-arm64-clang-cross-package
 
-          - os: macos-13
-            arch: x64
-            compiler: clang
-            install: >-
-              cmake
-              ninja
-              llvm
-              pkg-config
-            configure_preset: osx-x64-clang-package
-            build_preset: osx-x64-clang-package
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
