@@ -13,7 +13,7 @@ namespace CryptoNote
     class ICoreInformation
     {
       public:
-        virtual ~ICoreInformation() {}
+        virtual ~ICoreInformation() = default;
 
         virtual size_t getPoolTransactionCount() const = 0;
 

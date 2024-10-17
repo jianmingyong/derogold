@@ -9,7 +9,6 @@
 #include "../common/JsonValue.h"
 #include "LoggerGroup.h"
 
-#include <list>
 #include <memory>
 #include <mutex>
 
@@ -22,9 +21,11 @@ namespace Logging
 
         void configure(const Common::JsonValue &val);
 
-        virtual void
-            operator()(const std::string &category, Level level, boost::posix_time::ptime time, const std::string &body)
-                override;
+        void operator()(
+            const std::string &category,
+            Level level,
+            boost::posix_time::ptime time,
+            const std::string &body) override;
 
       private:
         std::vector<std::unique_ptr<CommonLogger>> loggers;

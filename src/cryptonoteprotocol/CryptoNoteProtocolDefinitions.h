@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cryptonotecore/Core.h>
-#include "cryptonotecore/CryptoNoteBasic.h"
 
 #include <list>
 
@@ -31,7 +30,7 @@ namespace CryptoNote
         std::vector<uint8_t> blockTemplate;
         std::vector<std::vector<uint8_t>> transactions;
 
-        RawBlockLegacy() {};
+        RawBlockLegacy() = default;
 
         RawBlockLegacy(
             const std::vector<uint8_t> blockTemplate_,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -17,56 +17,55 @@
 
 namespace CryptoNote
 {
-    class LevelDBWrapper : public IDataBase
+    class LevelDBWrapper final : public IDataBase
     {
-      public:
-        LevelDBWrapper(
-            std::shared_ptr<Logging::ILogger> logger,
-            const DataBaseConfig &config);
-
-        virtual ~LevelDBWrapper();
-
-        LevelDBWrapper(const LevelDBWrapper &) = delete;
-
-        LevelDBWrapper(LevelDBWrapper &&) = delete;
-
-        LevelDBWrapper &operator=(const LevelDBWrapper &) = delete;
-
-        LevelDBWrapper &operator=(LevelDBWrapper &&) = delete;
-
-        void init();
-
-        void shutdown() override;
-
-        void destroy(); // Be careful with this method!
-
-        std::error_code write(IWriteBatch &batch) override;
-
-        std::error_code read(IReadBatch &batch) override;
-
-        std::error_code readThreadSafe(IReadBatch &batch) override;
-        
-        void recreate() override;
-
-      private:
-        std::error_code write(IWriteBatch &batch, bool sync);
-
-        leveldb::Options getDBOptions(const DataBaseConfig &config);
-
-        std::string getDataDir(const DataBaseConfig &config);
-
         enum State
         {
             NOT_INITIALIZED,
             INITIALIZED
         };
 
-        Logging::LoggerRef logger;
+        const Logging::LoggerRef logger;
+        const DataBaseConfig m_config;
+
+        std::atomic<State> state;
 
         std::unique_ptr<leveldb::DB> db;
 
-        std::atomic<State> state;
-        
-        const DataBaseConfig m_config;
+    public:
+        inline static const std::string DB_NAME = "LevelDB";
+
+        LevelDBWrapper(const std::shared_ptr<Logging::ILogger> &logger, DataBaseConfig config);
+
+        LevelDBWrapper(const LevelDBWrapper &) = delete;
+        LevelDBWrapper(LevelDBWrapper &&) = delete;
+
+        LevelDBWrapper &operator=(const LevelDBWrapper &) = delete;
+        LevelDBWrapper &operator=(LevelDBWrapper &&) = delete;
+
+        void init() override;
+
+        void shutdown() override;
+
+        void destroy() override;
+
+        std::error_code write(IWriteBatch &batch) override;
+
+        std::error_code read(IReadBatch &batch) override;
+
+        std::error_code readThreadSafe(IReadBatch &batch) override;
+
+        void recreate() override;
+
+        void optimize() override;
+
+        const DataBaseConfig &getConfig() const override { return m_config; }
+
+    private:
+        std::error_code write(IWriteBatch &batch, bool sync);
+
+        leveldb::Options getDBOptions(const DataBaseConfig &config);
+
+        std::string getDataDir(const DataBaseConfig &config);
     };
 } // namespace CryptoNote

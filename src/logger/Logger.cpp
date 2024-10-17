@@ -1,11 +1,9 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
-//////////////////////////
-#include <logger/Logger.h>
-//////////////////////////
+#include "Logger.h"
 
 #include <algorithm>
 #include <ctime>
@@ -119,7 +117,7 @@ namespace Logger
         throw std::invalid_argument("Invalid log category given");
     }
 
-    void Logger::log(const std::string message, const LogLevel level, const std::vector<LogCategory> categories) const
+    void Logger::log(const std::string &message, const LogLevel level, const std::vector<LogCategory> &categories) const
     {
         if (level == DISABLED)
         {
@@ -153,11 +151,10 @@ namespace Logger
         m_logLevel = level;
     }
 
-    void Logger::setLogCallback(std::function<void(
-                                    const std::string prettyMessage,
-                                    const std::string message,
-                                    const LogLevel level,
-                                    const std::vector<LogCategory> categories)> callback)
+    void Logger::setLogCallback(
+        const std::function<
+            void(std::string prettyMessage, std::string message, LogLevel level, std::vector<LogCategory> categories)>
+            &callback)
     {
         m_callback = callback;
     }

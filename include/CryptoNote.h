@@ -6,14 +6,15 @@
 #pragma once
 
 #include "CryptoTypes.h"
-#include "json.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
+#include "JsonHelper.h"
+#include "common/StringTools.h"
 
-#include <JsonHelper.h>
-#include <boost/variant.hpp>
-#include <common/StringTools.h>
-#include <vector>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/variant.hpp>
+#include <json.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 
 namespace CryptoNote
 {
@@ -32,6 +33,13 @@ namespace CryptoNote
     struct KeyOutput
     {
         Crypto::PublicKey key;
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(key);
+            // clang-format on
+        }
     };
 
     typedef boost::variant<BaseInput, KeyInput> TransactionInput;
@@ -42,6 +50,14 @@ namespace CryptoNote
     {
         uint64_t amount;
         TransactionOutputTarget target;
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(amount);
+            ar & BOOST_NVP(target);
+            // clang-format on
+        }
     };
 
     struct TransactionPrefix
@@ -139,6 +155,14 @@ namespace CryptoNote
                 transactions.push_back(Common::fromHex(tx.GetString()));
             }
         }
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(block);
+            ar & BOOST_NVP(transactions);
+            // clang-format on
+        }
     };
 
     inline void to_json(nlohmann::json &j, const CryptoNote::KeyInput &k)
@@ -159,6 +183,7 @@ namespace CryptoNote
     inline void to_json(nlohmann::json &j, const CryptoNote::RawBlock &block)
     {
         std::vector<std::string> transactions;
+        transactions.reserve(block.transactions.size());
 
         for (const auto &transaction : block.transactions)
         {
@@ -172,11 +197,11 @@ namespace CryptoNote
     {
         block.transactions.clear();
 
-        std::string blockString = j.at("block").get<std::string>();
+        const auto blockString = j.at("block").get<std::string>();
 
         block.block = Common::fromHex(blockString);
 
-        std::vector<std::string> transactions = j.at("transactions").get<std::vector<std::string>>();
+        const auto transactions = j.at("transactions").get<std::vector<std::string>>();
 
         for (const auto &transaction : transactions)
         {

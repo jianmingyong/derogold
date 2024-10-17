@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -39,7 +39,7 @@ namespace CryptoNote
       public:
         Core(
             const Currency &currency,
-            std::shared_ptr<Logging::ILogger> logger,
+            const std::shared_ptr<Logging::ILogger>& logger,
             Checkpoints &&checkpoints,
             System::Dispatcher &dispatcher,
             std::unique_ptr<IBlockchainCacheFactory> &&blockchainCacheFactory,
@@ -239,6 +239,10 @@ namespace CryptoNote
 
         virtual void rewind(const uint64_t blockIndex) override;
 
+        CryptoNote::RawBlock getRawBlock(uint32_t blockIndex) const;
+
+        CryptoNote::RawBlock getRawBlock(const Crypto::Hash &blockHash) const;
+
       private:
         const Currency &currency;
 
@@ -400,7 +404,7 @@ namespace CryptoNote
         void copyTransactionsToPool(IBlockchainCache *alt);
 
         void checkAndRemoveInvalidPoolTransactions(
-            const TransactionValidatorState blockTransactionsState);
+            const TransactionValidatorState& blockTransactionsState);
 
         bool isTransactionInChain(const Crypto::Hash &txnHash);
 

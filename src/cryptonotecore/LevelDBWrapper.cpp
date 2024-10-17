@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -7,30 +7,21 @@
 
 #include "LevelDBWrapper.h"
 
+#include <utility>
+
 #include "DataBaseErrors.h"
 #include "leveldb/cache.h"
 #include "leveldb/db.h"
-#include "leveldb/table.h"
 #include "leveldb/write_batch.h"
 
 using namespace CryptoNote;
-using namespace Logging;
 
-namespace
-{
-    const std::string DB_NAME = "LevelDB";
-}
-
-LevelDBWrapper::LevelDBWrapper(
-    std::shared_ptr<Logging::ILogger> logger,
-    const DataBaseConfig &config):
+LevelDBWrapper::LevelDBWrapper(const std::shared_ptr<Logging::ILogger> &logger, DataBaseConfig config) :
     logger(logger, "LevelDBWrapper"),
-    m_config(config),
+    m_config(std::move(config)),
     state(NOT_INITIALIZED)
 {
 }
-
-LevelDBWrapper::~LevelDBWrapper() {}
 
 void LevelDBWrapper::init()
 {
@@ -41,7 +32,7 @@ void LevelDBWrapper::init()
 
     std::string dataDir = getDataDir(m_config);
 
-    logger(INFO) << "Opening DB in " << dataDir;
+    logger(Logging::INFO) << "Opening DB in " << dataDir;
 
     // Set up database connection information and open database
     leveldb::DB *dbPtr;
@@ -53,27 +44,27 @@ void LevelDBWrapper::init()
 
     if (status.ok())
     {
-        logger(INFO) << "DB opened in " << dataDir;
+        logger(Logging::INFO) << "DB opened in " << dataDir;
     }
     else if (!status.ok() && status.IsInvalidArgument())
     {
-        logger(INFO) << "DB not found in " << dataDir << ". Creating new DB...";
+        logger(Logging::INFO) << "DB not found in " << dataDir << ". Creating new DB...";
         dbOptions.create_if_missing = true;
         leveldb::Status status = leveldb::DB::Open(dbOptions, dataDir, &dbPtr);
         if (!status.ok())
         {
-            logger(ERROR) << "DB Error. DB can't be created in " << dataDir << ". Error: " << status.ToString();
+            logger(Logging::ERROR) << "DB Error. DB can't be created in " << dataDir << ". Error: " << status.ToString();
             throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::INTERNAL_ERROR));
         }
     }
     else if (status.IsIOError())
     {
-        logger(ERROR) << "DB Error. DB can't be opened in " << dataDir << ". Error: " << status.ToString();
+        logger(Logging::ERROR) << "DB Error. DB can't be opened in " << dataDir << ". Error: " << status.ToString();
         throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::IO_ERROR));
     }
     else
     {
-        logger(ERROR) << "DB Error. DB can't be opened in " << dataDir << ". Error: " << status.ToString();
+        logger(Logging::ERROR) << "DB Error. DB can't be opened in " << dataDir << ". Error: " << status.ToString();
         throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::INTERNAL_ERROR));
     }
 
@@ -88,7 +79,7 @@ void LevelDBWrapper::shutdown()
         throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::NOT_INITIALIZED));
     }
 
-    logger(INFO) << "Closing DB.";
+    logger(Logging::INFO) << "Closing DB.";
 	
     db.reset();
 
@@ -104,18 +95,18 @@ void LevelDBWrapper::destroy()
 
     std::string dataDir = getDataDir(m_config);
 
-    logger(WARNING) << "Destroying DB in " << dataDir;
+    logger(Logging::WARNING) << "Destroying DB in " << dataDir;
 
     leveldb::Options dbOptions = getDBOptions(m_config);
     leveldb::Status status = leveldb::DestroyDB(dataDir, dbOptions);
 
     if (status.ok())
     {
-        logger(WARNING) << "DB destroyed in " << dataDir;
+        logger(Logging::WARNING) << "DB destroyed in " << dataDir;
     }
     else
     {
-        logger(ERROR) << "DB Error. DB can't be destroyed in " << dataDir << ". Error: " << status.ToString();
+        logger(Logging::ERROR) << "DB Error. DB can't be destroyed in " << dataDir << ". Error: " << status.ToString();
         throw std::system_error(make_error_code(CryptoNote::error::DataBaseErrorCodes::INTERNAL_ERROR));
     }
 }
@@ -152,7 +143,7 @@ std::error_code LevelDBWrapper::write(IWriteBatch &batch, bool sync)
 
     if (!status.ok())
     {
-        logger(ERROR) << "Can't write to DB. " << status.ToString();
+        logger(Logging::ERROR) << "Can't write to DB. " << status.ToString();
         return make_error_code(CryptoNote::error::DataBaseErrorCodes::INTERNAL_ERROR);
     }
     else
@@ -199,7 +190,7 @@ std::error_code LevelDBWrapper::read(IReadBatch &batch)
     }
     else
     {
-        logger(ERROR) << "LevelDBWrapper::read: detected rawKeys.size() == 0!!!";
+        logger(Logging::ERROR) << "LevelDBWrapper::read: detected rawKeys.size() == 0!!!";
         return make_error_code(CryptoNote::error::DataBaseErrorCodes::INTERNAL_ERROR);
     }
 }
@@ -278,4 +269,21 @@ void LevelDBWrapper::recreate()
 
     destroy();
     init();
+}
+
+void LevelDBWrapper::optimize()
+{
+    const std::string dbData = getDataDir(m_config);
+    const leveldb::Options dbOptions = getDBOptions(m_config);
+    leveldb::DB *levelDb;
+
+    if (leveldb::DB::Open(dbOptions, dbData, &levelDb).ok())
+    {
+        logger(Logging::INFO) << "Preparing to optimize DB for reading... This may take a long time.";
+        logger(Logging::INFO) << "Please do not close the program abruptly to prevent DB corruption.";
+
+        levelDb->CompactRange(nullptr, nullptr);
+
+        logger(Logging::INFO) << "Optimized DeroGold DB.";
+    }
 }

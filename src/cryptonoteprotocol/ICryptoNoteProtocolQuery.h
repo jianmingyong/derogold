@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -16,6 +16,8 @@ namespace CryptoNote
     class ICryptoNoteProtocolQuery
     {
       public:
+        virtual ~ICryptoNoteProtocolQuery() = default;
+
         virtual bool addObserver(ICryptoNoteProtocolObserver *observer) = 0;
 
         virtual bool removeObserver(ICryptoNoteProtocolObserver *observer) = 0;

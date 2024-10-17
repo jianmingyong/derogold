@@ -16,7 +16,7 @@ namespace CryptoNote
         {
             transactions.reserve(binaryTransactions.size());
 
-            for (auto binaryTransaction : binaryTransactions)
+            for (const auto& binaryTransaction : binaryTransactions)
             {
                 Transaction transaction;
                 if (!fromBinaryArray(transaction, binaryTransaction))

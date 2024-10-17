@@ -9,50 +9,45 @@
 #include <memory>
 #include <string>
 #include <subwallets/SubWallets.h>
-#include <unordered_map>
 #include <vector>
 
-Error validateFusionTransaction(
-    const uint64_t mixin,
-    const std::vector<std::string> subWalletsToTakeFrom,
-    const std::string destinationAddress,
-    const std::shared_ptr<SubWallets> subWallets,
-    const uint64_t currentHeight);
+Error validateFusionTransaction(uint64_t mixin,
+                                std::vector<std::string> subWalletsToTakeFrom,
+                                std::string destinationAddress,
+                                std::shared_ptr<SubWallets> subWallets,
+                                uint64_t currentHeight);
 
-Error validateTransaction(
-    const std::vector<std::pair<std::string, uint64_t>> destinations,
-    const uint64_t mixin,
-    const uint64_t fee,
-    const std::string paymentID,
-    const std::vector<std::string> subWalletsToTakeFrom,
-    const std::string changeAddress,
-    const std::shared_ptr<SubWallets> subWallets,
-    const uint64_t unlockTime,
-    const uint64_t currentHeight);
+Error validateTransaction(std::vector<std::pair<std::string, uint64_t>> destinations,
+                          uint64_t mixin,
+                          uint64_t fee,
+                          std::string paymentID,
+                          std::vector<std::string> subWalletsToTakeFrom,
+                          std::string changeAddress,
+                          std::shared_ptr<SubWallets> subWallets,
+                          uint64_t unlockTime,
+                          uint64_t currentHeight);
 
-Error validateIntegratedAddresses(
-    const std::vector<std::pair<std::string, uint64_t>> destinations,
+Error validateIntegratedAddresses(std::vector<std::pair<std::string, uint64_t>> destinations,
     std::string paymentID);
 
-Error validatePaymentID(const std::string paymentID);
+Error validatePaymentID(std::string paymentID);
 
-Error validateHash(const std::string hash);
+Error validateHash(std::string hash);
 
 Error validatePrivateKey(const Crypto::SecretKey &privateViewKey);
 
 Error validatePublicKey(const Crypto::PublicKey &publicKey);
 
-Error validateMixin(const uint64_t mixin, const uint64_t height);
+Error validateMixin(uint64_t mixin, uint64_t height);
 
-Error validateAmount(
-    const std::vector<std::pair<std::string, uint64_t>> destinations,
-    const uint64_t fee,
-    const std::vector<std::string> subWalletsToTakeFrom,
-    const std::shared_ptr<SubWallets> subWallets,
-    const uint64_t currentHeight);
+Error validateAmount(std::vector<std::pair<std::string, uint64_t>> destinations,
+                     uint64_t fee,
+                     std::vector<std::string> subWalletsToTakeFrom,
+                     std::shared_ptr<SubWallets> subWallets,
+                     uint64_t currentHeight);
 
-Error validateDestinations(const std::vector<std::pair<std::string, uint64_t>> destinations);
+Error validateDestinations(std::vector<std::pair<std::string, uint64_t>> destinations);
 
-Error validateAddresses(std::vector<std::string> addresses, const bool integratedAddressesAllowed);
+Error validateAddresses(std::vector<std::string> addresses, bool integratedAddressesAllowed);
 
-Error validateOurAddresses(const std::vector<std::string> addresses, const std::shared_ptr<SubWallets> subWallets);
+Error validateOurAddresses(std::vector<std::string> addresses, std::shared_ptr<SubWallets> subWallets);

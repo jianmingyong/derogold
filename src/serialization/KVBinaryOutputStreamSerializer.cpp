@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <common/StreamTools.h>
+#include <limits>
 #include <stdexcept>
 #include <limits>
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -35,20 +35,20 @@ namespace CryptoNote
         CryptoNoteProtocolHandler(
             const Currency &currency,
             System::Dispatcher &dispatcher,
-            ICore &rcore,
+            ICore &core,
             IP2pEndpoint *p_net_layout,
             std::shared_ptr<Logging::ILogger> log);
 
-        virtual ~CryptoNoteProtocolHandler() override {};
+        ~CryptoNoteProtocolHandler() override = default;
 
-        virtual bool addObserver(ICryptoNoteProtocolObserver *observer) override;
+        bool addObserver(ICryptoNoteProtocolObserver *observer) override;
 
-        virtual bool removeObserver(ICryptoNoteProtocolObserver *observer) override;
+        bool removeObserver(ICryptoNoteProtocolObserver *observer) override;
 
         void set_p2p_endpoint(IP2pEndpoint *p2p);
 
         // ICore& get_core() { return m_core; }
-        virtual bool isSynchronized() const override
+        bool isSynchronized() const override
         {
             return m_synchronized;
         }
@@ -68,8 +68,10 @@ namespace CryptoNote
 
         bool get_payload_sync_data(CORE_SYNC_DATA &hshd);
 
-        bool
-            process_payload_sync_data(const CORE_SYNC_DATA &hshd, CryptoNoteConnectionContext &context, bool is_inital);
+        bool process_payload_sync_data(
+            const CORE_SYNC_DATA &hshd,
+            CryptoNoteConnectionContext &context,
+            bool is_inital);
 
         int handleCommand(
             bool is_notify,
@@ -79,11 +81,11 @@ namespace CryptoNote
             CryptoNoteConnectionContext &context,
             bool &handled);
 
-        virtual size_t getPeerCount() const override;
+        size_t getPeerCount() const override;
 
-        virtual uint32_t getObservedHeight() const override;
+        uint32_t getObservedHeight() const override;
 
-        virtual uint32_t getBlockchainHeight() const override;
+        uint32_t getBlockchainHeight() const override;
 
         void requestMissingPoolTransactions(const CryptoNoteConnectionContext &context);
 
@@ -129,9 +131,9 @@ namespace CryptoNote
             CryptoNoteConnectionContext &context);
 
         //----------------- i_cryptonote_protocol ----------------------------------
-        virtual void relayBlock(NOTIFY_NEW_BLOCK::request &arg) override;
+        void relayBlock(NOTIFY_NEW_BLOCK::request &arg) override;
 
-        virtual void relayTransactions(const std::vector<BinaryArray> &transactions) override;
+        void relayTransactions(const std::vector<BinaryArray> &transactions) override;
 
         //----------------------------------------------------------------------------------
         uint32_t get_current_blockchain_height();
@@ -149,13 +151,15 @@ namespace CryptoNote
             std::vector<RawBlock> &&rawBlocks,
             const std::vector<CachedBlock> &cachedBlocks);
 
+        static void adjust_block_rate(CryptoNoteConnectionContext &context);
+
         Logging::LoggerRef logger;
 
       private:
         int doPushLiteBlock(
             NOTIFY_NEW_LITE_BLOCK::request block,
             CryptoNoteConnectionContext &context,
-            std::vector<BinaryArray> missingTxs);
+            const std::vector<BinaryArray>&& missingTxs);
 
       private:
         System::Dispatcher &m_dispatcher;

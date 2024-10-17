@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -11,6 +11,7 @@
 #include "p2p/PendingLiteBlock.h"
 
 #include <boost/uuid/uuid.hpp>
+#include <chrono>
 #include <list>
 #include <optional>
 #include <ostream>
@@ -27,9 +28,13 @@ namespace CryptoNote
         bool m_is_income = false;
         time_t m_started = 0;
 
+        std::chrono::high_resolution_clock::time_point m_request_block_start;
+        size_t m_request_block_rate = 0;
+        size_t m_next_request_block_rate = 1;
+
         enum state
         {
-            state_befor_handshake = 0, // default state
+            state_before_handshake = 0, // default state
             state_synchronizing,
             state_idle,
             state_normal,
@@ -38,7 +43,7 @@ namespace CryptoNote
             state_shutdown
         };
 
-        state m_state = state_befor_handshake;
+        state m_state = state_before_handshake;
         std::optional<PendingLiteBlock> m_pending_lite_block;
         std::list<Crypto::Hash> m_needed_objects;
         std::unordered_set<Crypto::Hash> m_requested_objects;
@@ -50,8 +55,8 @@ namespace CryptoNote
     {
         switch (s)
         {
-            case CryptoNoteConnectionContext::state_befor_handshake:
-                return "state_befor_handshake";
+            case CryptoNoteConnectionContext::state_before_handshake:
+                return "state_before_handshake";
             case CryptoNoteConnectionContext::state_synchronizing:
                 return "state_synchronizing";
             case CryptoNoteConnectionContext::state_idle:

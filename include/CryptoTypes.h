@@ -5,20 +5,22 @@
 
 #pragma once
 
+#include "common/StringTools.h"
 #include "json.hpp"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 
 #include <algorithm>
-#include <common/StringTools.h>
+#include <boost/serialization/nvp.hpp>
 #include <cstdint>
 #include <iterator>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 namespace Crypto
 {
     struct Hash
     {
+        uint8_t data[32];
+
         /* Can't have constructors here, because it violates std::is_pod<>
            which is used somewhere */
         bool operator==(const Hash &other) const
@@ -30,8 +32,6 @@ namespace Crypto
         {
             return !(*this == other);
         }
-
-        uint8_t data[32];
 
         /* Converts the class to a json object */
         void toJSON(rapidjson::Writer<rapidjson::StringBuffer> &writer) const
@@ -47,20 +47,29 @@ namespace Crypto
                 throw std::invalid_argument("Error parsing JSON Hash, wrong length or not hex");
             }
         }
+
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(data);
+            // clang-format on
+        }
     };
 
     struct PublicKey
     {
-        PublicKey() {}
+        uint8_t data[32];
 
-        PublicKey(std::initializer_list<uint8_t> input)
+        PublicKey() = default;
+
+        PublicKey(const std::initializer_list<uint8_t> input)
         {
             std::copy(input.begin(), input.end(), std::begin(data));
         }
 
         PublicKey(const uint8_t input[32])
         {
-            std::copy(input, input + 32, std::begin(data));
+            std::copy_n(input, 32, std::begin(data));
         }
 
         PublicKey(const std::string &s)
@@ -93,7 +102,12 @@ namespace Crypto
             }
         }
 
-        uint8_t data[32];
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(data);
+            // clang-format on
+        }
     };
 
     struct SecretKey
@@ -192,16 +206,18 @@ namespace Crypto
 
     struct KeyImage
     {
-        KeyImage() {}
+        uint8_t data[32];
 
-        KeyImage(std::initializer_list<uint8_t> input)
+        KeyImage() = default;
+
+        KeyImage(const std::initializer_list<uint8_t> input)
         {
             std::copy(input.begin(), input.end(), std::begin(data));
         }
 
         KeyImage(const uint8_t input[32])
         {
-            std::copy(input, input + 32, std::begin(data));
+            std::copy_n(input, 32, std::begin(data));
         }
 
         KeyImage(const std::string &s)
@@ -234,7 +250,12 @@ namespace Crypto
             }
         }
 
-        uint8_t data[32];
+        template<class Archive> void serialize(Archive &ar, const unsigned int version)
+        {
+            // clang-format off
+            ar & BOOST_NVP(data);
+            // clang-format on
+        }
     };
 
     struct Signature

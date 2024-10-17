@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -19,13 +19,14 @@ namespace CryptoNote
     /************************************************************************/
     struct ICryptoNoteProtocol
     {
+        virtual ~ICryptoNoteProtocol() = default;
+
         virtual void relayBlock(NOTIFY_NEW_BLOCK_request &arg) = 0;
 
         virtual void relayTransactions(const std::vector<BinaryArray> &transactions) = 0;
     };
 
-    struct ICryptoNoteProtocolHandler : ICryptoNoteProtocol, public ICryptoNoteProtocolQuery
+    struct ICryptoNoteProtocolHandler : ICryptoNoteProtocol, ICryptoNoteProtocolQuery
     {
-        virtual ~ICryptoNoteProtocolHandler() {};
     };
 } // namespace CryptoNote

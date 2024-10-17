@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -13,12 +13,13 @@
 #include "cryptonotecore/Currency.h"
 #include "p2p/LevinProtocol.h"
 
-#include <boost/scope_exit.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <chrono>
 #include <config/Ascii.h>
 #include <config/CryptoNoteConfig.h>
 #include <config/WalletConfig.h>
 #include <future>
+#include <utility>
 #include <serialization/SerializationTools.h>
 #include <system/Dispatcher.h>
 #include <utilities/FormatTools.h>
@@ -30,22 +31,16 @@ namespace CryptoNote
 {
     namespace
     {
-        template<class t_parametr>
-        bool post_notify(
-            IP2pEndpoint &p2p,
-            typename t_parametr::request &arg,
-            const CryptoNoteConnectionContext &context)
+        template<class t_parameter>
+        bool post_notify(IP2pEndpoint &p2p, typename t_parameter::request &arg, const CryptoNoteConnectionContext &context)
         {
-            return p2p.invoke_notify_to_peer(t_parametr::ID, LevinProtocol::encode(arg), context);
+            return p2p.invoke_notify_to_peer(t_parameter::ID, LevinProtocol::encode(arg), context);
         }
 
-        template<class t_parametr>
-        void relay_post_notify(
-            IP2pEndpoint &p2p,
-            typename t_parametr::request &arg,
-            const boost::uuids::uuid *excludeConnection = nullptr)
+        template<class t_parameter>
+        void relay_post_notify(IP2pEndpoint &p2p, typename t_parameter::request &arg, const boost::uuids::uuid *excludeConnection = nullptr)
         {
-            p2p.externalRelayNotifyToAll(t_parametr::ID, LevinProtocol::encode(arg), excludeConnection);
+            p2p.externalRelayNotifyToAll(t_parameter::ID, LevinProtocol::encode(arg), excludeConnection);
         }
 
         std::vector<RawBlockLegacy> convertRawBlocksToRawBlocksLegacy(const std::vector<RawBlock> &rawBlocks)
@@ -179,19 +174,19 @@ namespace CryptoNote
     CryptoNoteProtocolHandler::CryptoNoteProtocolHandler(
         const Currency &currency,
         System::Dispatcher &dispatcher,
-        ICore &rcore,
+        ICore &core,
         IP2pEndpoint *p_net_layout,
         std::shared_ptr<Logging::ILogger> log):
         m_dispatcher(dispatcher),
         m_currency(currency),
-        m_core(rcore),
+        m_core(core),
         m_p2p(p_net_layout),
         m_synchronized(false),
         m_stop(false),
         m_observedHeight(0),
         m_blockchainHeight(0),
         m_peersCount(0),
-        logger(log, "protocol")
+        logger(std::move(log), "protocol")
     {
         if (!m_p2p)
         {
@@ -237,7 +232,7 @@ namespace CryptoNote
             m_observerManager.notify(&ICryptoNoteProtocolObserver::lastKnownBlockHeightUpdated, m_observedHeight);
         }
 
-        if (context.m_state != CryptoNoteConnectionContext::state_befor_handshake)
+        if (context.m_state != CryptoNoteConnectionContext::state_before_handshake)
         {
             m_peersCount--;
             m_observerManager.notify(&ICryptoNoteProtocolObserver::peerCountUpdated, m_peersCount.load());
@@ -276,20 +271,23 @@ namespace CryptoNote
     {
         std::stringstream ss;
 
-        ss << std::setw(25) << std::left << "Remote Host" << std::setw(20) << "Peer ID" << std::setw(25)
-           << "Recv/Sent (inactive,sec)" << std::setw(25) << "State" << std::setw(20) << "Lifetime(seconds)" << ENDL;
+        ss << ENDL
+           << std::setw(32) << std::left << "Remote Host"
+           << std::setw(17) << "Peer ID"
+           << std::setw(26) << "State"
+           << std::setw(20) << "Lifetime(sec)"
+           << std::setw(11) << "Blocks/sec"
+           << std::setw(11) << "Height"
+           << ENDL;
 
         m_p2p->for_each_connection([&](const CryptoNoteConnectionContext &cntxt, uint64_t peer_id) {
-            ss << std::setw(25) << std::left
-               << std::string(cntxt.m_is_income ? "[INCOMING]" : "[OUTGOING]")
-                      + Common::ipAddressToString(cntxt.m_remote_ip) + ":" + std::to_string(cntxt.m_remote_port)
-               << std::setw(20) << std::hex
-               << peer_id
-               // << std::setw(25) << std::to_string(cntxt.m_recv_cnt) + "(" + std::to_string(time(NULL) -
-               // cntxt.m_last_recv) + ")" + "/" + std::to_string(cntxt.m_send_cnt) + "(" + std::to_string(time(NULL) -
-               // cntxt.m_last_send) + ")"
-               << std::setw(25) << get_protocol_state_string(cntxt.m_state) << std::setw(20)
-               << std::to_string(time(NULL) - cntxt.m_started) << ENDL;
+            ss << std::setw(32) << std::left << std::string(cntxt.m_is_income ? "[INCOMING]" : "[OUTGOING]") + Common::ipAddressToString(cntxt.m_remote_ip) + ":" + std::to_string(cntxt.m_remote_port)
+               << std::setw(17) << std::hex << peer_id
+               << std::setw(26) << get_protocol_state_string(cntxt.m_state)
+               << std::setw(20) << std::to_string(time(nullptr) - cntxt.m_started)
+               << std::setw(11) << std::to_string(cntxt.m_request_block_rate)
+               << std::setw(11) << std::to_string(cntxt.m_remote_blockchain_height)
+               << ENDL;
         });
         logger(INFO) << "Connections: " << ENDL << ss.str();
     }
@@ -304,7 +302,7 @@ namespace CryptoNote
         CryptoNoteConnectionContext &context,
         bool is_initial)
     {
-        if (context.m_state == CryptoNoteConnectionContext::state_befor_handshake && !is_initial)
+        if (context.m_state == CryptoNoteConnectionContext::state_before_handshake && !is_initial)
         {
             return true;
         }
@@ -333,31 +331,30 @@ namespace CryptoNote
             /* Find the difference between the remote and the local height */
             int64_t diff = static_cast<int64_t>(remoteHeight) - static_cast<int64_t>(currentHeight);
 
-        uint64_t days;
-        uint64_t blocksWithDiffV3Remaining = 0;
-        uint64_t blocksWithDiffV2Remaining = 0;
+            uint64_t days;
+            uint64_t blocksWithDiffV3Remaining = 0;
+            uint64_t blocksWithDiffV2Remaining = 0;
 
-        /* We have passed V3 height. Lets figure out how many v3 diff blocks we still need to sync. */
-        if (remoteHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT)
-        {
-	/* Take the max of the current height or the target height. If our current height is less than the diff v3 target height,
-	 * we don't want to include those blocks, as they are not v3 ones. */
-	blocksWithDiffV3Remaining = remoteHeight - std::max(currentHeight, CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT);
-        }
+            /* We have passed V3 height. Lets figure out how many v3 diff blocks we still need to sync. */
+            if (remoteHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT)
+            {
+                /* Take the max of the current height or the target height. If our current height is less than the diff v3 target height,
+                 * we don't want to include those blocks, as they are not v3 ones. */
+                blocksWithDiffV3Remaining = remoteHeight - std::max(currentHeight, CryptoNote::parameters::DIFFICULTY_TARGET_V3_HEIGHT);
+            }
 
-        /* We have passed V3 height. Lets figure out how many v3 diff blocks we still need to sync. */
-        if (remoteHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT)
-        {
-	/* Find number of blocks between max(current height / v2 height) and v3 height */
-	blocksWithDiffV2Remaining = remoteHeight - blocksWithDiffV3Remaining - std::max(currentHeight, CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT);
-        }
+            /* We have passed V3 height. Lets figure out how many v3 diff blocks we still need to sync. */
+            if (remoteHeight >= CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT)
+            {
+                /* Find number of blocks between max(current height / v2 height) and v3 height */
+                blocksWithDiffV2Remaining = remoteHeight - blocksWithDiffV3Remaining - std::max(currentHeight, CryptoNote::parameters::DIFFICULTY_TARGET_V2_HEIGHT);
+            }
 
-        const uint64_t blocksWithDiffV1Remaining = remoteHeight - blocksWithDiffV3Remaining - blocksWithDiffV2Remaining - currentHeight;
+            const uint64_t blocksWithDiffV1Remaining = remoteHeight - blocksWithDiffV3Remaining - blocksWithDiffV2Remaining - currentHeight;
 
-        days = blocksWithDiffV3Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V3);
-        days += blocksWithDiffV2Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2);
-        days += blocksWithDiffV1Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET);
-
+            days = blocksWithDiffV3Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V3);
+            days += blocksWithDiffV2Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET_V2);
+            days += blocksWithDiffV1Remaining / (24 * 60 * 60 / CryptoNote::parameters::DIFFICULTY_TARGET);
 
             std::stringstream ss;
 
@@ -572,7 +569,7 @@ namespace CryptoNote
                 arg.txs.erase(it, arg.txs.end());
             }
 
-            if (arg.txs.size() > 0)
+            if (!arg.txs.empty())
             {
                 // TODO: add announce usage here
                 relay_post_notify<NOTIFY_NEW_TRANSACTIONS>(*m_p2p, arg, &context.m_connection_id);
@@ -650,16 +647,16 @@ namespace CryptoNote
             }
 
             cachedBlocks.emplace_back(blockTemplates[index]);
-            if (index == 1)
+
+            if (m_core.hasBlock(cachedBlocks.back().getBlockHash()))
             {
-                if (m_core.hasBlock(cachedBlocks.back().getBlockHash()))
-                { // TODO
-                    context.m_state = CryptoNoteConnectionContext::state_idle;
-                    context.m_needed_objects.clear();
-                    context.m_requested_objects.clear();
-                    logger(Logging::DEBUGGING) << context << "Connection set to idle state.";
-                    return 1;
-                }
+                context.m_state = CryptoNoteConnectionContext::state_idle;
+                context.m_needed_objects.clear();
+                context.m_requested_objects.clear();
+                context.m_request_block_rate = 0;
+                context.m_next_request_block_rate = 1;
+                logger(Logging::DEBUGGING) << context << "Connection set to idle state.";
+                return 1;
             }
 
             auto req_it = context.m_requested_objects.find(cachedBlocks.back().getBlockHash());
@@ -687,7 +684,7 @@ namespace CryptoNote
             context.m_requested_objects.erase(req_it);
         }
 
-        if (context.m_requested_objects.size())
+        if (!context.m_requested_objects.empty())
         {
             logger(Logging::ERROR, Logging::BRIGHT_RED)
                 << context << "returned not all requested objects (context.m_requested_objects.size()="
@@ -707,6 +704,7 @@ namespace CryptoNote
         logger(DEBUGGING, BRIGHT_GREEN) << "Local blockchain updated, new index = " << m_core.getTopBlockIndex();
         if (!m_stop && context.m_state == CryptoNoteConnectionContext::state_synchronizing)
         {
+            adjust_block_rate(context);
             request_missing_objects(context, true);
         }
 
@@ -760,10 +758,30 @@ namespace CryptoNote
         return 0;
     }
 
+    void CryptoNoteProtocolHandler::adjust_block_rate(CryptoNoteConnectionContext &context)
+    {
+        const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - context.m_request_block_start);
+        const auto time_taken_ms = duration.count();
+
+        if (time_taken_ms == 0) {
+            context.m_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
+            context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
+        } else {
+            context.m_request_block_rate = static_cast<size_t>((double) context.m_next_request_block_rate / ((double) time_taken_ms / 1000.0));
+            context.m_next_request_block_rate = context.m_request_block_rate;
+        }
+
+        if (context.m_next_request_block_rate < 1) {
+            context.m_next_request_block_rate = 1;
+        } else if (context.m_next_request_block_rate > BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT) {
+            context.m_next_request_block_rate = BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT;
+        }
+    }
+
     int CryptoNoteProtocolHandler::doPushLiteBlock(
         NOTIFY_NEW_LITE_BLOCK::request arg,
         CryptoNoteConnectionContext &context,
-        std::vector<BinaryArray> missingTxs)
+        const std::vector<BinaryArray>&& missingTxs)
     {
         BlockTemplate newBlockTemplate;
         if (!fromBinaryArray(newBlockTemplate, arg.blockTemplate))
@@ -950,14 +968,17 @@ namespace CryptoNote
         CryptoNoteConnectionContext &context,
         bool check_having_blocks)
     {
-        if (context.m_needed_objects.size())
+        if (!context.m_needed_objects.empty())
         {
             // we know objects that we need, request this objects
+            context.m_request_block_start = std::chrono::high_resolution_clock::now();
+
             NOTIFY_REQUEST_GET_OBJECTS::request req;
             size_t count = 0;
             auto it = context.m_needed_objects.begin();
+            size_t max_to_download = context.m_next_request_block_rate;
 
-            while (it != context.m_needed_objects.end() && count < BLOCKS_SYNCHRONIZING_DEFAULT_COUNT)
+            while (it != context.m_needed_objects.end() && count < max_to_download)
             {
                 if (!(check_having_blocks && m_core.hasBlock(*it)))
                 {
@@ -967,8 +988,7 @@ namespace CryptoNote
                 }
                 it = context.m_needed_objects.erase(it);
             }
-            logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size()
-                                   << ", txs.size()=" << req.txs.size();
+            logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size();
             post_notify<NOTIFY_REQUEST_GET_OBJECTS>(*m_p2p, req, context);
         }
         else if (context.m_last_response_height < context.m_remote_blockchain_height - 1)
@@ -982,7 +1002,7 @@ namespace CryptoNote
         else
         {
             if (!(context.m_last_response_height == context.m_remote_blockchain_height - 1
-                  && !context.m_needed_objects.size() && !context.m_requested_objects.size()))
+                  && context.m_needed_objects.empty() && context.m_requested_objects.empty()))
             {
                 logger(Logging::ERROR, Logging::BRIGHT_RED)
                     << "request_missing_blocks final condition failed!"
@@ -1041,7 +1061,7 @@ namespace CryptoNote
                                << "NOTIFY_RESPONSE_CHAIN_ENTRY: m_block_ids.size()=" << arg.m_block_ids.size()
                                << ", m_start_height=" << arg.start_height << ", m_total_height=" << arg.total_height;
 
-        if (!arg.m_block_ids.size())
+        if (arg.m_block_ids.empty())
         {
             logger(Logging::ERROR) << context << "sent empty m_block_ids, dropping connection";
             context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -1312,13 +1332,13 @@ namespace CryptoNote
     {
         std::lock_guard<std::mutex> lock(m_observedHeightMutex);
         return m_observedHeight;
-    };
+    }
 
     uint32_t CryptoNoteProtocolHandler::getBlockchainHeight() const
     {
         std::lock_guard<std::mutex> lock(m_blockchainHeightMutex);
         return m_blockchainHeight;
-    };
+    }
 
     bool CryptoNoteProtocolHandler::addObserver(ICryptoNoteProtocolObserver *observer)
     {
@@ -1330,4 +1350,4 @@ namespace CryptoNote
         return m_observerManager.remove(observer);
     }
 
-}; // namespace CryptoNote
+} // namespace CryptoNote

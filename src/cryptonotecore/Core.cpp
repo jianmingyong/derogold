@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The Galaxia Project Developers
@@ -12,25 +12,20 @@
 #include <common/CryptoNoteTools.h>
 #include <common/FileSystemShim.h>
 #include <common/Math.h>
-#include <common/MemoryInputStream.h>
 #include <common/ShuffleGenerator.h>
 #include <common/TransactionExtra.h>
 #include <config/Constants.h>
-#include <cryptonotecore/BlockchainCache.h>
-#include <cryptonotecore/BlockchainStorage.h>
 #include <cryptonotecore/BlockchainUtils.h>
 #include <cryptonotecore/Core.h>
 #include <cryptonotecore/CoreErrors.h>
 #include <cryptonotecore/CryptoNoteFormatUtils.h>
 #include <cryptonotecore/ITimeProvider.h>
-#include <cryptonotecore/MemoryBlockchainStorage.h>
 #include <cryptonotecore/Mixins.h>
 #include <cryptonotecore/TransactionApi.h>
 #include <cryptonotecore/TransactionPool.h>
 #include <cryptonotecore/TransactionPoolCleaner.h>
 #include <cryptonotecore/UpgradeManager.h>
 #include <cryptonotecore/ValidateTransaction.h>
-#include <cryptonoteprotocol/CryptoNoteProtocolHandlerCommon.h>
 #include <fstream>
 #include <numeric>
 #include <set>
@@ -211,7 +206,7 @@ namespace CryptoNote
 
     Core::Core(
         const Currency &currency,
-        std::shared_ptr<Logging::ILogger> logger,
+        const std::shared_ptr<Logging::ILogger>& logger,
         Checkpoints &&checkpoints,
         System::Dispatcher &dispatcher,
         std::unique_ptr<IBlockchainCacheFactory> &&blockchainCacheFactory,
@@ -263,7 +258,7 @@ namespace CryptoNote
         {
             for (auto &queue : queueList)
             {
-                queue.push(std::move(msg));
+                queue.push(msg);
             }
             return true;
         }
@@ -443,7 +438,7 @@ namespace CryptoNote
             auto transactions = alt->getRawTransactions(alt->getTransactionHashes());
             for (auto &transaction : transactions)
             {
-                const auto [success, error] = addTransactionToPool(std::move(transaction));
+                const auto [success, error] = addTransactionToPool(transaction);
                 if (success)
                 {
                     // TODO: send notification
@@ -1047,6 +1042,11 @@ namespace CryptoNote
 
         std::vector<Crypto::Hash> leftTransactions = transactionHashes;
 
+        if (leftTransactions.empty())
+        {
+            return;
+        }
+
         // find in main chain
         do
         {
@@ -1468,7 +1468,7 @@ namespace CryptoNote
        tests that need to be completed to determine if the transaction can
        stay in the pool at this time. */
     void Core::checkAndRemoveInvalidPoolTransactions(
-        const TransactionValidatorState blockTransactionsState)
+        const TransactionValidatorState& blockTransactionsState)
     {
         auto &pool = *transactionPool;
 
@@ -1594,7 +1594,7 @@ namespace CryptoNote
         }
 
         RawBlock rawBlock;
-        rawBlock.block = std::move(rawBlockTemplate);
+        rawBlock.block = rawBlockTemplate;
 
         rawBlock.transactions.reserve(blockTemplate.transactionHashes.size());
 
@@ -1733,9 +1733,9 @@ namespace CryptoNote
 
             std::vector<Crypto::Hash> transactionHashes;
 
-            for (const auto rawBlock : mainChain->getBlocksByHeight(startHeight, endHeight))
+            for (const auto& rawBlock : mainChain->getBlocksByHeight(startHeight, endHeight))
             {
-                for (const auto transaction : rawBlock.transactions)
+                for (const auto& transaction : rawBlock.transactions)
                 {
                     transactionHashes.push_back(getBinaryArrayHash(transaction));
                 }
@@ -2432,7 +2432,7 @@ namespace CryptoNote
         chainsLeaves.push_back(cache.get());
         chainsStorage.push_back(std::move(cache));
 
-        contextGroup.spawn(std::bind(&Core::transactionPoolCleaningProcedure, this));
+        contextGroup.spawn([this] { transactionPoolCleaningProcedure(); });
 
         updateBlockMedianSize();
 
@@ -2800,7 +2800,7 @@ namespace CryptoNote
                 std::tie(blockHeight, rawBlock, err) = readRawBlock(blockchainDump, blockHeight);
                 if ((blockHeight <= currentIndex - 1) && currentIndex != 1)
                 {
-                    previousBlockHash = chainsLeaves[0]->getBlockHash(blockHeight);;
+                    previousBlockHash = chainsLeaves[0]->getBlockHash(blockHeight);
 
                     ++topHeight;
 
@@ -2887,6 +2887,38 @@ namespace CryptoNote
 
         logger(Logging::INFO) << "Blockchain rewound to: " << blockIndex << std::endl;
     }
+
+    CryptoNote::RawBlock Core::getRawBlock(uint32_t blockIndex) const
+    {
+        assert(!chainsStorage.empty());
+        assert(!chainsLeaves.empty());
+
+        throwIfNotInitialized();
+
+        IBlockchainCache *chain = chainsLeaves[0];
+
+        return chain->getBlockByIndex(blockIndex);
+    }
+
+    CryptoNote::RawBlock Core::getRawBlock(const Crypto::Hash &blockHash) const
+    {
+        assert(!chainsStorage.empty());
+        assert(!chainsLeaves.empty());
+
+        throwIfNotInitialized();
+
+        IBlockchainCache *segment = findMainChainSegmentContainingBlock(blockHash);
+
+        if (segment == nullptr)
+        {
+            throw std::runtime_error("Requested hash wasn't found in main blockchain");
+        }
+
+        const uint32_t blockIndex = segment->getBlockIndex(blockHash);
+
+        return segment->getBlockByIndex(blockIndex);
+    }
+
 
     void Core::cutSegment(IBlockchainCache &segment, uint32_t startIndex)
     {
@@ -2986,11 +3018,9 @@ namespace CryptoNote
 
     std::vector<Crypto::Hash> Core::doBuildSparseChain(const Crypto::Hash &blockHash) const
     {
-        IBlockchainCache *chain = findSegmentContainingBlock(blockHash);
+        const IBlockchainCache *chain = findSegmentContainingBlock(blockHash);
+        const uint32_t blockIndex = chain->getBlockIndex(blockHash);
 
-        uint32_t blockIndex = chain->getBlockIndex(blockHash);
-
-        // TODO reserve ceil(log(blockIndex))
         std::vector<Crypto::Hash> sparseChain;
         sparseChain.push_back(blockHash);
 
@@ -2999,8 +3029,7 @@ namespace CryptoNote
             sparseChain.push_back(chain->getBlockHash(blockIndex - i));
         }
 
-        auto genesisBlockHash = chain->getBlockHash(0);
-        if (sparseChain[0] != genesisBlockHash)
+        if (const auto genesisBlockHash = chain->getBlockHash(0); sparseChain[0] != genesisBlockHash)
         {
             sparseChain.push_back(genesisBlockHash);
         }
@@ -3033,7 +3062,7 @@ namespace CryptoNote
         for (auto &blockHash : blockIds)
         {
             BlockShortInfo entry;
-            entry.blockId = std::move(blockHash);
+            entry.blockId = blockHash;
             entries.emplace_back(std::move(entry));
         }
         return blockIds.size();
@@ -3057,7 +3086,7 @@ namespace CryptoNote
         for (auto &blockHash : blockIds)
         {
             BlockDetails entry;
-            entry.hash = std::move(blockHash);
+            entry.hash = blockHash;
             entries.emplace_back(std::move(entry));
         }
         return blockIds.size();
@@ -3081,7 +3110,7 @@ namespace CryptoNote
         for (auto &blockHash : blockIds)
         {
             BlockFullInfo entry;
-            entry.block_id = std::move(blockHash);
+            entry.block_id = blockHash;
             entries.emplace_back(std::move(entry));
         }
         return blockIds.size();

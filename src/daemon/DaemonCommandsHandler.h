@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 // Copyright (c) 2018-2020, The WrkzCoin developers
@@ -9,30 +9,28 @@
 
 #include "common/ConsoleHandler.h"
 #include "daemon/DaemonConfiguration.h"
+#include "logging/LoggerManager.h"
+#include "logging/LoggerRef.h"
 #include "rpc/CoreRpcServerCommandsDefinitions.h"
 #include "rpc/JsonRpc.h"
 #include "rpc/RpcServer.h"
 
-#include <logging/LoggerManager.h>
-#include <logging/LoggerRef.h>
-
 namespace CryptoNote
 {
     class Core;
-
     class NodeServer;
 } // namespace CryptoNote
 
 class DaemonCommandsHandler
 {
-  public:
-    DaemonCommandsHandler(
-        CryptoNote::Core &core,
-        CryptoNote::NodeServer &srv,
-        std::shared_ptr<Logging::LoggerManager> log,
-        const std::string ip,
-        const uint32_t port,
-        const DaemonConfig::DaemonConfiguration &config);
+public:
+    DaemonCommandsHandler(CryptoNote::Core &core,
+                          CryptoNote::NodeServer &srv,
+                          const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> &syncManager,
+                          const std::shared_ptr<Logging::LoggerManager> &log,
+                          const std::string &ip,
+                          uint32_t port,
+                          DaemonConfig::DaemonConfiguration config);
 
     bool start_handling()
     {
@@ -47,12 +45,14 @@ class DaemonCommandsHandler
 
     bool exit(const std::vector<std::string> &args);
 
-  private:
+private:
     Common::ConsoleHandler m_consoleHandler;
 
     CryptoNote::Core &m_core;
 
     CryptoNote::NodeServer &m_srv;
+
+    const std::shared_ptr<CryptoNote::ICryptoNoteProtocolHandler> m_syncManager;
 
     httplib::Client m_rpcServer;
 
@@ -62,7 +62,7 @@ class DaemonCommandsHandler
 
     std::shared_ptr<Logging::LoggerManager> m_logManager;
 
-    std::string get_commands_str();
+    std::string get_commands_str() const;
 
     bool print_block_by_height(uint32_t height);
 

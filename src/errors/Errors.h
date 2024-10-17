@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 /* Note: Putting the number of the error is not needed, as they auto increment,
    however, it makes it easier to see at a glance what error you got, whilst
@@ -227,6 +228,30 @@ enum ErrorCode
     /* The transaction has more outputs than are permitted for the number
      * inputs that have been provided */
     OUTPUT_DECOMPOSITION = 56,
+
+    /* The API requests a body */
+    API_BODY_REQUIRED = 60,
+
+    /* The API does not have the block explorer enabled */
+    API_BLOCKEXPLORER_DISABLED = 61,
+
+    /* The daemon must be synced to use this method */
+    API_NODE_NOT_SYNCED = 62,
+
+    /* An argument supplied to the API endpoint is invalid */
+    API_INVALID_ARGUMENT = 63,
+
+    /* An internal API error occurred */
+    API_INTERNAL_ERROR = 64,
+
+    /* Could not add transaction to the transaction pool via API */
+    API_TRANSACTION_POOL_INSERT_FAILED = 65,
+
+    /* Could not add candidate block to blockchain via API */
+    API_BLOCK_NOT_ACCEPTED = 66,
+
+    /* Could not find the requested item */
+    API_HASH_NOT_FOUND = 67,
 };
 
 class Error
@@ -240,7 +265,7 @@ class Error
     /* We can use a custom message instead of our standard message, for example,
        if the message depends upon the parameters. E.g: "Mnemonic seed should
        be 25 words, but it is 23 words" */
-    Error(const ErrorCode code, const std::string customMessage): m_errorCode(code), m_customMessage(customMessage) {};
+    Error(const ErrorCode code, std::string  customMessage): m_errorCode(code), m_customMessage(std::move(customMessage)) {};
 
     std::string getErrorMessage() const;
 
@@ -253,7 +278,7 @@ class Error
 
     bool operator!=(const ErrorCode code) const
     {
-        return !(code == m_errorCode);
+        return code != m_errorCode;
     }
 
     /* Allows us to do stuff like:

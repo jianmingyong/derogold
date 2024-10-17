@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The Galaxia Project Developers
@@ -49,10 +49,10 @@ class ValidateTransaction
             const CryptoNote::Currency &currency,
             const CryptoNote::Checkpoints &checkpoints,
             Utilities::ThreadPool<bool> &threadPool,
-            const uint64_t blockHeight,
-            const uint64_t blockSizeMedian,
-            const uint64_t blockTimestamp,
-            const bool isPoolTransaction);
+            uint64_t blockHeight,
+            uint64_t blockSizeMedian,
+            uint64_t blockTimestamp,
+            bool isPoolTransaction);
 
         /////////////////////////////
         /* PUBLIC MEMBER FUNCTIONS */

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2018, The Monero Project
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -41,6 +41,7 @@
 #include <config/CryptoNoteConfig.h>
 #include <crypto/random.h>
 #include <fstream>
+#include <utility>
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/upnpcommands.h>
 #include <system/Context.h>
@@ -74,56 +75,66 @@ namespace
         // Add UPnP port mapping
         logger(INFO) << "Attempting to add IGD port mapping.";
         int result;
-        UPNPDev *deviceList = upnpDiscover(1000, NULL, NULL, 0, 0, 2, &result);
-        UPNPUrls urls;
-        IGDdatas igdData;
-        char lanAddress[64];
-        result = UPNP_GetValidIGD(deviceList, &urls, &igdData, lanAddress, sizeof lanAddress);
-        freeUPNPDevlist(deviceList);
-        if (result != 0)
+        UPNPDev *deviceList = upnpDiscover(1000, nullptr, nullptr, 0, 0, 2, &result);
+        UPNPDev *currentDevice = deviceList;
+        while (currentDevice != nullptr)
         {
-            if (result == 1)
+            UPNPUrls urls;
+            IGDdatas igdData;
+            char lanAddress[64];
+			char wanAddress[64];
+            result = UPNP_GetValidIGD(currentDevice, &urls, &igdData, lanAddress, sizeof lanAddress, wanAddress, sizeof wanAddress);
+
+            if (result != 0)
             {
-                std::ostringstream portString;
-                portString << port;
-                if (UPNP_AddPortMapping(
-                        urls.controlURL,
-                        igdData.first.servicetype,
-                        portString.str().c_str(),
-                        portString.str().c_str(),
-                        lanAddress,
-                        CryptoNote::CRYPTONOTE_NAME,
-                        "TCP",
-                        0,
-                        "0")
-                    != 0)
+                if (result == 1 || result == 2)
                 {
-                    logger(ERROR) << "UPNP_AddPortMapping failed.";
+                    std::ostringstream portString;
+                    portString << port;
+                    if (UPNP_AddPortMapping(
+                            urls.controlURL,
+                            igdData.first.servicetype,
+                            portString.str().c_str(),
+                            portString.str().c_str(),
+                            lanAddress,
+                            CryptoNote::CRYPTONOTE_NAME,
+                            "TCP",
+                            0,
+                            "0")
+                        != 0)
+                    {
+                        logger(ERROR) << "UPNP_AddPortMapping failed.";
+                    }
+                    else
+                    {
+                        logger(INFO) << "Added IGD port mapping.";
+
+                        if (result == 2)
+                        {
+                            logger(WARNING) << "Port mapping will not forward properly if you are under multiple NAT devices." << ENDL
+                            << "Ensure you have forward " << portString.str() << "/tcp on the other NAT devices or set as a DMZ.";
+                        }
+                    }
+                }
+                else if (result == 3)
+                {
+                    logger(INFO) << "UPnP device was found but not recognized as IGD.";
                 }
                 else
                 {
-                    logger(INFO) << "Added IGD port mapping.";
+                    logger(ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
                 }
-            }
-            else if (result == 2)
-            {
-                logger(INFO) << "IGD was found but reported as not connected.";
-            }
-            else if (result == 3)
-            {
-                logger(INFO) << "UPnP device was found but not recognized as IGD.";
+
+                FreeUPNPUrls(&urls);
             }
             else
             {
-                logger(ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
+                logger(INFO) << "No IGD was found.";
             }
 
-            FreeUPNPUrls(&urls);
+            currentDevice = currentDevice->pNext;
         }
-        else
-        {
-            logger(INFO) << "No IGD was found.";
-        }
+        freeUPNPDevlist(deviceList);
     }
 
 } // namespace
@@ -232,7 +243,7 @@ namespace CryptoNote
         m_allow_local_ip(false),
         m_hide_my_port(false),
         m_network_id(CryptoNote::CRYPTONOTE_NETWORK),
-        logger(log, "node_server"),
+        logger(std::move(log), "node_server"),
         m_stopEvent(m_dispatcher),
         m_idleTimer(m_dispatcher),
         m_timedSyncTimer(m_dispatcher),
@@ -549,10 +560,10 @@ namespace CryptoNote
     {
         logger(INFO) << "Starting node_server";
 
-        m_workingContextGroup.spawn(std::bind(&NodeServer::acceptLoop, this));
-        m_workingContextGroup.spawn(std::bind(&NodeServer::onIdle, this));
-        m_workingContextGroup.spawn(std::bind(&NodeServer::timedSyncLoop, this));
-        m_workingContextGroup.spawn(std::bind(&NodeServer::timeoutLoop, this));
+        m_workingContextGroup.spawn([this] { acceptLoop(); });
+        m_workingContextGroup.spawn([this] { onIdle(); });
+        m_workingContextGroup.spawn([this] { timedSyncLoop(); });
+        m_workingContextGroup.spawn([this] { timeoutLoop(); });
 
         m_stopEvent.wait();
 
@@ -596,7 +607,7 @@ namespace CryptoNote
             {
                 logger(INFO) << "Failed to save config to file " << state_file_path;
                 return false;
-            };
+            }
 
             StdOutputStream stream(p2p_data);
             BinaryOutputStreamSerializer a(stream);
@@ -928,7 +939,7 @@ namespace CryptoNote
         {
             ++rand_count;
             size_t random_index = get_random_index_with_fixed_probability(max_random_index);
-            if (!(random_index < local_peers_count))
+            if (random_index >= local_peers_count)
             {
                 logger(ERROR, BRIGHT_RED) << "random_starter_index < peers_local.size() failed!!";
                 return false;
@@ -973,17 +984,14 @@ namespace CryptoNote
 
     bool NodeServer::connections_maker()
     {
-        if (!connect_to_peerlist(m_exclusive_peers))
-        {
-            return false;
-        }
+        connect_to_peerlist(m_exclusive_peers);
 
         if (!m_exclusive_peers.empty())
         {
             return true;
         }
 
-        if (!m_peerlist.get_white_peers_count() && m_seed_nodes.size())
+        if (!m_peerlist.get_white_peers_count() && !m_seed_nodes.empty())
         {
             size_t try_count = 0;
             size_t current_index = Random::randomValue<size_t>() % m_seed_nodes.size();
@@ -1007,10 +1015,7 @@ namespace CryptoNote
             }
         }
 
-        if (!connect_to_peerlist(m_priority_peers))
-        {
-            return false;
-        }
+        connect_to_peerlist(m_priority_peers);
 
         size_t expected_white_connections =
             (m_config.m_net_config.connections_count * CryptoNote::P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT) / 100;
@@ -1089,8 +1094,8 @@ namespace CryptoNote
     {
         try
         {
-            m_connections_maker_interval.call(std::bind(&NodeServer::connections_maker, this));
-            m_peerlist_store_interval.call(std::bind(&NodeServer::store_config, this));
+            m_connections_maker_interval.call([this] { return connections_maker(); });
+            m_peerlist_store_interval.call([this] { return store_config(); });
         }
         catch (std::exception &e)
         {

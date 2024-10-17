@@ -1,0 +1,48 @@
+{
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+
+	"name": "Ubuntu 20.04",
+
+	"build": {
+		"context": "..",
+		"dockerfile": "../Dockerfile",
+		"target": "build_cmake"
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools-extension-pack",
+				"KylinIDETeam.cmake-intellisence",
+				"redhat.vscode-yaml",
+				"yzhang.markdown-all-in-one",
+				"github.vscode-github-actions"
+			]
+		}
+	},
+
+	"mounts": [
+		{
+			"source": "vcpkg-cache",
+			"target": "/root/.cache/vcpkg/archives",
+			"type": "volume"
+		},
+		{
+			"source": "ccache",
+			"target": "/root/.ccache",
+			"type": "volume"
+		},
+		{
+			"source": "project",
+			"target": "${containerWorkspaceFolder}",
+			"type": "volume"
+		}
+	],
+
+	"workspaceFolder": "/usr/local/src/DeroGold",
+
+	"remoteEnv": {
+		"CCACHE_MAXSIZE": "250M",
+		"CCACHE_SLOPPINESS": "time_macros"
+	}
+}

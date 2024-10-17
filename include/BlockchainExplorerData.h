@@ -8,9 +8,7 @@
 #include "CryptoNote.h"
 #include "CryptoTypes.h"
 
-#include <array>
 #include <boost/variant.hpp>
-#include <string>
 #include <vector>
 
 namespace CryptoNote

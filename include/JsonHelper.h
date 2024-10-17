@@ -1,4 +1,5 @@
 // Copyright (c) 2018-2019, The TurtleCoin Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 //
 // Please see the included LICENSE file for more information.
 
@@ -62,6 +63,19 @@ template<typename T> uint64_t getInt64FromJSON(const T &j, const std::string &ke
 }
 
 /**
+ * Gets a string from the JSON, with or without a given keyname
+ */
+template<typename T> std::string getStringFromJSON(const T &j)
+{
+    if (!j.IsString())
+    {
+        throw std::invalid_argument("JSON parameter is wrong type. Expected String, got " + kTypeNames[j.GetType()]);
+    }
+
+    return j.GetString();
+}
+
+/**
  * Gets a string from the JSON, with a given keyname
  */
 template<typename T> std::string getStringFromJSON(const T &j, const std::string &key)
@@ -90,6 +104,16 @@ template<typename T> std::string getStringFromJSONString(const T &j)
     return j.GetString();
 }
 
+template<typename T> auto getArrayFromJSON(const T &j)
+{
+    if (!j.IsArray())
+    {
+        throw std::invalid_argument("JSON parameter is wrong type. Expected Array, got " + kTypeNames[j.GetType()]);
+    }
+
+    return j.GetArray();
+}
+
 template<typename T> auto getArrayFromJSON(const T &j, const std::string &key)
 {
     auto &val = getJsonValue(j, key);
@@ -111,7 +135,7 @@ template<typename T> JSONObject getObjectFromJSON(const T &j, const std::string 
         throw std::invalid_argument("JSON parameter is wrong type. Expected Object, got " + kTypeNames[val.GetType()]);
     }
 
-    return val.Get_Object();
+    return val.GetObj();
 }
 
 template<typename T> bool getBoolFromJSON(const T &j, const std::string &key)

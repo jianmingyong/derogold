@@ -1,13 +1,15 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright 2014-2018, The Monero Developers
 // Copyright 2018-2019, The TurtleCoin Developers
 //
 // Please see the included LICENSE file for more information.
 
+#include "Mnemonics.h"
+
+#include "CRC32.h"
+#include "WordList.h"
+
 #include <algorithm>
-#include <mnemonics/CRC32.h>
-#include <mnemonics/Mnemonics.h>
-#include <mnemonics/WordList.h>
 #include <sstream>
 
 namespace Mnemonics
@@ -40,11 +42,10 @@ namespace Mnemonics
                correct, based on if we have 1 or more words */
             const std::string wordPlural = len == 1 ? "word" : "words";
 
-            Error error(
-                MNEMONIC_WRONG_LENGTH,
-                "The mnemonic seed given is the wrong length. It should be "
-                "25 words long, but it is "
-                    + std::to_string(len) + " " + wordPlural + " long.");
+            Error error(MNEMONIC_WRONG_LENGTH,
+                        "The mnemonic seed given is the wrong length. It should be "
+                        "25 words long, but it is "
+                            + std::to_string(len) + " " + wordPlural + " long.");
 
             return {error, Crypto::SecretKey()};
         }
@@ -57,11 +58,10 @@ namespace Mnemonics
 
             if (std::find(WordList::English.begin(), WordList::English.end(), word) == WordList::English.end())
             {
-                Error error(
-                    MNEMONIC_INVALID_WORD,
-                    "The mnemonic seed given has a word that is not present "
-                    "in the english word list ("
-                        + word + ").");
+                Error error(MNEMONIC_INVALID_WORD,
+                            "The mnemonic seed given has a word that is not present "
+                            "in the english word list ("
+                                + word + ").");
 
                 return {error, Crypto::SecretKey()};
             }
@@ -88,8 +88,8 @@ namespace Mnemonics
             const size_t wlLen = WordList::English.size();
 
             /* no idea what this does lol */
-            const uint32_t val = static_cast<uint32_t>(
-                w1 + wlLen * (((wlLen - w1) + w2) % wlLen) + wlLen * wlLen * (((wlLen - w2) + w3) % wlLen));
+            const uint32_t val = static_cast<uint32_t>(w1 + wlLen * (((wlLen - w1) + w2) % wlLen)
+                                                       + wlLen * wlLen * (((wlLen - w2) + w3) % wlLen));
 
             /* Don't know what this is testing either */
             if (!(val % wlLen == w1))
@@ -122,7 +122,7 @@ namespace Mnemonics
         for (int i = 0; i < 32 - 1; i += 4)
         {
             /* Read the array as a uint32_t array */
-            auto ptr = (uint32_t *)&privateKey.data[i];
+            auto ptr = (uint32_t *) &privateKey.data[i];
 
             /* Take the first element of the array (since we have already
                done the offset */

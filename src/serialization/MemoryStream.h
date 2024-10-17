@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
 //
@@ -6,20 +6,22 @@
 
 #pragma once
 
-#include <algorithm>
 #include <common/IOutputStream.h>
 #include <cstdint>
-#include <cstring> // memcpy
+#include <cstring>
 #include <vector>
 
 namespace CryptoNote
 {
     class MemoryStream : public Common::IOutputStream
     {
-      public:
-        MemoryStream(): m_writePos(0) {}
+    public:
+        MemoryStream() :
+            m_writePos(0)
+        {
+        }
 
-        virtual uint64_t writeSome(const void *data, uint64_t size) override
+        uint64_t writeSome(const void *data, uint64_t size) override
         {
             if (size == 0)
             {
@@ -36,12 +38,12 @@ namespace CryptoNote
             return size;
         }
 
-        uint64_t size()
+        [[nodiscard]] uint64_t size() const
         {
             return m_buffer.size();
         }
 
-        const uint8_t *data()
+        [[nodiscard]] const uint8_t *data() const
         {
             return m_buffer.data();
         }
@@ -52,7 +54,7 @@ namespace CryptoNote
             m_buffer.resize(0);
         }
 
-      private:
+    private:
         uint64_t m_writePos;
 
         std::vector<uint8_t> m_buffer;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, The DeroGold Developers
+// Copyright (c) 2018-2024, The DeroGold Developers
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2018, The Karai Developers
 // Copyright (c) 2018-2019, The TurtleCoin Developers
@@ -14,37 +14,29 @@
 #include "common/PathTools.h"
 #include "common/ScopeExit.h"
 #include "common/SignalHandler.h"
-#include "common/StdInputStream.h"
 #include "common/StdOutputStream.h"
 #include "common/Util.h"
-#include "crypto/hash.h"
+#include "config/CliHeader.h"
+#include "config/CryptoNoteCheckpoints.h"
 #include "cryptonotecore/Core.h"
 #include "cryptonotecore/Currency.h"
+#include "cryptonotecore/DBUtils.h"
 #include "cryptonotecore/DatabaseBlockchainCache.h"
 #include "cryptonotecore/DatabaseBlockchainCacheFactory.h"
 #include "cryptonotecore/LevelDBWrapper.h"
 #include "cryptonotecore/RocksDBWrapper.h"
 #include "cryptonoteprotocol/CryptoNoteProtocolHandler.h"
+#include "logger/Logger.h"
+#include "logging/LoggerManager.h"
 #include "p2p/NetNode.h"
 #include "p2p/NetNodeConfig.h"
 #include "rpc/RpcServer.h"
-#include "serialization/BinaryInputStreamSerializer.h"
-#include "serialization/BinaryOutputStreamSerializer.h"
-
-#include <common/FileSystemShim.h>
-#include <config/CliHeader.h>
-#include <config/CryptoNoteCheckpoints.h>
-#include <logging/LoggerManager.h>
-#include <logger/Logger.h>
 
 #if defined(WIN32)
-
-#undef ERROR
-#include <crtdbg.h>
-#include <io.h>
-
+    #undef ERROR
+    #include <crtdbg.h>
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 using Common::JsonValue;
@@ -52,7 +44,7 @@ using namespace CryptoNote;
 using namespace Logging;
 using namespace DaemonConfig;
 
-void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerManager> logManager)
+void print_genesis_tx_hex(const bool blockExplorerMode, const std::shared_ptr<LoggerManager> &logManager)
 {
     CryptoNote::CurrencyBuilder currencyBuilder(logManager);
     currencyBuilder.isBlockexplorer(blockExplorerMode);
@@ -67,11 +59,9 @@ void print_genesis_tx_hex(const bool blockExplorerMode, std::shared_ptr<LoggerMa
               << "Replace the current GENESIS_COINBASE_TX_HEX line in src/config/CryptoNoteConfig.h with this one:"
               << std::endl
               << "const char GENESIS_COINBASE_TX_HEX[] = \"" << transactionHex << "\";" << std::endl;
-
-    return;
 }
 
-JsonValue buildLoggerConfiguration(Level level, const std::string &logfile)
+JsonValue buildLoggerConfiguration(const Level level, const std::string &logfile)
 {
     JsonValue loggerConfiguration(JsonValue::OBJECT);
     loggerConfiguration.insert("globalLevel", static_cast<int64_t>(level));
@@ -100,43 +90,12 @@ int main(int argc, char *argv[])
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-    const auto logManager = std::make_shared<LoggerManager>();
-    LoggerRef logger(logManager, "daemon");
-
     // Initial loading of CLI parameters
     handleSettings(argc, argv, config);
-
-    if (config.printGenesisTx) // Do we weant to generate the Genesis Tx?
-    {
-        print_genesis_tx_hex(false, logManager);
-        exit(0);
-    }
 
     // If the user passed in the --config-file option, we need to handle that first
     if (!config.configFile.empty())
     {
-        try
-        {
-            if (updateConfigFormat(config.configFile, config))
-            {
-                std::cout << std::endl << "Updating daemon configuration format..." << std::endl;
-                asFile(config, config.configFile);
-            }
-        }
-        catch (std::runtime_error &e)
-        {
-            std::cout
-                << std::endl
-                << "There was an error parsing the specified configuration file. Please check the file and try again:"
-                << std::endl
-                << e.what() << std::endl;
-            exit(1);
-        }
-        catch (std::exception &e)
-        {
-            // pass
-        }
-
         try
         {
             handleSettings(config.configFile, config);
@@ -155,18 +114,28 @@ int main(int argc, char *argv[])
     // Load in the CLI specified parameters again to overwrite anything from the config file
     handleSettings(argc, argv, config);
 
+    const auto logManager = std::make_shared<LoggerManager>();
+    LoggerRef logger(logManager, "daemon");
+
+    if (config.printGenesisTx) // Do we want to generate the Genesis Tx?
+    {
+        print_genesis_tx_hex(false, logManager);
+        return 0;
+    }
+
     if (config.dumpConfig)
     {
         std::cout << getProjectCLIHeader() << asString(config) << std::endl;
-        exit(0);
+        return 0;
     }
-    else if (!config.outputFile.empty())
+
+    if (!config.outputFile.empty())
     {
         try
         {
             asFile(config, config.outputFile);
             std::cout << getProjectCLIHeader() << "Configuration saved to: " << config.outputFile << std::endl;
-            exit(0);
+            return 0;
         }
         catch (std::exception &e)
         {
@@ -181,9 +150,10 @@ int main(int argc, char *argv[])
     {
         std::error_code ec;
 
-        std::vector<fs::path> removablePaths = {
+        std::vector removablePaths = {
             fs::path(config.dataDirectory) / CryptoNote::parameters::P2P_NET_DATA_FILENAME,
-            fs::path(config.dataDirectory) / "DB"
+            fs::path(config.dataDirectory) / RocksDBWrapper::DB_NAME,
+            fs::path(config.dataDirectory) / LevelDBWrapper::DB_NAME,
         };
 
         for (const auto &path : removablePaths)
@@ -201,19 +171,19 @@ int main(int argc, char *argv[])
     if (config.p2pPort <= 1024 || config.p2pPort > 65535)
     {
         std::cout << "P2P Port must be between 1024 and 65,535" << std::endl;
-        exit(1);
+        return 1;
     }
 
     if (config.p2pExternalPort < 0 || config.p2pExternalPort > 65535)
     {
         std::cout << "P2P External Port must be between 0 and 65,535" << std::endl;
-        exit(1);
+        return 1;
     }
 
     if (config.rpcPort <= 1024 || config.rpcPort > 65535)
     {
         std::cout << "RPC Port must be between 1024 and 65,535" << std::endl;
-        exit(1);
+        return 1;
     }
 
     try
@@ -234,7 +204,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + config.logLevel);
+        auto cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + config.logLevel);
 
         // configure logging
         logManager->configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile.string()));
@@ -242,42 +212,43 @@ int main(int argc, char *argv[])
         Logger::logger.setLogLevel(Logger::DEBUG);
 
         /* New logger, for now just passing through messages to old logger */
-        Logger::logger.setLogCallback([&logger](
-                const std::string prettyMessage,
-                const std::string message,
-                const Logger::LogLevel level,
-                const std::vector<Logger::LogCategory> categories) {
-            Logging::Level oldLogLevel;
-            std::string logColour;
+        Logger::logger.setLogCallback(
+            [&logger](const std::string prettyMessage,
+                      const std::string message,
+                      const Logger::LogLevel level,
+                      const std::vector<Logger::LogCategory> categories)
+            {
+                Logging::Level oldLogLevel;
+                std::string logColour;
 
-            if (level == Logger::DEBUG)
-            {
-                oldLogLevel = Logging::DEBUGGING;
-                logColour = Logging::DEFAULT;
-            }
-            else if (level == Logger::INFO)
-            {
-                oldLogLevel = Logging::INFO;
-                logColour = Logging::DEFAULT;
-            }
-            else if (level == Logger::WARNING)
-            {
-                oldLogLevel = Logging::WARNING;
-                logColour = Logging::RED;
-            }
-            else if (level == Logger::FATAL)
-            {
-                oldLogLevel = Logging::FATAL;
-                logColour = Logging::RED;
-            }
-            /* setLogCallback shouldn't get called if log level is DISABLED */
-            else
-            {
-                throw std::runtime_error("Programmer error @ setLogCallback in Daemon.cpp");
-            }
+                if (level == Logger::DEBUG)
+                {
+                    oldLogLevel = Logging::DEBUGGING;
+                    logColour = Logging::DEFAULT;
+                }
+                else if (level == Logger::INFO)
+                {
+                    oldLogLevel = Logging::INFO;
+                    logColour = Logging::DEFAULT;
+                }
+                else if (level == Logger::WARNING)
+                {
+                    oldLogLevel = Logging::WARNING;
+                    logColour = Logging::RED;
+                }
+                else if (level == Logger::FATAL)
+                {
+                    oldLogLevel = Logging::FATAL;
+                    logColour = Logging::RED;
+                }
+                /* setLogCallback shouldn't get called if log level is DISABLED */
+                else
+                {
+                    throw std::runtime_error("Programmer error @ setLogCallback in Daemon.cpp");
+                }
 
-            logger(oldLogLevel, logColour) << message;
-        });
+                logger(oldLogLevel, logColour) << message;
+            });
 
         logger(INFO, BRIGHT_GREEN) << getProjectCLIHeader() << std::endl;
 
@@ -299,16 +270,6 @@ int main(int argc, char *argv[])
         }
         CryptoNote::Currency currency = currencyBuilder.currency();
 
-        DataBaseConfig dbConfig(
-            config.dataDirectory,
-            config.dbThreads,
-            config.dbMaxOpenFiles,
-            config.dbWriteBufferSizeMB,
-            config.dbReadCacheSizeMB,
-            config.dbMaxFileSizeMB,
-            config.enableDbCompression
-        );
-
         bool use_checkpoints = !config.checkPoints.empty();
         CryptoNote::Checkpoints checkpoints(logManager);
 
@@ -321,7 +282,8 @@ int main(int argc, char *argv[])
                 {
                     checkpoints.addCheckpoint(cp.index, cp.blockId);
                 }
-                logger(INFO) << "Loaded " << CryptoNote::CHECKPOINTS.size() << " default checkpoints";
+
+                logger(INFO) << "Loaded " << std::size(CryptoNote::CHECKPOINTS) << " default checkpoints";
             }
             else
             {
@@ -334,18 +296,26 @@ int main(int argc, char *argv[])
         }
 
         NetNodeConfig netNodeConfig;
-        netNodeConfig.init(
-            config.p2pInterface,
-            config.p2pPort,
-            config.p2pExternalPort,
-            config.localIp,
-            config.hideMyPort,
-            config.dataDirectory,
-            config.peers,
-            config.exclusiveNodes,
-            config.priorityNodes,
-            config.seedNodes,
-            config.p2pResetPeerstate);
+        netNodeConfig.init(config.p2pInterface,
+                           config.p2pPort,
+                           config.p2pExternalPort,
+                           config.localIp,
+                           config.hideMyPort,
+                           config.dataDirectory,
+                           config.peers,
+                           config.exclusiveNodes,
+                           config.priorityNodes,
+                           config.seedNodes,
+                           config.p2pResetPeerstate);
+
+        DataBaseConfig dbConfig(config.dataDirectory,
+                                config.dbThreads,
+                                config.dbMaxOpenFiles,
+                                config.dbWriteBufferSizeMB,
+                                config.dbReadCacheSizeMB,
+                                config.dbMaxFileSizeMB,
+                                config.enableDbCompression,
+                                config.dbUseExperimentalSerializer);
 
         if (!Tools::create_directories_if_necessary(dbConfig.dataDir))
         {
@@ -363,8 +333,14 @@ int main(int argc, char *argv[])
             database = std::make_shared<RocksDBWrapper>(logManager, dbConfig);
         }
 
+        if (config.dbOptimize)
+        {
+            database->optimize();
+            return 0;
+        }
+
         database->init();
-        Tools::ScopeExit dbShutdownOnExit([&database]() { database->shutdown(); });
+        Tools::ScopeExit dbShutdownOnExit([&database] { database->shutdown(); });
 
         if (!DatabaseBlockchainCache::checkDBSchemeVersion(*database, logManager))
         {
@@ -385,9 +361,9 @@ int main(int argc, char *argv[])
             logManager,
             std::move(checkpoints),
             dispatcher,
-            std::unique_ptr<IBlockchainCacheFactory>(new DatabaseBlockchainCacheFactory(*database, logger.getLogger())),
-            config.transactionValidationThreads
-        );
+            std::unique_ptr<IBlockchainCacheFactory>(
+                std::make_unique<DatabaseBlockchainCacheFactory>(*database, logger.getLogger())),
+            config.transactionValidationThreads);
 
         ccore->load();
 
@@ -397,29 +373,29 @@ int main(int argc, char *argv[])
         std::string filepath = "blockchain.dump";
 
         auto startTimer = std::chrono::high_resolution_clock::now();
-
-        const bool performExpensiveValidation = false;
         auto elapsedTime = std::chrono::high_resolution_clock::now() - startTimer;
+
         if (config.importChain)
         {
+            constexpr bool performExpensiveValidation = false;
             logger(INFO) << "Importing blockchain...";
             error = ccore->importBlockchain(filepath, performExpensiveValidation);
             elapsedTime = std::chrono::high_resolution_clock::now() - startTimer;
-            if (error != "")
+            if (!error.empty())
             {
-                logger(ERROR) << "Failed to import "
-                              << "blockchain: " << error;
+                logger(ERROR) << "Failed to import blockchain: " << error;
                 exit(1);
             }
             else
             {
-                std::cout << "Time to import "
-                          << std::chrono::duration_cast<std::chrono::seconds>(elapsedTime).count()
+                std::cout << "Time to import " << std::chrono::duration_cast<std::chrono::seconds>(elapsedTime).count()
                           << " seconds." << std::endl
                           << std::endl;
                 exit(0);
             }
-        } else if (config.exportChain)
+        }
+
+        if (config.exportChain)
         {
             logger(INFO) << "Exporting blockchain...";
             error = ccore->exportBlockchain(filepath, config.exportNumBlocks);
@@ -432,12 +408,39 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::cout << "Time to export "
-                          << std::chrono::duration_cast<std::chrono::seconds>(elapsedTime).count()
+                std::cout << "Time to export " << std::chrono::duration_cast<std::chrono::seconds>(elapsedTime).count()
                           << " seconds." << std::endl
                           << std::endl;
                 exit(0);
             }
+        }
+
+        if (config.exportCheckPoints)
+        {
+            logger(INFO) << "Exporting checkpoints...";
+            std::string checkpointFileName = "checkpoints.csv";
+
+            std::fstream out(checkpointFileName, std::fstream::out | std::fstream::trunc);
+
+            auto topHeight = ccore->getTopBlockIndex();
+
+            for (uint32_t i = 0; i <= topHeight; i++)
+            {
+                auto hash = ccore->getBlockHashByIndex(i);
+                out << std::to_string(i) << "," << Common::podToHex(hash) << std::endl;
+
+                if (i % 1000 == 0)
+                {
+                    logger(INFO) << "Exporting checkpoints (" << std::to_string(i) << "/" << std::to_string(topHeight)
+                                 << ")";
+                }
+            }
+
+            out.close();
+
+            logger(INFO) << "Export completed.";
+
+            exit(0);
         }
 
         /* If we were told to rewind the blockchain to a certain height
@@ -449,19 +452,10 @@ int main(int argc, char *argv[])
             ccore->rewind(config.rewindToHeight);
         }
 
-        const auto cprotocol = std::make_shared<CryptoNote::CryptoNoteProtocolHandler>(
-            currency,
-            dispatcher,
-            *ccore,
-            nullptr,
-            logManager
-        );
+        const auto cprotocol =
+            std::make_shared<CryptoNote::CryptoNoteProtocolHandler>(currency, dispatcher, *ccore, nullptr, logManager);
 
-        const auto p2psrv = std::make_shared<CryptoNote::NodeServer>(
-            dispatcher,
-            *cprotocol,
-            logManager
-        );
+        const auto p2psrv = std::make_shared<CryptoNote::NodeServer>(dispatcher, *cprotocol, logManager);
 
         RpcMode rpcMode = RpcMode::Default;
 
@@ -474,19 +468,18 @@ int main(int argc, char *argv[])
             rpcMode = RpcMode::BlockExplorerEnabled;
         }
 
-        RpcServer rpcServer(
-            config.rpcPort,
-            config.rpcInterface,
-            config.enableCors,
-            config.feeAddress,
-            config.feeAmount,
-            rpcMode,
-            ccore,
-            p2psrv,
-            cprotocol
-        );
+        RpcServer rpcServer(config.rpcPort,
+                            config.rpcInterface,
+                            config.enableCors,
+                            config.feeAddress,
+                            config.feeAmount,
+                            rpcMode,
+                            ccore,
+                            p2psrv,
+                            cprotocol,
+                            config.enableTrtlRpc);
 
-        cprotocol->set_p2p_endpoint(&(*p2psrv));
+        cprotocol->set_p2p_endpoint(&*p2psrv);
         logger(INFO) << "Initializing p2p server...";
         if (!p2psrv->init(netNodeConfig))
         {
@@ -512,17 +505,19 @@ int main(int argc, char *argv[])
             ip = "127.0.0.1";
         }
 
-        DaemonCommandsHandler dch(*ccore, *p2psrv, logManager, ip, port, config);
+        DaemonCommandsHandler dch(*ccore, *p2psrv, cprotocol, logManager, ip, port, config);
 
         if (!config.noConsole)
         {
             dch.start_handling();
         }
 
-        Tools::SignalHandler::install([&dch] {
-            dch.exit({});
-            dch.stop_handling();
-        });
+        Tools::SignalHandler::install(
+            [&dch]
+            {
+                dch.exit({});
+                dch.stop_handling();
+            });
 
         logger(INFO) << "Starting p2p net loop...";
         p2psrv->run();

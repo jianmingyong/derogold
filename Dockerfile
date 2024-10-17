@@ -1,80 +1,145 @@
-# daemon runs in the background
-# run something like tail /var/log/DeroGoldd/current to see the status
-# be sure to run with volumes, ie:
-# docker run -v $(pwd)/DeroGoldd:/var/lib/DeroGoldd -v $(pwd)/wallet:/home/derogold --rm -ti derogold:0.6.0
-ARG base_image_version=0.6.0
-FROM phusion/baseimage:$base_image_version
+# syntax=docker/dockerfile:1
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.2.2/s6-overlay-amd64.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C /
+ARG UBUNTU_VERSION=20.04
 
-ADD https://github.com/just-containers/socklog-overlay/releases/download/v2.1.0-0/socklog-overlay-amd64.tar.gz /tmp/
-RUN tar xzf /tmp/socklog-overlay-amd64.tar.gz -C /
+ARG CMAKE_VERSION=3.30.3
+ARG COMPILER_TYPE=gcc
 
-ARG DEROGOLD_BRANCH=master
-ENV DEROGOLD_BRANCH=${TURTLECOIN_BRANCH}
+ARG NODE_VERSION=20
 
-# install build dependencies
-# checkout the latest tag
-# build and install
-RUN apt-get update && \
-    apt-get install -y \
-      build-essential \
-      python-dev \
-      gcc-9.3 \
-      g++-9.3 \
-      git cmake \
-      libboost1.69-all-dev && \
-    git clone https://github.com/derogold/derogold.git /src/derogold && \
-    cd /src/derogold && \
-    git checkout $DEROGOLD_BRANCH && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_CXX_FLAGS="-g0 -Os -fPIC -std=gnu++11" .. && \
-    make -j$(nproc) && \
-    mkdir -p /usr/local/bin && \
-    cp src/DeroGoldd /usr/local/bin/DeroGoldd && \
-    cp src/zedwallet-beta /usr/local/bin/zedwallet-beta && \
-    cp src/miner /usr/local/bin/miner && \
-    strip /usr/local/bin/DeroGoldd && \
-    strip /usr/local/bin/zedwallet-beta && \
-    strip /usr/local/bin/miner && \
-    cd / && \
-    rm -rf /src/derogold && \
-    apt-get remove -y build-essential python-dev gcc-4.9 g++-4.9 git cmake libboost1.69-all-dev && \
-    apt-get autoremove -y && \
-    apt-get install -y  \
-      libboost-system1.69.0 \
-      libboost-filesystem1.69.0 \
-      libboost-thread1.69.0 \
-      libboost-date-time1.69.0 \
-      libboost-chrono1.69.0 \
-      libboost-regex1.69.0 \
-      libboost-serialization1.69.0 \
-      libboost-program-options1.69.0 \
-      libicu66
+ARG VCPKG_BINARY_SOURCES=clear;default,readwrite
+ARG ACTIONS_CACHE_URL
 
-# setup the derogoldd service
-RUN useradd -r -s /usr/sbin/nologin -m -d /var/lib/DeroGoldd DeroGoldd && \
-    useradd -s /bin/bash -m -d /home/derogold DeroGoldd && \
-    mkdir -p /etc/services.d/DeroGoldd/log && \
-    mkdir -p /var/log/DeroGoldd && \
-    echo "#!/usr/bin/execlineb" > /etc/services.d/DeroGoldd/run && \
-    echo "fdmove -c 2 1" >> /etc/services.d/DeroGoldd/run && \
-    echo "cd /var/lib/DeroGoldd" >> /etc/services.d/DeroGoldd/run && \
-    echo "export HOME /var/lib/DeroGoldd" >> /etc/services.d/DeroGoldd/run && \
-    echo "s6-setuidgid DeroGoldd /usr/local/bin/DeroGoldd" >> /etc/services.d/DeroGoldd/run && \
-    chmod +x /etc/services.d/DeroGoldd/run && \
-    chown nobody:nogroup /var/log/DeroGoldd && \
-    echo "#!/usr/bin/execlineb" > /etc/services.d/DeroGoldd/log/run && \
-    echo "s6-setuidgid nobody" >> /etc/services.d/DeroGoldd/log/run && \
-    echo "s6-log -bp -- n20 s1000000 /var/log/DeroGoldd" >> /etc/services.d/DeroGoldd/log/run && \
-    chmod +x /etc/services.d/DeroGoldd/log/run && \
-    echo "/var/lib/DeroGoldd true DeroGoldd 0644 0755" > /etc/fix-attrs.d/DeroGoldd-home && \
-    echo "/home/derogold true turtlecoin 0644 0755" > /etc/fix-attrs.d/derogold-home && \
-    echo "/var/log/DeroGoldd true nobody 0644 0755" > /etc/fix-attrs.d/DeroGoldd-logs
+ARG CCACHE_VERSION=4.10.2
+ARG CCACHE_MAXSIZE=250M
 
-VOLUME ["/var/lib/DeroGoldd", "/home/derogold","/var/log/DeroGoldd"]
+ARG GITHUB_REF
 
-ENTRYPOINT ["/init"]
-CMD ["/usr/bin/execlineb", "-P", "-c", "emptyenv cd /home/derogold export HOME /home/derogold s6-setuidgid derogold /bin/bash"]
+##################################################
+# Default Build Environment
+##################################################
+
+FROM --platform=${BUILDPLATFORM} ubuntu:${UBUNTU_VERSION} AS dev_env_default
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+
+ARG UBUNTU_VERSION
+
+ARG CMAKE_VERSION
+ARG COMPILER_TYPE
+
+ARG NODE_VERSION
+ARG NVM_DIR=/root/.nvm
+
+ARG VCPKG_BINARY_SOURCES
+ARG ACTIONS_CACHE_URL
+
+ARG CCACHE_VERSION
+ARG CCACHE_MAXSIZE
+
+ARG GITHUB_REF
+
+##################################################
+# Build Environment
+##################################################
+
+FROM dev_env_default AS env_install
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
+        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
+    elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
+        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip zstd; \
+    fi
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
+    && [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" \
+    && nvm install ${NODE_VERSION}
+
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
+    mkdir /usr/local/sysroot && \
+    if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+    elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
+        tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
+    fi
+
+RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/ccache/ccache.git /usr/local/src/ccache && \
+    cd /usr/local/src/ccache && \
+    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
+        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
+        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    fi && \
+    rm -r /usr/local/src/ccache
+
+FROM env_install AS restore_ccache
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
+    if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+        cd /usr/local/src/docker/github-actions-proxy && \
+        [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
+        npm install && npm run build && \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/restore@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**', '!/root/.ccache/**/stats') }}" -i "restore-keys=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_"; \
+    fi
+
+FROM restore_ccache AS build_cmake
+RUN --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
+    cd /usr/local/src/CMake && \
+    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
+        CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
+        CC=clang CXX=clang++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+    fi && \
+    rm -r /usr/local/src/CMake
+
+##################################################
+# Build Step
+##################################################
+
+FROM build_cmake AS build_gcc_clang
+
+RUN --mount=type=bind,target=/usr/local/src/DeroGold,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    --mount=type=cache,id=vcpkg_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.cache/vcpkg/archives \
+    --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
+    cd /usr/local/src/DeroGold && \
+    if [ -e /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+        export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN); \
+    fi && \
+    if [ "${BUILDPLATFORM}" != "${TARGETPLATFORM}" ]; then \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -j $(nproc); \
+    else \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -j $(nproc); \
+    fi
+
+FROM build_gcc_clang AS save_ccache
+RUN --mount=type=bind,target=/usr/local/src/docker,source=docker,rw \
+    --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
+    --mount=type=secret,id=ACTIONS_RUNTIME_TOKEN \
+    if [ -s /run/secrets/ACTIONS_RUNTIME_TOKEN ]; then \
+        cd /usr/local/src/docker/github-actions-proxy && \
+        [ -s "${NVM_DIR}/nvm.sh" ] && . "${NVM_DIR}/nvm.sh" && \
+        npm install && npm run build && \
+        ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN) node dist/index.js -a actions/cache/save@v4.0.2 -i path=/root/.ccache/** -i "key=ccache_docker_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE}_\${{ hashFiles('/root/.ccache/**', '!/root/.ccache/**/stats') }}"; \
+    fi
+
+##################################################
+# Default runtime environment
+##################################################
+FROM ubuntu:${UBUNTU_VERSION} AS release_default
+LABEL org.opencontainers.image.source="https://github.com/jianmingyong/derogold"
+LABEL org.opencontainers.image.description="DeroGold is a digital assets project focused on preserving our life environment here on Earth."
+LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
+
+FROM release_default AS release_derogoldd
+COPY --from=save_ccache /usr/local/bin/DeroGoldd /usr/local/bin/
+EXPOSE 42069/tcp
+EXPOSE 6969/tcp
+ENTRYPOINT [ "DeroGoldd" ]

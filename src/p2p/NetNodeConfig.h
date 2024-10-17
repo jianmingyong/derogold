@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 
+#ifdef __MINGW32__
+#undef interface
+#endif
+
 namespace CryptoNote
 {
     class NetNodeConfig
