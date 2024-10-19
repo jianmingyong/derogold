@@ -33,6 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           fetch-tags: true
 
       - id: get_output_version
@@ -41,7 +42,7 @@ jobs:
 
       - id: is_latest_version
         run: |
-          echo is_latest_version=$($(git describe --tags --abbrev=0) -eq "${{ steps.get_output_version.outputs.version }}") >> "$env:GITHUB_OUTPUT"
+          echo is_latest_version=$($(git describe --tags --abbrev=0) -eq "v${{ steps.get_output_version.outputs.version }}") >> "$env:GITHUB_OUTPUT"
 
   build_derogold:
     name: ${{ matrix.build_preset }}
@@ -93,7 +94,6 @@ jobs:
             compiler: gcc
             install: >-
               build-essential
-              ccache
               cmake
               curl
               git
@@ -109,7 +109,6 @@ jobs:
             arch: x64
             compiler: clang
             install: >-
-              ccache
               clang
               cmake
               curl
@@ -126,7 +125,6 @@ jobs:
             arch: arm64
             compiler: gcc
             install: >-
-              ccache
               cmake
               crossbuild-essential-arm64
               curl
@@ -144,7 +142,6 @@ jobs:
             compiler: clang
             install: >-
               binutils-aarch64-linux-gnu
-              ccache
               clang
               cmake
               curl
@@ -176,7 +173,7 @@ jobs:
           {
             if (![string]::IsNullOrWhiteSpace("${{ matrix.install }}"))
             {
-              sudo apt-get update -y
+              sudo apt-get update
               sudo apt-get install -y ${{ matrix.install }}
             }
           }
@@ -340,19 +337,16 @@ jobs:
         with:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
-          target: release_default
+          target: release_derogoldd
           tags: ${{ steps.env.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache-filters: |
-            restore_ccache
             build_gcc_clang
-            save_ccache
           build-args: |
             VCPKG_BINARY_SOURCES=clear;x-gha,readwrite
             ACTIONS_CACHE_URL=${{ steps.env.outputs.ACTIONS_CACHE_URL }}
             COMPILER_TYPE=${{ matrix.compiler }}
-            GITHUB_REF=${{ github.ref }}
           secret-envs: |
             ACTIONS_RUNTIME_TOKEN=ACTIONS_RUNTIME_TOKEN
           push: ${{ github.event.inputs.docker_push }}
