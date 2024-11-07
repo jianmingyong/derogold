@@ -284,6 +284,11 @@ jobs:
 
           if ("${{ runner.os }}" -eq "Windows")
           {
+            if ("${{ matrix.compiler}}" -eq "msvc")
+            {
+              cd "Release"
+            }
+            
             .\cryptotest.exe --help=false
           }
           elseif ("${{ runner.os }}" -eq "Linux")
