@@ -97,7 +97,7 @@ set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/ports")
 set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_SOURCE_DIR}/triplets")
 set(VCPKG_INSTALL_OPTIONS "--clean-after-build")
 
-project(DeroGold VERSION 0.7.2.3 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
+project(DeroGold VERSION 0.7.2.4 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
 # Enable c11
 set(CMAKE_C_STANDARD 11)
@@ -250,7 +250,7 @@ if(NOT MSVC)
     endif()
 
     # # These options generate all those nice warnings we see while building
-    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=unused-function -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
+    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=unused-function -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=unused-result")
 
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
         set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces -Wno-error=unused-command-line-argument -Wno-error=integer-overflow")
@@ -299,7 +299,11 @@ if(NOT MSVC)
     endif()
 
     # # Setting up RELEASE flags
-    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10")
+        set(RELEASE_FLAGS "-O2 -DNDEBUG")
+    else()
+        set(RELEASE_FLAGS "-O3 -DNDEBUG")
+    endif()
 
     # # Set up the normal CMake flags as we've built them
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")

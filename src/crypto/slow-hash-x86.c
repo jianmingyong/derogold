@@ -516,7 +516,7 @@ void cn_slow_hash(
     uint32_t iterations,
     uint64_t mask)
 {
-    uint32_t TOTALBLOCKS = (page_size / AES_BLOCK_SIZE);
+    // uint32_t TOTALBLOCKS = (page_size / AES_BLOCK_SIZE);
     uint32_t init_rounds = (scratchpad / INIT_SIZE_BYTE);
     uint32_t aes_rounds = (iterations / 2);
 
