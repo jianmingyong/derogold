@@ -3,12 +3,12 @@
 ARG UBUNTU_VERSION=20.04
 
 ARG CMAKE_VERSION=3.30.5
+ARG CCACHE_VERSION=4.10.2
+
 ARG COMPILER_TYPE=gcc
 
 ARG VCPKG_BINARY_SOURCES=clear;default,readwrite
 ARG ACTIONS_CACHE_URL
-
-ARG CCACHE_VERSION=4.10.2
 
 ##################################################
 # Default Build Environment
@@ -25,21 +25,21 @@ ARG TARGETARCH
 ARG UBUNTU_VERSION
 
 ARG CMAKE_VERSION
+ARG CCACHE_VERSION
+
 ARG COMPILER_TYPE
 
 ARG VCPKG_BINARY_SOURCES
 ARG ACTIONS_CACHE_URL
 
-ARG CCACHE_VERSION
-
 ARG BASIC_PACKAGE="git cmake ninja-build libssl-dev"
 ARG VCPKG_PACKAGE="curl zip unzip tar pkg-config"
 
-ARG UBUNTU_20_04_amd64_GCC_PACKAGE="build-essential crossbuild-essential-arm64 gcc-10 g++-10 gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu"
-ARG UBUNTU_20_04_amd64_CLANG_PACKAGE="clang binutils-aarch64-linux-gnu"
+ARG AMD64_GCC_PACKAGE="build-essential crossbuild-essential-arm64"
+ARG AMD64_CLANG_PACKAGE="clang binutils-aarch64-linux-gnu"
 
-ARG UBUNTU_20_04_arm64_GCC_PACKAGE="build-essential crossbuild-essential-amd64 gcc-10 g++-10 gcc-10-x86-64-linux-gnu g++-10-x86-64-linux-gnu"
-ARG UBUNTU_20_04_arm64_CLANG_PACKAGE="clang binutils-x86_64-linux-gnu"
+ARG ARM64_GCC_PACKAGE="build-essential crossbuild-essential-amd64"
+ARG ARM64_CLANG_PACKAGE="clang binutils-x86_64-linux-gnu"
 
 ##################################################
 # Dev Environment
@@ -50,9 +50,9 @@ FROM dev_env_default AS env_install_dev
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${UBUNTU_20_04_amd64_GCC_PACKAGE} ${UBUNTU_20_04_amd64_CLANG_PACKAGE}; \
+        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${AMD64_GCC_PACKAGE} ${AMD64_CLANG_PACKAGE}; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${UBUNTU_20_04_arm64_GCC_PACKAGE} ${UBUNTU_20_04_arm64_CLANG_PACKAGE}; \
+        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${ARM64_GCC_PACKAGE} ${ARM64_CLANG_PACKAGE}; \
     fi
 
 RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
@@ -63,24 +63,23 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
+RUN git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
+    cd /usr/local/src/CMake && \
+    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
+        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
+    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
+        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
+    fi && \
+    rm -r /usr/local/src/CMake
+
 RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/ccache/ccache.git /usr/local/src/ccache && \
     cd /usr/local/src/ccache && \
     if [ "${COMPILER_TYPE}" = "gcc" ]; then \
-        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
     elif [ "${COMPILER_TYPE}" = "clang" ]; then \
-        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
     fi && \
     rm -r /usr/local/src/ccache
-
-RUN --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
-    git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
-    cd /usr/local/src/CMake && \
-    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
-        CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
-    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
-        CC=clang CXX=clang++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
-    fi && \
-    rm -r /usr/local/src/CMake
 
 ##################################################
 # Build Environment
@@ -91,9 +90,9 @@ FROM dev_env_default AS env_install
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     if [ "${BUILDPLATFORM}" = "linux/amd64" ]; then \
-        apt-get update && apt-get install -y binutils-aarch64-linux-gnu build-essential clang cmake crossbuild-essential-arm64 curl git libssl-dev ninja-build pkg-config tar unzip zip; \
+        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${AMD64_GCC_PACKAGE} ${AMD64_CLANG_PACKAGE}; \
     elif [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
-        apt-get update && apt-get install -y binutils-x86_64-linux-gnu build-essential clang cmake crossbuild-essential-amd64 curl git libssl-dev ninja-build pkg-config tar unzip zip; \
+        apt-get update && apt-get install -y ${BASIC_PACKAGE} ${VCPKG_PACKAGE} ${ARM64_GCC_PACKAGE} ${ARM64_CLANG_PACKAGE}; \
     fi
 
 RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
@@ -104,24 +103,23 @@ RUN --mount=type=bind,target=/usr/local/src/docker,source=docker \
         tar -xzf /usr/local/src/docker/sysroot/ubuntu-${UBUNTU_VERSION}-x86_64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot; \
     fi
 
+RUN git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
+    cd /usr/local/src/CMake && \
+    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
+        CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
+    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
+        CC=clang CXX=clang++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
+    fi && \
+    rm -r /usr/local/src/CMake
+
 RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.com/ccache/ccache.git /usr/local/src/ccache && \
     cd /usr/local/src/ccache && \
     if [ "${COMPILER_TYPE}" = "gcc" ]; then \
-        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+        CC=gcc CXX=g++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
     elif [ "${COMPILER_TYPE}" = "clang" ]; then \
-        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
+        CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install; \
     fi && \
     rm -r /usr/local/src/ccache
-
-RUN --mount=type=cache,id=ccache_${TARGETOS}_${TARGETARCH}_${COMPILER_TYPE},target=/root/.ccache \
-    git clone --branch v${CMAKE_VERSION} --depth 1 --recursive https://github.com/Kitware/CMake.git /usr/local/src/CMake && \
-    cd /usr/local/src/CMake && \
-    if [ "${COMPILER_TYPE}" = "gcc" ]; then \
-        CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
-    elif [ "${COMPILER_TYPE}" = "clang" ]; then \
-        CC=clang CXX=clang++ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
-    fi && \
-    rm -r /usr/local/src/CMake
 
 ##################################################
 # Build Step
@@ -138,9 +136,9 @@ RUN --mount=type=bind,target=/usr/local/src/DeroGold,rw \
         export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/ACTIONS_RUNTIME_TOKEN); \
     fi && \
     if [ "${BUILDPLATFORM}" != "${TARGETPLATFORM}" ]; then \
-        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -j $(nproc); \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install -D CMAKE_INSTALL_PREFIX=/usr/local && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-cross-install; \
     else \
-        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install -j $(nproc); \
+        cmake --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install && cmake --build --preset linux-${TARGETARCH}-${COMPILER_TYPE}-install; \
     fi
 
 ##################################################

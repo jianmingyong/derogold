@@ -6,7 +6,10 @@
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
-		"target": "env_install_dev"
+		"target": "env_install_dev",
+		"args": {
+			"UBUNTU_VERSION": "20.04"
+		}
 	},
 
 	"customizations": {
