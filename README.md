@@ -18,7 +18,7 @@
       <li><a href="#mingw64-msys2">MINGW64 (msys2)</a></li>
       <li><a href="#clang64-msys2">CLANG64 (msys2)</a></li>
     </ol>
-    <li><a href="#linux-x64-aarch64">Linux (x64/aarch64)</a></li>
+    <li><a href="#linux-x64aarch64">Linux (x64/aarch64)</a></li>
     <ol>
       <li><a href="#gcc">GCC</a></li>
       <li><a href="#clang">CLANG</a></li>
@@ -110,7 +110,7 @@ Building:
 - From the start menu, open 'x64 Native Tools Command Prompt for VS 2022'
 - If you need to change the default drive C: to D: for example, just type `D:` and hit enter
 - Use `cd` to change to your desired directory to store DeroGold code
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset windows-x64-msvc-install`
 - `cmake --build --preset windows-x64-msvc-install`
@@ -132,7 +132,7 @@ Prerequisites:
   - Run `pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache git`
 
 Building:
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset windows-x64-mingw-gcc-install`
 - `cmake --build --preset windows-x64-mingw-gcc-install`
@@ -154,7 +154,7 @@ Prerequisites:
   - Run `pacman -S mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-ninja mingw-w64-clang-x86_64-ccache git`
 
 Building:
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset windows-x64-mingw-clang-install`
 - `cmake --build --preset windows-x64-mingw-clang-install`
@@ -176,7 +176,7 @@ Prerequisites:
 - (Optional) `sudo apt-get install crossbuild-essential-arm64` for cross building aarch64 target
 
 Building:
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset linux-x64-gcc-install`
 - `sudo cmake --build --preset linux-x64-gcc-install`
@@ -192,13 +192,15 @@ You can use `--preset linux-arm64-gcc-cross-package` to cross compile for arm64/
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-#### CLANG
+#### CLANG 
+
+**NOTE: This build is not officially supported due to potential errors during runtime. Prefer to use GCC instead.**
 
 Prerequisites:
 - For Ubuntu: `sudo apt-get install git cmake ninja-build clang curl zip unzip tar pkg-config`
 
 Building:
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset linux-x64-clang-install`
 - `sudo cmake --build --preset linux-x64-clang-install`
@@ -216,13 +218,15 @@ Alternatively:
 
 #### CLANG
 
+**NOTE: This build is not officially supported due to MacOS transitioning to arm64 build only and the code do not support arm64 architecture.**
+
 Prerequisites:
 - [HomeBrew](https://brew.sh/)
   - Install by running `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
   - `brew install git cmake ninja llvm pkg-config`
 
 Building:
-- `git clone --recursive https://github.com/jianmingyong/derogold.git`
+- `git clone -b development --recursive https://github.com/derogold/derogold.git`
 - `cd derogold`
 - `cmake --preset osx-x64-clang-install`
 - `sudo cmake --build --preset osx-x64-clang-install`
