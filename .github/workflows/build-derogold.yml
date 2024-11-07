@@ -127,6 +127,38 @@ jobs:
             configure_preset: linux-arm64-clang-cross-package
             build_preset: linux-arm64-clang-cross-package
 
+          - os: ubuntu-22.04
+            arch: x64
+            compiler: gcc
+            install: >-
+              build-essential
+              cmake
+              curl
+              git
+              ninja-build
+              pkg-config
+              tar
+              unzip
+              zip
+            configure_preset: linux-x64-gcc-package
+            build_preset: linux-x64-gcc-package
+
+          - os: ubuntu-22.04
+            arch: arm64
+            compiler: gcc
+            install: >-
+              cmake
+              crossbuild-essential-arm64
+              curl
+              git
+              ninja-build
+              pkg-config
+              tar
+              unzip
+              zip
+            configure_preset: linux-arm64-gcc-cross-package
+            build_preset: linux-arm64-gcc-cross-package
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -218,3 +250,16 @@ jobs:
             ${{ github.workspace }}/build/Packaging/*.tar.gz
             ${{ github.workspace }}/build/Packaging/*.deb
           if-no-files-found: ignore
+
+      - name: Run CryptoTest
+        run: |
+          cd "${{ github.workspace }}/build/src"
+
+          if ("${{ runner.os }}" -eq "Windows")
+          {
+            .\cryptotest.exe --help=false
+          }
+          elseif ("${{ runner.os }}" -eq "Linux")
+          {
+            ./cryptotest.exe --help=false
+          }

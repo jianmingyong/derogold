@@ -39,7 +39,7 @@ else()
                 message(FATAL_ERROR "Unable to initialize vcpkg submodule.")
             endif()
         else()
-            execute_process(COMMAND "${GIT_EXECUTABLE" clone https://github.com/microsoft/vcpkg WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_CLONE_RESULT)
+            execute_process(COMMAND "${GIT_EXECUTABLE}" clone https://github.com/microsoft/vcpkg WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" RESULT_VARIABLE GIT_CLONE_RESULT)
 
             if(GIT_CLONE_RESULT)
                 message(CHECK_FAIL "not found")
@@ -56,9 +56,14 @@ endif()
 
 message(CHECK_PASS "${VCPKG_ROOT}")
 
-if(DEFINED CMAKE_TOOLCHAIN_FILE AND NOT CMAKE_TOOLCHAIN_FILE STREQUAL "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-    message(WARNING "You are trying to override CMAKE_TOOLCHAIN_FILE which is required for vcpkg. Set VCPKG_CHAINLOAD_TOOLCHAIN_FILE instead.")
-    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}")
+if(DEFINED CMAKE_TOOLCHAIN_FILE)
+    file(REAL_PATH ${CMAKE_TOOLCHAIN_FILE} CMAKE_TOOLCHAIN_FILE_ABSOLUTE)
+    file(TO_CMAKE_PATH ${CMAKE_TOOLCHAIN_FILE_ABSOLUTE} CMAKE_TOOLCHAIN_FILE_NORMAL)
+    
+    if (NOT CMAKE_TOOLCHAIN_FILE_NORMAL STREQUAL "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+        message(WARNING "You are trying to override CMAKE_TOOLCHAIN_FILE which is required for vcpkg. Set VCPKG_CHAINLOAD_TOOLCHAIN_FILE instead.")
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE_ABSOLUTE}")
+    endif()
 endif()
 
 set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
