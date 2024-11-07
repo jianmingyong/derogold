@@ -19,7 +19,7 @@ defaults:
 
 jobs:
   build_derogold:
-    name: ${{ matrix.build_preset }}
+    name: ${{ matrix.build_preset }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     
     concurrency: 
