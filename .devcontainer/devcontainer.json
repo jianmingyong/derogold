@@ -6,7 +6,7 @@
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
-		"target": "env_install"
+		"target": "env_install_dev"
 	},
 
 	"customizations": {
@@ -39,10 +39,5 @@
 		}
 	],
 
-	"workspaceFolder": "/usr/local/src/DeroGold",
-
-	"remoteEnv": {
-		"CCACHE_MAXSIZE": "250M",
-		"CCACHE_SLOPPINESS": "time_macros"
-	}
+	"workspaceFolder": "/usr/local/src/DeroGold"
 }
