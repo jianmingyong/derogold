@@ -70,6 +70,5 @@ RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.c
     rm -r /usr/local/src/ccache
 
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash && \
-    export NVM_DIR="~/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
-    nvm install 22 && \
-    rm install.sh
+    export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+    nvm install 22
