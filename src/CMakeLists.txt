@@ -68,6 +68,11 @@ add_library(Utilities STATIC ${Utilities})
 add_library(Wallet STATIC ${Wallet})
 add_library(WalletBackend STATIC ${WalletBackend})
 
+# Crypto requires -O2 optimization due to its sensitivity.
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10")
+    target_compile_options(Crypto PRIVATE $<$<COMPILE_LANGUAGE:C>:-O2>)
+endif()
+
 if(MSVC OR MINGW)
     set(CT_SOURCES_OS binaryinfo/cryptotest.rc)
     set(MINER_SOURCES_OS binaryinfo/miner.rc)
@@ -156,6 +161,9 @@ add_custom_target(cli-wallet DEPENDS zedwallet++)
 
 install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader)
 
+# CPack
+include(CPack)
+
 set(CPACK_PACKAGE_NAME "DeroGold")
 set(CPACK_PACKAGE_VENDOR "The DeroGold Developers")
 set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/src/config/icon.ico")
@@ -171,4 +179,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(CPACK_GENERATOR "TGZ")
 endif()
 
-include(CPack)
+# CTest
+include(CTest)
+
+add_test(NAME CryptoTest COMMAND ${CMAKE_BINARY_DIR}/src/cryptotest)

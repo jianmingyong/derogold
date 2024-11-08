@@ -275,8 +275,8 @@ void benchmarkGenerateKeyDerivation()
 
 int main(int argc, char **argv)
 {
-    bool o_help, o_version, o_benchmark;
-    int o_iterations;
+    bool o_help = false, o_version = false, o_benchmark = false;
+    int o_iterations = PERFORMANCE_ITERATIONS;
 
     cxxopts::Options options(argv[0], getProjectCLIHeader());
 

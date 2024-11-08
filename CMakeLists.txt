@@ -304,11 +304,7 @@ if(NOT MSVC)
     endif()
 
     # # Setting up RELEASE flags
-    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "10")
-        set(RELEASE_FLAGS "-O2 -DNDEBUG")
-    else()
-        set(RELEASE_FLAGS "-O3 -DNDEBUG")
-    endif()
+    set(RELEASE_FLAGS "-O3 -DNDEBUG")
 
     # # Set up the normal CMake flags as we've built them
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
