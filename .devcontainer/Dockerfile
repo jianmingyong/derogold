@@ -68,3 +68,8 @@ RUN git clone --branch v${CCACHE_VERSION} --depth 1 --recursive https://github.c
         CC=clang CXX=clang++ cmake -D CMAKE_BUILD_TYPE=Release -S . -B build && cmake --build build -t install -j $(nproc); \
     fi && \
     rm -r /usr/local/src/ccache
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash && \
+    export NVM_DIR="~/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && \
+    nvm install 22 && \
+    rm install.sh
