@@ -6,7 +6,7 @@
 	"build": {
 		"context": "..",
 		"dockerfile": "../Dockerfile",
-		"target": "env_install_dev",
+		"target": "dev_env_default",
 		"args": {
 			"UBUNTU_VERSION": "20.04"
 		}
@@ -16,6 +16,7 @@
 		"vscode": {
 			"extensions": [
 				"ms-vscode.cpptools-extension-pack",
+				"twxs.cmake",
 				"KylinIDETeam.cmake-intellisence",
 				"redhat.vscode-yaml",
 				"yzhang.markdown-all-in-one",
