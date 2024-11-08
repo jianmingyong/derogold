@@ -20,7 +20,8 @@
 				"KylinIDETeam.cmake-intellisence",
 				"redhat.vscode-yaml",
 				"yzhang.markdown-all-in-one",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"dbaeumer.vscode-eslint"
 			]
 		}
 	},
