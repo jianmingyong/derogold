@@ -4,7 +4,7 @@
 	"name": "Ubuntu 20.04",
 
 	"build": {
-		"context": "..",
+		"context": "../..",
 		"dockerfile": "../Dockerfile",
 		"target": "dev_env_default",
 		"args": {
