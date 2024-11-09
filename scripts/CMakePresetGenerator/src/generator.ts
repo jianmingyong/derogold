@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 import type {
-    CmakeMinimumRequiredV1,
+    CmakeMinimumRequiredV10,
     Schema
 } from "./schema"
 
-type CMakeCompiler = "msvc" | "gcc" | "clang";
+type CMakeSupportedVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+type CMakeCompiler = "msvc" | "msvc-clang" | "gcc" | "clang";
 type CMakeBuildType = "Debug" | "Release" | "RelWithDebInfo" | "MinSizeRel";
 type CMakeTarget = "install" | "package";
 
-const CMAKE_MINIMUM_REQUIRED: CmakeMinimumRequiredV1 = {
+const CMAKE_MINIMUM_REQUIRED: CmakeMinimumRequiredV10 = {
     major: 3,
     minor: 15
 };
@@ -24,7 +25,8 @@ const CMAKE_DEFAULT_CONFIGURATION_PRESET = {
 }
 
 const CMAKE_DEFAULT_MSVC_CONFIGURATION_PRESET = [
-    generateDefaultConfigurationPreset("msvc")
+    generateDefaultConfigurationPreset("msvc"),
+    generateDefaultConfigurationPreset("msvc-clang")
 ]
 
 const CMAKE_DEFAULT_GCC_CONFIGURATION_PRESET = [
@@ -38,51 +40,45 @@ const CMAKE_DEFAULT_CLANG_CONFIGURATION_PRESET = [
 ]
 
 function generateDefaultConfigurationPreset(compiler: CMakeCompiler, buildType?: CMakeBuildType) {
-    let name = `default-${compiler}`;
-    let inherit = "default";
-    let generator = "Ninja Multi-Config";
-    let environment: Record<string, string> = {
-        CC: `${compiler}`,
-        CXX: `${compiler === "gcc" ? "g++" : "clang++"}`
-    }
-    let cacheVariables: Record<string, string> = {}
+    const result: {
+        name: string,
+        hidden?: boolean,
+        inherits?: string[],
+        generator?: string,
+        environment?: Record<string, string>,
+        cacheVariables?: Record<string, string>
+    } = { name: `default-${compiler}`, hidden: true };
+    result.inherits = ["default"];
+    result.generator = "Ninja Multi-Config";
 
-    if (compiler === "msvc") {
-        generator = "Visual Studio 17 2022";
-        environment = {};
+    if (compiler === "msvc" || compiler === "msvc-clang") {
+        result.generator = "Visual Studio 17 2022";
+    } else {
+        result.environment = {
+            CC: `${compiler}`,
+            CXX: `${compiler === "gcc" ? "g++" : "clang++"}`
+        };
     }
 
     if (buildType !== undefined) {
-        name = `${name}-${buildType.toLowerCase()}`;
-        inherit = `${inherit}-${compiler}`
-        generator = "Ninja";
-        environment = {};
-        cacheVariables = { CMAKE_BUILD_TYPE: buildType }
+        result.name = `${result.name}-${buildType.toLowerCase()}`;
+        result.inherits[0] = `${result.inherits[0]}-${compiler}`
+        result.generator = "Ninja";
+        delete result.environment;
+        result.cacheVariables = { CMAKE_BUILD_TYPE: buildType };
     }
 
-    let output = {};
-
-    if (Object.keys(environment).length > 0) {
-        output = { ...output, environment: environment };
-    }
-
-    if (Object.keys(cacheVariables).length > 0) {
-        output = { ...output, cacheVariables: cacheVariables };
-    }
-
-    return {
-        name: name,
-        hidden: true,
-        inherits: [inherit],
-        generator: generator,
-        ...output
-    }
+    return result;
 }
 
 const CMAKE_DEFAULT_WINDOWS_CONFIGURATION_PRESET = [
     generateWindowsConfigurationPreset("msvc"),
     generateWindowsConfigurationPreset("msvc", "install"),
     generateWindowsConfigurationPreset("msvc", "package"),
+
+    generateWindowsConfigurationPreset("msvc-clang"),
+    generateWindowsConfigurationPreset("msvc-clang", "install"),
+    generateWindowsConfigurationPreset("msvc-clang", "package"),
 
     generateWindowsConfigurationPreset("gcc"),
     generateWindowsConfigurationPreset("gcc", "install"),
@@ -94,56 +90,53 @@ const CMAKE_DEFAULT_WINDOWS_CONFIGURATION_PRESET = [
 ]
 
 function generateWindowsConfigurationPreset(compiler: CMakeCompiler, target?: CMakeTarget) {
-    let name = `windows-x64-${compiler}`;
-    let inherit = `default-${compiler}`;
-    const installDir = "${sourceDir}/build";
-    const cacheVariables: Record<string, string> = {
+    const result: {
+        name: string,
+        inherits?: string[],
+        installDir?: string,
+        cacheVariables?: Record<string, string>,
+        architecture?: string,
+        toolset?: string,
+    } = { name: `windows-x64-${compiler}` };
+
+    result.inherits = [`default-${compiler}`];
+    result.installDir = "${sourceDir}/build";
+    result.cacheVariables = {
         VCPKG_TARGET_TRIPLET: "x64-windows-static",
         ARCH: "native",
         SET_PACKAGE_OUTPUT_SUFFIX: "windows-x64-msvc"
     };
-    let others: object = {
-        architecture: {
-            strategy: "set",
-            value: "x64"
-        },
-        toolset: {
-            strategy: "set",
-            value: "host=x64"
-        },
-        vendor: {
-            "microsoft.com/VisualStudioSettings/CMake/1.0": {
-                hostOS: "Windows",
-                intelliSenseMode: "windows-msvc-x64"
-            }
-        }
-    };
 
-    if (compiler !== "msvc") {
-        name = `windows-x64-mingw-${compiler}`;
-        cacheVariables.VCPKG_TARGET_TRIPLET = "x64-mingw-static";
-        cacheVariables.SET_PACKAGE_OUTPUT_SUFFIX = `windows-x64-mingw-${compiler}`;
-        others = {};
+    if (compiler === "msvc" || compiler === "msvc-clang") {
+        result.architecture = "x64";
+
+        if (compiler === "msvc-clang") {
+            result.toolset = "ClangCL,host=x64";
+        } else {
+            result.toolset = "host=x64";
+        }
+    } else {
+        result.name = `windows-x64-mingw-${compiler}`;
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = "x64-mingw-static";
+        result.cacheVariables.SET_PACKAGE_OUTPUT_SUFFIX = `windows-x64-mingw-${compiler}`;
     }
 
     if (target !== undefined) {
-        name = `${name}-${target}`;
-        inherit = compiler === "msvc" ? inherit : `${inherit}-release`;
-        cacheVariables.VCPKG_TARGET_TRIPLET = `${cacheVariables.VCPKG_TARGET_TRIPLET}-release`;
+        result.name = `${result.name}-${target}`;
+
+        if (compiler === "gcc" || compiler === "clang") {
+            result.inherits[0] = `${result.inherits[0]}-release`;
+        }
+
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-release`;
     }
 
     if (target === "package") {
-        cacheVariables.ARCH = "default";
-        cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
+        result.cacheVariables.ARCH = "default";
+        result.cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
     }
 
-    return {
-        name: name,
-        inherits: [inherit],
-        installDir: installDir,
-        cacheVariables: cacheVariables,
-        ...others
-    };
+    return result;
 }
 
 const CMAKE_DEFAULT_LINUX_CONFIGURATION_PRESET = [
@@ -203,7 +196,7 @@ function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" |
     };
 }
 
-function generatePresetConfig(version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10): Schema {
+function generatePresetConfig(version: CMakeSupportedVersion): Schema {
     return {
         version: version,
         cmakeMinimumRequired: CMAKE_MINIMUM_REQUIRED,

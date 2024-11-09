@@ -1,13 +1,25 @@
+import eslint from "@eslint/js";
 import globals from "globals";
-import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  {files: ["**/*.{js,mjs,cjs,ts}"]},
-  {files: ["**/*.js"], languageOptions: {sourceType: "commonjs"}},
-  {languageOptions: { globals: globals.browser }},
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+  { ignores: ["out/"] },
+  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
+  {
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: {
+        project: 'tsconfig.eslint.json'
+      }
+    }
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    files: ["**/*.{js,mjs,cjs}"],
+    ...tseslint.configs.disableTypeChecked
+  }
 ];
