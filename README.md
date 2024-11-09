@@ -175,18 +175,39 @@ Prerequisites:
 - For Ubuntu: `sudo apt-get install git cmake ninja-build build-essential curl zip unzip tar pkg-config`
 - (Optional) `sudo apt-get install crossbuild-essential-arm64` for cross building aarch64 target
 
-Building:
-- `git clone -b development --recursive https://github.com/derogold/derogold.git`
-- `cd derogold`
-- `cmake --preset linux-x64-gcc-install`
-- `sudo cmake --build --preset linux-x64-gcc-install`
-- use `sudo cmake --install build` if install permission failed
-- Enjoy your build at `/usr/local/bin`
+**NOTE: Ubuntu 20.04 LTS provides an outdated version of CMake hence it does not support presets.**
 
-Alternatively:
-- `cd derogold`
-- `CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja -S . -B build`
-- `sudo cmake --build build -t install`
+Building via CLI:
+```bash
+# For native x64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
+sudo cmake --build build -t install
+
+# For native arm64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=arm64-linux-release -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
+sudo cmake --build build -t install
+```
+
+Building via Presets:
+```bash
+# For native x64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+cmake --preset linux-x64-gcc-install
+sudo cmake --build --preset linux-x64-gcc-install
+
+# For native arm64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+cmake --preset linux-arm64-gcc-install
+sudo cmake --build --preset linux-arm64-gcc-install
+```
+
+Enjoy your build at `/usr/local/bin`
 
 You can use `--preset linux-arm64-gcc-cross-package` to cross compile for arm64/aarch64 raspberry pi. Output binaries would be stored at `build/Packaging`.
 
@@ -194,23 +215,46 @@ You can use `--preset linux-arm64-gcc-cross-package` to cross compile for arm64/
 
 #### CLANG 
 
-**NOTE: This build is not officially supported due to potential errors during runtime. Prefer to use GCC instead.**
+**NOTE: This build is not officially supported due to potential errors during runtime. Prefer GCC instead.**
 
 Prerequisites:
 - For Ubuntu: `sudo apt-get install git cmake ninja-build clang curl zip unzip tar pkg-config`
 
-Building:
-- `git clone -b development --recursive https://github.com/derogold/derogold.git`
-- `cd derogold`
-- `cmake --preset linux-x64-clang-install`
-- `sudo cmake --build --preset linux-x64-clang-install`
-- use `sudo cmake --install build` if install permission failed
-- Enjoy your build at `/usr/local/bin`
+**NOTE: Ubuntu 20.04 LTS provides an outdated version of CMake hence it does not support presets.**
 
-Alternatively:
-- `cd derogold`
-- `CC=clang CXX=clang++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja -S . -B build`
-- `sudo cmake --build build -t install`
+Building via CLI:
+```bash
+# For native x64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+CC=clang CXX=clang++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release-clang -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
+sudo cmake --build build -t install
+
+# For native arm64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=arm64-linux-release-clang -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
+sudo cmake --build build -t install
+```
+
+Building via Presets:
+```bash
+# For native x64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+cmake --preset linux-x64-clang-install
+sudo cmake --build --preset linux-x64-clang-install
+
+# For native arm64 builds
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+cmake --preset linux-arm64-clang-install
+sudo cmake --build --preset linux-arm64-clang-install
+```
+
+Enjoy your build at `/usr/local/bin`
+
+You can use `--preset linux-arm64-clang-cross-package` to cross compile for arm64/aarch64 raspberry pi. Output binaries would be stored at `build/Packaging`.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
