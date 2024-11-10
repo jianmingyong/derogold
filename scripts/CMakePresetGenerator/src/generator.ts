@@ -199,10 +199,6 @@ function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" |
         result.cacheVariables.VCPKG_TARGET_TRIPLET = `x64-linux`;
     }
 
-    if (compiler === "clang" || compiler === "clang-cross") {
-        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-clang`;
-    }
-
     if (compiler === "gcc-cross" || compiler === "clang-cross") {
         if (compiler === "gcc-cross") {
             result.inherits[0] = "default-gcc";
@@ -228,6 +224,10 @@ function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" |
     if (target === "package") {
         result.cacheVariables.ARCH = "default";
         result.cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
+    }
+
+    if (compiler === "clang" || compiler === "clang-cross") {
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-clang`;
     }
 
     return result;

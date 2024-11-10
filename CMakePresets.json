@@ -485,7 +485,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang"
             }
@@ -496,7 +496,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang"
             }
@@ -507,7 +507,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "default",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-x64-clang",
                 "SET_COMMIT_ID_IN_VERSION": "OFF"
@@ -530,7 +530,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-amd64-clang"
             }
@@ -541,7 +541,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-amd64-clang"
             }
@@ -552,7 +552,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "x64-linux-release-clang",
                 "ARCH": "default",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-amd64-clang",
                 "SET_COMMIT_ID_IN_VERSION": "OFF"
@@ -575,7 +575,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang"
             }
@@ -586,7 +586,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release-clang",
                 "ARCH": "native",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang"
             }
@@ -597,7 +597,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release-clang",
                 "ARCH": "default",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang",
                 "SET_COMMIT_ID_IN_VERSION": "OFF"
@@ -621,7 +621,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release-clang",
                 "ARCH": "default",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang-cross",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/linux-arm64-clang.cmake"
@@ -633,7 +633,7 @@
                 "default-clang-release"
             ],
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-linux-clang-release",
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-release-clang",
                 "ARCH": "default",
                 "SET_PACKAGE_OUTPUT_SUFFIX": "linux-arm64-clang-cross",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/CMake/linux-arm64-clang.cmake",
