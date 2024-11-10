@@ -209,7 +209,6 @@ cd derogold
 # For build only.
 cmake --preset linux-x64-gcc-all
 cmake --build --preset linux-x64-gcc-all
-sudo cmake --install build
 
 # For build and install.
 cmake --preset linux-x64-gcc-install
@@ -224,7 +223,6 @@ cd derogold
 # For build only.
 cmake --preset linux-arm64-gcc-all
 cmake --build --preset linux-arm64-gcc-all
-sudo cmake --install build
 
 # For build and install.
 cmake --preset linux-arm64-gcc-install
@@ -278,7 +276,6 @@ cd derogold
 # For build only.
 cmake --preset linux-x64-clang-all
 cmake --build --preset linux-x64-clang-all
-sudo cmake --install build
 
 # For build and install.
 cmake --preset linux-x64-clang-install
@@ -293,7 +290,6 @@ cd derogold
 # For build only.
 cmake --preset linux-arm64-clang-all
 cmake --build --preset linux-arm64-clang-all
-sudo cmake --install build
 
 # For build and install.
 cmake --preset linux-arm64-clang-install
@@ -334,7 +330,6 @@ cd derogold
 # For build only.
 cmake --preset osx-x64-clang-all
 cmake --build --preset osx-x64-clang-all
-sudo cmake --install build
 
 # For build and install.
 cmake --preset osx-x64-clang-install
