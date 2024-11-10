@@ -155,9 +155,9 @@ const CMAKE_DEFAULT_LINUX_CONFIGURATION_PRESET = [
     generateLinuxConfigurationPreset("gcc", "arm64", "install"),
     generateLinuxConfigurationPreset("gcc", "arm64", "package"),
 
-    generateLinuxConfigurationPreset("gcc", "arm64", undefined, true),
-    generateLinuxConfigurationPreset("gcc", "arm64", "all", true),
-    generateLinuxConfigurationPreset("gcc", "arm64", "package", true),
+    generateLinuxConfigurationPreset("gcc-cross", "arm64", undefined),
+    generateLinuxConfigurationPreset("gcc-cross", "arm64", "all"),
+    generateLinuxConfigurationPreset("gcc-cross", "arm64", "package"),
 
     generateLinuxConfigurationPreset("clang", "x64"),
     generateLinuxConfigurationPreset("clang", "x64", "all"),
@@ -174,12 +174,12 @@ const CMAKE_DEFAULT_LINUX_CONFIGURATION_PRESET = [
     generateLinuxConfigurationPreset("clang", "arm64", "install"),
     generateLinuxConfigurationPreset("clang", "arm64", "package"),
 
-    generateLinuxConfigurationPreset("clang", "arm64", undefined, true),
-    generateLinuxConfigurationPreset("clang", "arm64", "all", true),
-    generateLinuxConfigurationPreset("clang", "arm64", "package", true),
+    generateLinuxConfigurationPreset("clang-cross", "arm64", undefined),
+    generateLinuxConfigurationPreset("clang-cross", "arm64", "all"),
+    generateLinuxConfigurationPreset("clang-cross", "arm64", "package"),
 ];
 
-function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" | "amd64" | "arm64", target?: CMakeTarget, cross?: boolean) {
+function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" | "amd64" | "arm64", target?: CMakeTarget) {
     const result: {
         name: string,
         inherits?: string[],
@@ -199,17 +199,23 @@ function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" |
         result.cacheVariables.VCPKG_TARGET_TRIPLET = `x64-linux`;
     }
 
-    if (arch === "arm64" && cross) {
-        result.name = `${result.name}-cross`;
+    if (compiler === "clang" || compiler === "clang-cross") {
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-clang`;
+    }
 
-        if (compiler === "gcc") {
+    if (compiler === "gcc-cross" || compiler === "clang-cross") {
+        if (compiler === "gcc-cross") {
+            result.inherits[0] = "default-gcc";
             result.environment = {
                 CC: "aarch64-linux-gnu-gcc",
                 CXX: "aarch64-linux-gnu-g++"
             };
+            result.cacheVariables.VCPKG_CHAINLOAD_TOOLCHAIN_FILE = `\${sourceDir}/CMake/linux-${arch}-gcc.cmake`;
+        } else {
+            result.inherits[0] = "default-clang";
+            result.cacheVariables.VCPKG_CHAINLOAD_TOOLCHAIN_FILE = `\${sourceDir}/CMake/linux-${arch}-clang.cmake`;
         }
 
-        result.cacheVariables.VCPKG_CHAINLOAD_TOOLCHAIN_FILE = `\${sourceDir}/CMake/linux-arm64-${compiler}.cmake`;
         result.cacheVariables.ARCH = "default";
     }
 
