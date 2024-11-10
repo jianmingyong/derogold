@@ -20,15 +20,15 @@
 - Changed RocksDB logger output and reduced the file history to 1.
 
 ## External Dependencies Version
-- boost 1.85.0
-- cpp-httplib 0.16.2
+- boost 1.86.0
+- cpp-httplib 0.18.0
 - cryptopp 8.9.0
 - cxxopts 3.2.1
 - leveldb 1.23
 - miniupnpc 2.3.7
-- openssl 3.3.1
+- openssl 3.4.0
 - rapidjson 2023-07-17
-- rocksdb 9.2.1
+- rocksdb 9.7.2
 
 # Install Notes
 
