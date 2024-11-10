@@ -5,9 +5,9 @@ import type {
 } from "./schema"
 
 type CMakeSupportedVersion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-type CMakeCompiler = "msvc" | "msvc-clang" | "gcc" | "clang";
+type CMakeCompiler = "msvc" | "msvc-clang" | "gcc" | "gcc-cross" | "clang" | "clang-cross";
 type CMakeBuildType = "Debug" | "Release" | "RelWithDebInfo" | "MinSizeRel";
-type CMakeTarget = "install" | "package";
+type CMakeTarget = "all" | "install" | "package";
 
 const CMAKE_MINIMUM_REQUIRED: CmakeMinimumRequiredV10 = {
     major: 3,
@@ -17,11 +17,7 @@ const CMAKE_MINIMUM_REQUIRED: CmakeMinimumRequiredV10 = {
 const CMAKE_DEFAULT_CONFIGURATION_PRESET = {
     name: "default",
     hidden: true,
-    binaryDir: "${sourceDir}/build",
-    environment: {
-        VCPKG_OVERLAY_PORTS: "${sourceDir}/ports",
-        VCPKG_OVERLAY_TRIPLETS: "${sourceDir}/triplets"
-    }
+    binaryDir: "${sourceDir}/build"
 }
 
 const CMAKE_DEFAULT_MSVC_CONFIGURATION_PRESET = [
@@ -73,18 +69,22 @@ function generateDefaultConfigurationPreset(compiler: CMakeCompiler, buildType?:
 
 const CMAKE_DEFAULT_WINDOWS_CONFIGURATION_PRESET = [
     generateWindowsConfigurationPreset("msvc"),
+    generateWindowsConfigurationPreset("msvc", "all"),
     generateWindowsConfigurationPreset("msvc", "install"),
     generateWindowsConfigurationPreset("msvc", "package"),
 
     generateWindowsConfigurationPreset("msvc-clang"),
+    generateWindowsConfigurationPreset("msvc-clang", "all"),
     generateWindowsConfigurationPreset("msvc-clang", "install"),
     generateWindowsConfigurationPreset("msvc-clang", "package"),
 
     generateWindowsConfigurationPreset("gcc"),
+    generateWindowsConfigurationPreset("gcc", "all"),
     generateWindowsConfigurationPreset("gcc", "install"),
     generateWindowsConfigurationPreset("gcc", "package"),
 
     generateWindowsConfigurationPreset("clang"),
+    generateWindowsConfigurationPreset("clang", "all"),
     generateWindowsConfigurationPreset("clang", "install"),
     generateWindowsConfigurationPreset("clang", "package"),
 ]
@@ -141,59 +141,169 @@ function generateWindowsConfigurationPreset(compiler: CMakeCompiler, target?: CM
 
 const CMAKE_DEFAULT_LINUX_CONFIGURATION_PRESET = [
     generateLinuxConfigurationPreset("gcc", "x64"),
+    generateLinuxConfigurationPreset("gcc", "x64", "all"),
     generateLinuxConfigurationPreset("gcc", "x64", "install"),
     generateLinuxConfigurationPreset("gcc", "x64", "package"),
 
     generateLinuxConfigurationPreset("gcc", "amd64"),
+    generateLinuxConfigurationPreset("gcc", "amd64", "all"),
     generateLinuxConfigurationPreset("gcc", "amd64", "install"),
     generateLinuxConfigurationPreset("gcc", "amd64", "package"),
 
     generateLinuxConfigurationPreset("gcc", "arm64"),
+    generateLinuxConfigurationPreset("gcc", "arm64", "all"),
     generateLinuxConfigurationPreset("gcc", "arm64", "install"),
     generateLinuxConfigurationPreset("gcc", "arm64", "package"),
 
+    generateLinuxConfigurationPreset("gcc", "arm64", undefined, true),
+    generateLinuxConfigurationPreset("gcc", "arm64", "all", true),
+    generateLinuxConfigurationPreset("gcc", "arm64", "package", true),
+
     generateLinuxConfigurationPreset("clang", "x64"),
+    generateLinuxConfigurationPreset("clang", "x64", "all"),
     generateLinuxConfigurationPreset("clang", "x64", "install"),
     generateLinuxConfigurationPreset("clang", "x64", "package"),
 
     generateLinuxConfigurationPreset("clang", "amd64"),
+    generateLinuxConfigurationPreset("clang", "amd64", "all"),
     generateLinuxConfigurationPreset("clang", "amd64", "install"),
     generateLinuxConfigurationPreset("clang", "amd64", "package"),
 
     generateLinuxConfigurationPreset("clang", "arm64"),
+    generateLinuxConfigurationPreset("clang", "arm64", "all"),
     generateLinuxConfigurationPreset("clang", "arm64", "install"),
     generateLinuxConfigurationPreset("clang", "arm64", "package"),
+
+    generateLinuxConfigurationPreset("clang", "arm64", undefined, true),
+    generateLinuxConfigurationPreset("clang", "arm64", "all", true),
+    generateLinuxConfigurationPreset("clang", "arm64", "package", true),
 ];
 
-function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" | "amd64" | "arm64", target?: CMakeTarget) {
-    let name = `linux-${arch}-${compiler}`;
-    let inherit = `default-${compiler}`;
-    const cacheVariables: Record<string, string> = {
+function generateLinuxConfigurationPreset(compiler: CMakeCompiler, arch: "x64" | "amd64" | "arm64", target?: CMakeTarget, cross?: boolean) {
+    const result: {
+        name: string,
+        inherits?: string[],
+        installDir?: string,
+        environment?: Record<string, string>,
+        cacheVariables?: Record<string, string>,
+    } = { name: `linux-${arch}-${compiler}` };
+    
+    result.inherits = [`default-${compiler}`];
+    result.cacheVariables = {
         VCPKG_TARGET_TRIPLET: `${arch}-linux`,
         ARCH: "native",
-        SET_PACKAGE_OUTPUT_SUFFIX: "linux-x64-gcc"
+        SET_PACKAGE_OUTPUT_SUFFIX: `linux-${arch}-${compiler}`
     };
 
     if (arch === "amd64") {
-        cacheVariables.VCPKG_TARGET_TRIPLET = `x64-linux`;
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `x64-linux`;
+    }
+
+    if (arch === "arm64" && cross) {
+        result.name = `${result.name}-cross`;
+
+        if (compiler === "gcc") {
+            result.environment = {
+                CC: "aarch64-linux-gnu-gcc",
+                CXX: "aarch64-linux-gnu-g++"
+            };
+        }
+
+        result.cacheVariables.VCPKG_CHAINLOAD_TOOLCHAIN_FILE = `\${sourceDir}/CMake/linux-arm64-${compiler}.cmake`;
+        result.cacheVariables.ARCH = "default";
     }
 
     if (target !== undefined) {
-        name = `${name}-${target}`;
-        inherit = `${inherit}-release`;
-        cacheVariables.VCPKG_TARGET_TRIPLET = `${cacheVariables.VCPKG_TARGET_TRIPLET}-release`;
+        result.name = `${result.name}-${target}`;
+        result.inherits[0] = `${result.inherits[0]}-release`;
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-release`;
     }
 
     if (target === "package") {
-        cacheVariables.ARCH = "default";
-        cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
+        result.cacheVariables.ARCH = "default";
+        result.cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
     }
 
-    return {
-        name: name,
-        inherits: [inherit],
-        cacheVariables: cacheVariables,
+    return result;
+}
+
+const CMAKE_DEFAULT_MACOS_CONFIGURATION_PRESET = [
+    generateMacOSConfigurationPreset("clang", "x64"),
+    generateMacOSConfigurationPreset("clang", "x64", "all"),
+    generateMacOSConfigurationPreset("clang", "x64", "install"),
+    generateMacOSConfigurationPreset("clang", "x64", "package"),
+];
+
+function generateMacOSConfigurationPreset(compiler: CMakeCompiler, arch: "x64", target?: CMakeTarget) {
+    const result: {
+        name: string,
+        inherits?: string[],
+        environment?: Record<string, string>,
+        cacheVariables?: Record<string, string>,
+    } = { name: `osx-${arch}-${compiler}` };
+
+    result.inherits = [`default-${compiler}`];
+    result.environment = {
+        PATH: "/usr/local/opt/llvm/bin:$penv{PATH}",
+        LDFLAGS: "-L/usr/local/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib -lunwind",
+        CPPFLAGS: "-I/usr/local/opt/llvm/include"
+    }
+    result.cacheVariables = {
+        VCPKG_TARGET_TRIPLET: `${arch}-osx`,
+        ARCH: "native",
+        SET_PACKAGE_OUTPUT_SUFFIX: `osx-${arch}-${compiler}`
+    }
+
+    if (target !== undefined) {
+        result.name = `${result.name}-${target}`;
+        result.inherits[0] = `${result.inherits[0]}-release`;
+        result.cacheVariables.VCPKG_TARGET_TRIPLET = `${result.cacheVariables.VCPKG_TARGET_TRIPLET}-release`;
+    }
+
+    if (target === "package") {
+        result.cacheVariables.ARCH = "default";
+        result.cacheVariables.SET_COMMIT_ID_IN_VERSION = "OFF";
+    }
+
+    return result;
+}
+
+function generateDefaultBuildPreset(os: "windows" | "linux" | "osx", arch: "x64" | "amd64" | "arm64", compiler: CMakeCompiler, target?: CMakeTarget, buildType?: CMakeBuildType) {
+    const result: {
+        name: string,
+        configurePreset: string,
+        configuration?: string,
+        targets?: string[]
+    } = { 
+        name: `${os}-${arch}-${compiler}`,
+        configurePreset: `${os}-${arch}-${compiler}`,
     };
+
+    if (os === "windows" && compiler !== "msvc" && compiler !== "msvc-clang") {
+        result.name = `${os}-${arch}-mingw-${compiler}`;
+        result.configurePreset = `${os}-${arch}-mingw-${compiler}`;
+    }
+
+    if (target !== undefined) {
+        result.name = `${result.name}-${target}`;
+        result.configurePreset = `${result.configurePreset}-${target}`;
+        result.targets = [
+            os === "windows" && compiler === "msvc" || compiler === "msvc-clang" 
+            ? target.toUpperCase() 
+            : target
+        ];
+
+        if (os === "windows" && (compiler === "msvc" || compiler === "msvc-clang")) {
+            result.configuration = "Release";
+        }
+    }
+
+    if (buildType !== undefined) {
+        result.name = `${result.name}-${buildType.toLowerCase()}`;
+        result.configuration = buildType;
+    }
+
+    return result;
 }
 
 function generatePresetConfig(version: CMakeSupportedVersion): Schema {
@@ -207,6 +317,84 @@ function generatePresetConfig(version: CMakeSupportedVersion): Schema {
             ...CMAKE_DEFAULT_CLANG_CONFIGURATION_PRESET,
             ...CMAKE_DEFAULT_WINDOWS_CONFIGURATION_PRESET,
             ...CMAKE_DEFAULT_LINUX_CONFIGURATION_PRESET,
+            ...CMAKE_DEFAULT_MACOS_CONFIGURATION_PRESET
+        ],
+        buildPresets: [
+            generateDefaultBuildPreset("windows", "x64", "msvc", undefined, "Debug"),
+            generateDefaultBuildPreset("windows", "x64", "msvc", undefined, "Release"),
+            generateDefaultBuildPreset("windows", "x64", "msvc", "all"),
+            generateDefaultBuildPreset("windows", "x64", "msvc", "install"),
+            generateDefaultBuildPreset("windows", "x64", "msvc", "package"),
+
+            generateDefaultBuildPreset("windows", "x64", "msvc-clang", undefined, "Debug"),
+            generateDefaultBuildPreset("windows", "x64", "msvc-clang", undefined, "Release"),
+            generateDefaultBuildPreset("windows", "x64", "msvc-clang", "all"),
+            generateDefaultBuildPreset("windows", "x64", "msvc-clang", "install"),
+            generateDefaultBuildPreset("windows", "x64", "msvc-clang", "package"),
+
+            generateDefaultBuildPreset("windows", "x64", "gcc", undefined, "Debug"),
+            generateDefaultBuildPreset("windows", "x64", "gcc", undefined, "Release"),
+            generateDefaultBuildPreset("windows", "x64", "gcc", "all"),
+            generateDefaultBuildPreset("windows", "x64", "gcc", "install"),
+            generateDefaultBuildPreset("windows", "x64", "gcc", "package"),
+
+            generateDefaultBuildPreset("windows", "x64", "clang", undefined, "Debug"),
+            generateDefaultBuildPreset("windows", "x64", "clang", undefined, "Release"),
+            generateDefaultBuildPreset("windows", "x64", "clang", "all"),
+            generateDefaultBuildPreset("windows", "x64", "clang", "install"),
+            generateDefaultBuildPreset("windows", "x64", "clang", "package"),
+
+            generateDefaultBuildPreset("linux", "x64", "gcc", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "x64", "gcc", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "x64", "gcc", "all"),
+            generateDefaultBuildPreset("linux", "x64", "gcc", "install"),
+            generateDefaultBuildPreset("linux", "x64", "gcc", "package"),
+
+            generateDefaultBuildPreset("linux", "x64", "clang", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "x64", "clang", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "x64", "clang", "all"),
+            generateDefaultBuildPreset("linux", "x64", "clang", "install"),
+            generateDefaultBuildPreset("linux", "x64", "clang", "package"),
+
+            generateDefaultBuildPreset("linux", "amd64", "gcc", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "amd64", "gcc", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "amd64", "gcc", "all"),
+            generateDefaultBuildPreset("linux", "amd64", "gcc", "install"),
+            generateDefaultBuildPreset("linux", "amd64", "gcc", "package"),
+
+            generateDefaultBuildPreset("linux", "amd64", "clang", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "amd64", "clang", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "amd64", "clang", "all"),
+            generateDefaultBuildPreset("linux", "amd64", "clang", "install"),
+            generateDefaultBuildPreset("linux", "amd64", "clang", "package"),
+
+            generateDefaultBuildPreset("linux", "arm64", "gcc", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc", "all"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc", "install"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc", "package"),
+
+            generateDefaultBuildPreset("linux", "arm64", "clang", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "arm64", "clang", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "arm64", "clang", "all"),
+            generateDefaultBuildPreset("linux", "arm64", "clang", "install"),
+            generateDefaultBuildPreset("linux", "arm64", "clang", "package"),
+
+            generateDefaultBuildPreset("linux", "arm64", "gcc-cross", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc-cross", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc-cross", "all"),
+            generateDefaultBuildPreset("linux", "arm64", "gcc-cross", "package"),
+
+            generateDefaultBuildPreset("linux", "arm64", "clang-cross", undefined, "Debug"),
+            generateDefaultBuildPreset("linux", "arm64", "clang-cross", undefined, "Release"),
+            generateDefaultBuildPreset("linux", "arm64", "clang-cross", "all"),
+            generateDefaultBuildPreset("linux", "arm64", "clang-cross", "package"),
+
+            generateDefaultBuildPreset("osx", "x64", "clang", undefined, "Debug"),
+            generateDefaultBuildPreset("osx", "x64", "clang", undefined, "Release"),
+            generateDefaultBuildPreset("osx", "x64", "clang", "all"),
+            generateDefaultBuildPreset("osx", "x64", "clang", "install"),
+            generateDefaultBuildPreset("osx", "x64", "clang", "package"),
         ]
     }
 }

@@ -179,30 +179,54 @@ Prerequisites:
 
 Building via CLI:
 ```bash
+#########################
 # For native x64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
-CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
-sudo cmake --build build -t install
+CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release -G Ninja -S . -B build
+cmake --build build
+sudo cmake --install build
 
+#########################
 # For native arm64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
-CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=arm64-linux-release -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
-sudo cmake --build build -t install
+CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=arm64-linux-release -G Ninja -S . -B build
+cmake --build build
+sudo cmake --install build
 ```
 
 Building via Presets:
 ```bash
+#########################
 # For native x64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
+
+# For build only.
+cmake --preset linux-x64-gcc-all
+cmake --build --preset linux-x64-gcc-all
+sudo cmake --install build
+
+# For build and install.
 cmake --preset linux-x64-gcc-install
 sudo cmake --build --preset linux-x64-gcc-install
 
+#########################
 # For native arm64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
+
+# For build only.
+cmake --preset linux-arm64-gcc-all
+cmake --build --preset linux-arm64-gcc-all
+sudo cmake --install build
+
+# For build and install.
 cmake --preset linux-arm64-gcc-install
 sudo cmake --build --preset linux-arm64-gcc-install
 ```
@@ -224,30 +248,54 @@ Prerequisites:
 
 Building via CLI:
 ```bash
+#########################
 # For native x64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
 CC=clang CXX=clang++ cmake -D VCPKG_TARGET_TRIPLET=x64-linux-release-clang -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
-sudo cmake --build build -t install
+cmake --build build
+sudo cmake --install build
 
+#########################
 # For native arm64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
 CC=gcc CXX=g++ cmake -D VCPKG_TARGET_TRIPLET=arm64-linux-release-clang -D CMAKE_BUILD_TYPE=Release -D ARCH=native -G Ninja -S . -B build
-sudo cmake --build build -t install
+cmake --build build
+sudo cmake --install build
 ```
 
 Building via Presets:
 ```bash
+#########################
 # For native x64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
+
+# For build only.
+cmake --preset linux-x64-clang-all
+cmake --build --preset linux-x64-clang-all
+sudo cmake --install build
+
+# For build and install.
 cmake --preset linux-x64-clang-install
 sudo cmake --build --preset linux-x64-clang-install
 
+#########################
 # For native arm64 builds
+#########################
 git clone -b development --recursive https://github.com/derogold/derogold.git
 cd derogold
+
+# For build only.
+cmake --preset linux-arm64-clang-all
+cmake --build --preset linux-arm64-clang-all
+sudo cmake --install build
+
+# For build and install.
 cmake --preset linux-arm64-clang-install
 sudo cmake --build --preset linux-arm64-clang-install
 ```
@@ -262,26 +310,36 @@ You can use `--preset linux-arm64-clang-cross-package` to cross compile for arm6
 
 #### CLANG
 
-**NOTE: This build is not officially supported due to MacOS transitioning to arm64 build only and the code do not support arm64 architecture.**
+**NOTE: This build is not officially supported due to MacOS transitioning to arm64 and the code do not support arm64 architecture.**
 
 Prerequisites:
 - [HomeBrew](https://brew.sh/)
   - Install by running `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
   - `brew install git cmake ninja llvm pkg-config`
 
-Building:
-- `git clone -b development --recursive https://github.com/derogold/derogold.git`
-- `cd derogold`
-- `cmake --preset osx-x64-clang-install`
-- `sudo cmake --build --preset osx-x64-clang-install`
-- use `sudo cmake --install build` if install permission failed
-- Enjoy your build at `/usr/local/bin`
+Building via CLI:
+```bash
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+CC=clang CXX=clang++ LDFLAGS="-L/usr/local/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib -lunwind" CPPFLAGS="-I/usr/local/opt/llvm/include" cmake -D VCPKG_TARGET_TRIPLET=x64-osx-release -G Ninja -S . -B build
+cmake --build build
+sudo cmake --install build
+```
 
-Alternatively:
-- `cd derogold`
-- `PATH=/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$PATH`
-- `CC=clang CXX=clang++ LDFLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -L/usr/local/opt/llvm/lib -lunwind" CPPFLAGS="-I/opt/homebrew/opt/llvm/include -I/usr/local/opt/llvm/include" cmake -D VCPKG_TARGET_TRIPLET=x64-osx-release -G Ninja -S . -B build`
-- `sudo cmake --build build -t install`
+Building via Presets:
+```bash
+git clone -b development --recursive https://github.com/derogold/derogold.git
+cd derogold
+
+# For build only.
+cmake --preset osx-x64-clang-all
+cmake --build --preset osx-x64-clang-all
+sudo cmake --install build
+
+# For build and install.
+cmake --preset osx-x64-clang-install
+sudo cmake --build --preset osx-x64-clang-install
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
