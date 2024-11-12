@@ -383,7 +383,7 @@ namespace CryptoNote
     const char *const SEED_NODES[] = {
         "178.211.147.75:42069", // Ole Cuvee
         "80.60.19.222:42069", // sniperviperman
-		"81.169.205.142:42069",
-		"213.199.49.4:42069",
+        "81.169.205.142:42069",
+        "213.199.49.4:42069",
     };
 } // namespace CryptoNote
