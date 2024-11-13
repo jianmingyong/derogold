@@ -5,7 +5,7 @@ on:
     inputs:
       draft_release:
         description: 'Create a draft release'
-        default: false
+        default: true
         type: boolean
       docker_push:
         description: 'Push results to docker'
@@ -24,7 +24,6 @@ jobs:
   env:
     name: Get DeroGold Version
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
 
     outputs:
       version: ${{ steps.get_output_version.outputs.version }}
@@ -34,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: true
 
       - id: get_output_version
@@ -64,32 +63,6 @@ jobs:
             configure_preset: windows-x64-msvc-package
             build_preset: windows-x64-msvc-package
 
-          - os: windows-latest
-            arch: x64
-            compiler: gcc
-            install: ""
-            msys2_environment: MINGW64
-            msys2_install: >-
-              mingw-w64-x86_64-ccache
-              mingw-w64-x86_64-cmake
-              mingw-w64-x86_64-ninja
-              mingw-w64-x86_64-toolchain
-            configure_preset: windows-x64-mingw-gcc-package
-            build_preset: windows-x64-mingw-gcc-package
-
-          - os: windows-latest
-            arch: x64
-            compiler: clang
-            install: ""
-            msys2_environment: CLANG64
-            msys2_install: >-
-              mingw-w64-clang-x86_64-ccache
-              mingw-w64-clang-x86_64-cmake
-              mingw-w64-clang-x86_64-ninja
-              mingw-w64-clang-x86_64-toolchain
-            configure_preset: windows-x64-mingw-clang-package
-            build_preset: windows-x64-mingw-clang-package
-
           - os: ubuntu-20.04
             arch: x64
             compiler: gcc
@@ -107,22 +80,6 @@ jobs:
             build_preset: linux-x64-gcc-package
 
           - os: ubuntu-20.04
-            arch: x64
-            compiler: clang
-            install: >-
-              clang
-              cmake
-              curl
-              git
-              ninja-build
-              pkg-config
-              tar
-              unzip
-              zip
-            configure_preset: linux-x64-clang-package
-            build_preset: linux-x64-clang-package
-
-          - os: ubuntu-20.04
             arch: arm64
             compiler: gcc
             install: >-
@@ -138,27 +95,11 @@ jobs:
             configure_preset: linux-arm64-gcc-cross-package
             build_preset: linux-arm64-gcc-cross-package
 
-          - os: ubuntu-20.04
-            arch: arm64
-            compiler: clang
-            install: >-
-              binutils-aarch64-linux-gnu
-              clang
-              cmake
-              curl
-              git
-              ninja-build
-              pkg-config
-              tar
-              unzip
-              zip
-            configure_preset: linux-arm64-clang-cross-package
-            build_preset: linux-arm64-clang-cross-package
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           submodules: recursive
 
       - name: Install Program / Dependencies
@@ -190,20 +131,6 @@ jobs:
       - name: Install CMake
         uses: lukka/get-cmake@latest
 
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        if: runner.os == 'Windows' && matrix.compiler != 'msvc'
-        with:
-          update: true
-          install: ${{ matrix.msys2_install }}
-          msystem: ${{ matrix.msys2_environment }}
-
-      - name: Setup sysroot
-        if: runner.os == 'Linux' && matrix.arch == 'arm64' && matrix.compiler == 'clang'
-        run: |
-          sudo mkdir /usr/local/sysroot
-          sudo tar -xzf docker/sysroot/ubuntu-20.04-aarch64-linux-gnu-sysroot.tar.gz -C /usr/local/sysroot
-
       - name: Setup ccache
         uses: jianmingyong/ccache-action@v1
         with:
@@ -213,17 +140,8 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11.5
 
-      - name: Build DeroGold (MSYS2)
-        if: runner.os == 'Windows' && matrix.compiler != 'msvc'
-        working-directory: ${{ github.workspace }}
-        shell: msys2 {0}
-        run: |
-          cmake --preset ${{ matrix.configure_preset }}
-          cmake --build --preset ${{ matrix.build_preset }}
-
       - name: Build DeroGold (MSVC/GCC/CLANG)
         uses: lukka/run-cmake@v10.8
-        if: runner.os != 'Windows' || (runner.os == 'Windows' && matrix.compiler == 'msvc')
         with:
           configurePreset: '${{ matrix.configure_preset }}'
           buildPreset: '${{ matrix.build_preset }}'
@@ -255,6 +173,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Create artifact directory
         run: |
