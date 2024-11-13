@@ -1,6 +1,7 @@
 name: Deploy DeroGold
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       draft_release:
@@ -24,6 +25,7 @@ jobs:
   env:
     name: Get DeroGold Version
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
 
     outputs:
       version: ${{ steps.get_output_version.outputs.version }}
