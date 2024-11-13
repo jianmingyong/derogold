@@ -1,7 +1,6 @@
 name: Deploy DeroGold
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       draft_release:
