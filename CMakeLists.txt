@@ -104,6 +104,8 @@ set(VCPKG_INSTALL_OPTIONS "--clean-after-build")
 
 project(DeroGold VERSION 0.7.2.4 HOMEPAGE_URL https://derogold.com LANGUAGES C CXX ASM)
 
+include(CTest)
+
 # Enable c11
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -327,7 +329,6 @@ find_package(miniupnpc CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(RapidJSON CONFIG REQUIRED)
 find_package(RocksDB CONFIG REQUIRED)
-find_package(zstd CONFIG REQUIRED)
 
 # So we can use std::string with rapidjson
 add_compile_definitions(RAPIDJSON_HAS_STDSTRING)

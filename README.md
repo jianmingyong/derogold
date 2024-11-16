@@ -67,8 +67,7 @@ We offer docker images of the latest releases here: https://hub.docker.com/r/jia
 By default, the images use Ubuntu 20.04 LTS as a base image when build.
 
 Supported tags:
-- latest, latest-gcc, 0.7.2.3-gcc, 0.7.2.3
-- latest-clang, 0.7.2.3-clang
+- latest, 0.7.2.3
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

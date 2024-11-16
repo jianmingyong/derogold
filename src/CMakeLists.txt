@@ -162,8 +162,6 @@ add_custom_target(cli-wallet DEPENDS zedwallet++)
 install(TARGETS DeroGoldd zedwallet++ WalletService miner WalletApi WalletUpgrader)
 
 # CPack
-include(CPack)
-
 set(CPACK_PACKAGE_NAME "DeroGold")
 set(CPACK_PACKAGE_VENDOR "The DeroGold Developers")
 set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/src/config/icon.ico")
@@ -179,7 +177,7 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(CPACK_GENERATOR "TGZ")
 endif()
 
-# CTest
-include(CTest)
+include(CPack)
 
+# CTest
 add_test(NAME CryptoTest COMMAND ${CMAKE_BINARY_DIR}/src/cryptotest)
