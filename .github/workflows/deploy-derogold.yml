@@ -48,6 +48,7 @@ jobs:
     name: ${{ matrix.build_preset }}
     runs-on: ${{ matrix.os }}
     needs: env
+    if: github.event.inputs.draft_release
 
     concurrency: 
       group: build_derogold_${{ github.ref }}_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.compiler }}
@@ -199,17 +200,12 @@ jobs:
             ${{ github.workspace }}/build/*.deb
 
   docker_build_derogold:
-    name: Deploy DeroGold Docker (${{ matrix.compiler }})
+    name: Deploy DeroGold Docker
     runs-on: ubuntu-latest
     needs: env
 
     env:
       DOCKER_HUB_REPOSITORY: jianmingyong/derogold
-
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: [gcc, clang]
 
     steps:
       - name: Set up QEMU
@@ -233,21 +229,11 @@ jobs:
       - id: env
         run: |
           $output = @()
-          $output += "${{ env.DOCKER_HUB_REPOSITORY }}:${{ needs.env.outputs.version }}-${{ matrix.compiler }}"
+          $output += "${{ env.DOCKER_HUB_REPOSITORY }}:${{ needs.env.outputs.version }}"
 
-          if ("${{ matrix.compiler }}" -eq "gcc")
+          if ("${{ needs.env.outputs.is_latest_version }}" -eq "true")
           {
-            $output += "${{ env.DOCKER_HUB_REPOSITORY }}:${{ needs.env.outputs.version }}"
-          }
-
-          if ("${{ github.event.inputs.draft_release }}" -eq "false" -And "${{ needs.env.outputs.is_latest_version }}" -eq "true")
-          {
-            $output += "${{ env.DOCKER_HUB_REPOSITORY }}:latest-${{ matrix.compiler }}"
-
-            if ("${{ matrix.compiler }}" -eq "gcc")
-            {
-              $output += "${{ env.DOCKER_HUB_REPOSITORY }}:latest"
-            }
+            $output += "${{ env.DOCKER_HUB_REPOSITORY }}:latest"
           }
 
           echo tags=$([string]::Join(",", $output)) >> "$env:GITHUB_OUTPUT"
@@ -263,11 +249,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache-filters: |
-            build_gcc_clang
+            build
           build-args: |
+            UBUNTU_VERSION=20.04
             VCPKG_BINARY_SOURCES=clear;x-gha,readwrite
             ACTIONS_CACHE_URL=${{ steps.env.outputs.ACTIONS_CACHE_URL }}
-            COMPILER_TYPE=${{ matrix.compiler }}
           secret-envs: |
             ACTIONS_RUNTIME_TOKEN=ACTIONS_RUNTIME_TOKEN
           push: ${{ github.event.inputs.docker_push }}
